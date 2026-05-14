@@ -1,0 +1,937 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>actor: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">collab-actor-demo/internal/actor/actor.go (83.3%)</option>
+				
+				<option value="file1">collab-actor-demo/internal/actor/context.go (77.3%)</option>
+				
+				<option value="file2">collab-actor-demo/internal/actor/engine.go (100.0%)</option>
+				
+				<option value="file3">collab-actor-demo/internal/actor/mailbox.go (85.7%)</option>
+				
+				<option value="file4">collab-actor-demo/internal/actor/message.go (100.0%)</option>
+				
+				<option value="file5">collab-actor-demo/internal/actor/metrics.go (85.0%)</option>
+				
+				<option value="file6">collab-actor-demo/internal/actor/option.go (41.7%)</option>
+				
+				<option value="file7">collab-actor-demo/internal/actor/watch_manager.go (84.3%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package actor
+
+import (
+        "fmt"
+        "time"
+)
+
+type Actor interface {
+        Receive(ctx Context)
+}
+
+type Lifecycle interface {
+        OnStart(ctx Context)
+        OnStop(ctx Context)
+}
+
+type ActorRef struct {
+        name    string
+        mailbox Mailbox
+        engine  *Engine
+        done    chan struct{}
+}
+
+func (r *ActorRef) Name() string <span class="cov8" title="1">{
+        return r.name
+}</span>
+
+func (r *ActorRef) Done() &lt;-chan struct{} <span class="cov8" title="1">{
+        return r.done
+}</span>
+
+func (r *ActorRef) Tell(msg any) error <span class="cov8" title="1">{
+        if !r.mailbox.Push(Envelope{
+                Sender:  nil,
+                Message: msg,
+        }) </span><span class="cov8" title="1">{
+                return fmt.Errorf("actor %s is stopped", r.name)
+        }</span>
+        <span class="cov8" title="1">return nil</span>
+}
+
+func (r *ActorRef) TellFrom(sender *ActorRef, msg any) error <span class="cov8" title="1">{
+        if !r.mailbox.Push(Envelope{
+                Sender:  sender,
+                Message: msg,
+        }) </span><span class="cov0" title="0">{
+                return fmt.Errorf("actor %s is stopped", r.name)
+        }</span>
+        <span class="cov8" title="1">return nil</span>
+}
+
+func (r *ActorRef) Ask(msg any, timeout time.Duration) (any, error) <span class="cov8" title="1">{
+        f := newFuture()
+        if !r.mailbox.Push(Envelope{
+                Message: msg,
+                replyTo: f,
+        }) </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("actor %s is stopped", r.name)
+        }</span>
+        <span class="cov8" title="1">return f.wait(timeout)</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package actor
+
+import (
+        "fmt"
+        "time"
+)
+
+// Context 提供 actor 处理消息时的上下文信息和操作能力
+type Context interface {
+        // Self 返回当前 actor 的引用
+        Self() *ActorRef
+        // Sender 返回发送当前消息的 actor 引用，如果是外部发送则返回 nil
+        Sender() *ActorRef
+        // Message 返回当前正在处理的消息
+        Message() any
+        // Reply 向消息发送者回复消息，仅在 Ask 模式下有效
+        Reply(msg any) error
+        // Spawn 创建并启动一个新的子 actor
+        Spawn(name string, a Actor) (*ActorRef, error)
+        // Stop 停止指定的 actor
+        Stop(ref *ActorRef)
+        // Watch 监听指定 actor 的终止事件，当该 actor 停止时会收到 Terminated 消息
+        Watch(ref *ActorRef)
+        // Unwatch 取消对指定 actor 的监听
+        Unwatch(ref *ActorRef)
+        // ScheduleAfter 在指定时间后向当前 actor 发送一条消息，返回可取消的定时器
+        ScheduleAfter(d time.Duration, msg any) *Timer
+}
+
+type actorContext struct {
+        self    *ActorRef
+        engine  *Engine
+        current *Envelope
+        replied bool
+}
+
+func (c *actorContext) Self() *ActorRef <span class="cov0" title="0">{
+        return c.self
+}</span>
+
+func (c *actorContext) Sender() *ActorRef <span class="cov8" title="1">{
+        if c.current == nil </span><span class="cov0" title="0">{
+                return nil
+        }</span>
+        <span class="cov8" title="1">return c.current.Sender</span>
+}
+
+func (c *actorContext) Message() any <span class="cov8" title="1">{
+        if c.current == nil </span><span class="cov0" title="0">{
+                return nil
+        }</span>
+        <span class="cov8" title="1">return c.current.Message</span>
+}
+
+func (c *actorContext) Spawn(name string, a Actor) (*ActorRef, error) <span class="cov0" title="0">{
+        return c.engine.Spawn(name, a)
+}</span>
+
+func (c *actorContext) Stop(ref *ActorRef) <span class="cov0" title="0">{
+        c.engine.Stop(ref.Name())
+}</span>
+
+func (c *actorContext) Watch(ref *ActorRef) <span class="cov8" title="1">{
+        if c.engine.watchManager.add(c.self, ref) </span><span class="cov8" title="1">{
+                c.engine.metrics.WatchAdded(c.self.name, ref.name)
+        }</span>
+}
+
+func (c *actorContext) Unwatch(ref *ActorRef) <span class="cov8" title="1">{
+        if c.engine.watchManager.remove(c.self, ref) </span><span class="cov8" title="1">{
+                c.engine.metrics.WatchRemoved(c.self.name, ref.name)
+        }</span>
+}
+
+func (c *actorContext) ScheduleAfter(d time.Duration, msg any) *Timer <span class="cov8" title="1">{
+        return &amp;Timer{
+                timer: time.AfterFunc(d, func() </span><span class="cov8" title="1">{
+                        c.self.Tell(msg)
+                }</span>),
+        }
+}
+
+func (c *actorContext) Reply(msg any) error <span class="cov8" title="1">{
+        if c.current == nil || c.current.replyTo == nil </span><span class="cov8" title="1">{
+                return fmt.Errorf("Reply called on a non-Ask message")
+        }</span>
+        <span class="cov8" title="1">if c.replied </span><span class="cov8" title="1">{
+                return fmt.Errorf("Reply already called for current message")
+        }</span>
+        <span class="cov8" title="1">c.replied = true
+        c.current.replyTo.reply(msg)
+        return nil</span>
+}
+
+func (c *actorContext) cleanup() {<span class="cov8" title="1">
+}</span>
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package actor
+
+import (
+        "context"
+        "errors"
+        "fmt"
+        "sync"
+        "time"
+)
+
+type actorInstance struct {
+        actor   Actor
+        ref     *ActorRef
+        ctx     *actorContext
+        receive ReceiveFunc
+}
+
+func (inst *actorInstance) triggerOnStart() <span class="cov8" title="1">{
+        if lifecycle, ok := inst.actor.(Lifecycle); ok </span><span class="cov8" title="1">{
+                lifecycle.OnStart(inst.ctx)
+        }</span>
+}
+
+func (inst *actorInstance) triggerOnStop() <span class="cov8" title="1">{
+        if lifecycle, ok := inst.actor.(Lifecycle); ok </span><span class="cov8" title="1">{
+                lifecycle.OnStop(inst.ctx)
+        }</span>
+}
+
+func (inst *actorInstance) dispatch(env Envelope, onPanic func(any)) <span class="cov8" title="1">{
+        defer func() </span><span class="cov8" title="1">{
+                if r := recover(); r != nil </span><span class="cov8" title="1">{
+                        onPanic(r)
+                }</span>
+        }()
+
+        <span class="cov8" title="1">inst.ctx.current = &amp;env
+        inst.ctx.replied = false
+        inst.receive(inst.ctx)
+        inst.ctx.current = nil</span>
+}
+
+type Engine struct {
+        actors         map[string]*actorInstance
+        mu             sync.RWMutex
+        logger         Logger
+        metrics        Metrics
+        middleware     []Middleware
+        mailboxFactory MailboxFactory
+        watchManager   *watchManager
+}
+
+var ErrActorExists = errors.New("actor already exists")
+
+func NewEngine(opts ...EngineOption) *Engine <span class="cov8" title="1">{
+        e := &amp;Engine{
+                actors:         make(map[string]*actorInstance),
+                logger:         &amp;defaultLogger{},
+                metrics:        noopMetrics{},
+                mailboxFactory: func() Mailbox </span><span class="cov8" title="1">{ return NewChanMailbox(256) }</span>,
+                watchManager:   newWatchManager(),
+        }
+        <span class="cov8" title="1">for _, opt := range opts </span><span class="cov8" title="1">{
+                opt(e)
+        }</span>
+        <span class="cov8" title="1">return e</span>
+}
+
+func (e *Engine) Metrics() Metrics <span class="cov8" title="1">{
+        return e.metrics
+}</span>
+
+func (e *Engine) Spawn(name string, a Actor) (*ActorRef, error) <span class="cov8" title="1">{
+        e.mu.Lock()
+        defer e.mu.Unlock()
+
+        if _, exists := e.actors[name]; exists </span><span class="cov8" title="1">{
+                return nil, ErrActorExists
+        }</span>
+
+        <span class="cov8" title="1">inst := e.newActorInstance(name, a)
+        e.actors[name] = inst
+        e.metrics.ActorSpawned(name)
+        go e.processLoop(inst)
+
+        return inst.ref, nil</span>
+}
+
+func (e *Engine) newActorInstance(name string, a Actor) *actorInstance <span class="cov8" title="1">{
+        mailbox := e.mailboxFactory()
+        ref := &amp;ActorRef{
+                name:    name,
+                mailbox: mailbox,
+                engine:  e,
+                done:    make(chan struct{}),
+        }
+
+        receive := ReceiveFunc(a.Receive)
+        for i := len(e.middleware) - 1; i &gt;= 0; i-- </span><span class="cov8" title="1">{
+                receive = e.middleware[i](receive)
+        }</span>
+
+        <span class="cov8" title="1">return &amp;actorInstance{
+                actor:   a,
+                ref:     ref,
+                ctx:     &amp;actorContext{self: ref, engine: e},
+                receive: receive,
+        }</span>
+}
+
+func (e *Engine) processLoop(inst *actorInstance) <span class="cov8" title="1">{
+        defer func() </span><span class="cov8" title="1">{
+                inst.ctx.cleanup()
+                e.watchManager.cleanupForWatcher(inst.ref)
+                e.metrics.ActorStopped(inst.ref.name)
+                close(inst.ref.done)
+        }</span>()
+
+        <span class="cov8" title="1">inst.triggerOnStart()
+
+        for </span><span class="cov8" title="1">{
+                env, ok := inst.ref.mailbox.Pull()
+                if !ok </span><span class="cov8" title="1">{
+                        inst.triggerOnStop()
+                        return
+                }</span>
+
+                <span class="cov8" title="1">if _, ok := env.Message.(PoisonPill); ok </span><span class="cov8" title="1">{
+                        inst.triggerOnStop()
+                        return
+                }</span>
+
+                <span class="cov8" title="1">start := time.Now()
+                inst.dispatch(env, func(r any) </span><span class="cov8" title="1">{
+                        e.logger.Printf("[actor] %s panic: %v", inst.ref.name, r)
+                        e.metrics.PanicRecovered(inst.ref.name)
+                }</span>)
+                <span class="cov8" title="1">e.metrics.MessageProcessed(inst.ref.name, time.Since(start))</span>
+        }
+}
+
+func (e *Engine) Lookup(name string) (*ActorRef, bool) <span class="cov8" title="1">{
+        e.mu.RLock()
+        defer e.mu.RUnlock()
+
+        inst, ok := e.actors[name]
+        if !ok </span><span class="cov8" title="1">{
+                return nil, false
+        }</span>
+        <span class="cov8" title="1">return inst.ref, true</span>
+}
+
+func (e *Engine) Stop(name string) <span class="cov8" title="1">{
+        e.mu.Lock()
+        inst, ok := e.actors[name]
+        if !ok </span><span class="cov8" title="1">{
+                e.mu.Unlock()
+                return
+        }</span>
+        <span class="cov8" title="1">delete(e.actors, name)
+        e.mu.Unlock()
+
+        inst.ref.mailbox.Stop()</span>
+}
+
+func (e *Engine) Shutdown(ctx ...context.Context) error <span class="cov8" title="1">{
+        e.mu.Lock()
+        instances := make([]*actorInstance, 0, len(e.actors))
+        for name, inst := range e.actors </span><span class="cov8" title="1">{
+                instances = append(instances, inst)
+                delete(e.actors, name)
+        }</span>
+        <span class="cov8" title="1">e.mu.Unlock()
+
+        for _, inst := range instances </span><span class="cov8" title="1">{
+                inst.ref.mailbox.Stop()
+        }</span>
+
+        <span class="cov8" title="1">var deadline &lt;-chan struct{}
+        if len(ctx) &gt; 0 &amp;&amp; ctx[0] != nil </span><span class="cov8" title="1">{
+                deadline = ctx[0].Done()
+        }</span>
+
+        <span class="cov8" title="1">for _, inst := range instances </span><span class="cov8" title="1">{
+                select </span>{
+                case &lt;-inst.ref.done:<span class="cov8" title="1"></span>
+                case &lt;-deadline:<span class="cov8" title="1">
+                        return fmt.Errorf("engine shutdown timed out, %d actors still running", e.runningCount(instances))</span>
+                }
+        }
+        <span class="cov8" title="1">return nil</span>
+}
+
+func (e *Engine) runningCount(instances []*actorInstance) int <span class="cov8" title="1">{
+        count := 0
+        for _, inst := range instances </span><span class="cov8" title="1">{
+                select </span>{
+                case &lt;-inst.ref.done:<span class="cov0" title="0"></span>
+                default:<span class="cov8" title="1">
+                        count++</span>
+                }
+        }
+        <span class="cov8" title="1">return count</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package actor
+
+import (
+        "context"
+        "fmt"
+        "sync"
+        "time"
+)
+
+type Envelope struct {
+        Sender  *ActorRef
+        Message any
+        replyTo *future
+}
+
+type Mailbox interface {
+        Push(e Envelope) bool
+        Pull() (Envelope, bool)
+        Stop()
+}
+
+type ChanMailbox struct {
+        ch   chan Envelope
+        done chan struct{}
+        once sync.Once
+}
+
+func NewChanMailbox(size int) *ChanMailbox <span class="cov8" title="1">{
+        return &amp;ChanMailbox{
+                ch:   make(chan Envelope, size),
+                done: make(chan struct{}),
+        }
+}</span>
+
+func (m *ChanMailbox) Push(e Envelope) bool <span class="cov8" title="1">{
+        select </span>{
+        case &lt;-m.done:<span class="cov8" title="1">
+                return false</span>
+        default:<span class="cov8" title="1"></span>
+        }
+        <span class="cov8" title="1">select </span>{
+        case &lt;-m.done:<span class="cov0" title="0">
+                return false</span>
+        case m.ch &lt;- e:<span class="cov8" title="1">
+                return true</span>
+        }
+}
+
+func (m *ChanMailbox) Pull() (Envelope, bool) <span class="cov8" title="1">{
+        select </span>{
+        case env, ok := &lt;-m.ch:<span class="cov8" title="1">
+                return env, ok</span>
+        case &lt;-m.done:<span class="cov8" title="1">
+                select </span>{
+                case env := &lt;-m.ch:<span class="cov8" title="1">
+                        return env, true</span>
+                default:<span class="cov8" title="1">
+                        return Envelope{}, false</span>
+                }
+        }
+}
+
+func (m *ChanMailbox) Stop() <span class="cov8" title="1">{
+        m.once.Do(func() </span><span class="cov8" title="1">{
+                close(m.done)
+        }</span>)
+}
+
+type future struct {
+        ch chan any
+}
+
+func newFuture() *future <span class="cov8" title="1">{
+        return &amp;future{ch: make(chan any, 1)}
+}</span>
+
+func (f *future) reply(msg any) bool <span class="cov8" title="1">{
+        select </span>{
+        case f.ch &lt;- msg:<span class="cov8" title="1">
+                return true</span>
+        default:<span class="cov0" title="0">
+                return false</span>
+        }
+}
+
+func (f *future) wait(timeout time.Duration) (any, error) <span class="cov8" title="1">{
+        if timeout &lt; 0 </span><span class="cov0" title="0">{
+                return &lt;-f.ch, nil
+        }</span>
+        <span class="cov8" title="1">if timeout == 0 </span><span class="cov8" title="1">{
+                select </span>{
+                case reply := &lt;-f.ch:<span class="cov0" title="0">
+                        return reply, nil</span>
+                default:<span class="cov8" title="1">
+                        return nil, fmt.Errorf("ask timeout: immediate mode")</span>
+                }
+        }
+        <span class="cov8" title="1">ctx, cancel := context.WithTimeout(context.Background(), timeout)
+        defer cancel()
+        select </span>{
+        case reply := &lt;-f.ch:<span class="cov8" title="1">
+                return reply, nil</span>
+        case &lt;-ctx.Done():<span class="cov8" title="1">
+                return nil, fmt.Errorf("ask timeout after %v", timeout)</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package actor
+
+import "time"
+
+type Terminated struct {
+        Who *ActorRef
+}
+
+type Timer struct {
+        timer *time.Timer
+}
+
+func (t *Timer) Cancel() <span class="cov8" title="1">{
+        t.timer.Stop()
+}</span>
+
+type PoisonPill struct{}
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package actor
+
+import (
+        "sync"
+        "sync/atomic"
+        "time"
+)
+
+type Metrics interface {
+        ActorSpawned(name string)
+        ActorStopped(name string)
+        MessageProcessed(name string, duration time.Duration)
+        MessageQueued(name string)
+        MessageDropped(name string)
+        PanicRecovered(name string)
+        WatchAdded(watcher, watched string)
+        WatchRemoved(watcher, watched string)
+        GetSnapshot() MetricsSnapshot
+}
+
+type MetricsSnapshot struct {
+        TotalActors   int64
+        TotalMessages int64
+        TotalPanics   int64
+        TotalWatches  int64
+        ActorStats    map[string]ActorStats
+}
+
+type ActorStats struct {
+        Name              string
+        MessagesQueued    int64
+        MessagesProcessed int64
+        Panics            int64
+        ActiveWatches     int64
+}
+
+type defaultMetrics struct {
+        totalActors   atomic.Int64
+        totalMessages atomic.Int64
+        totalPanics   atomic.Int64
+        totalWatches  atomic.Int64
+
+        mu         sync.RWMutex
+        actorStats map[string]*actorStatsEntry
+}
+
+type actorStatsEntry struct {
+        messagesQueued    atomic.Int64
+        messagesProcessed atomic.Int64
+        panics            atomic.Int64
+        activeWatches     atomic.Int64
+}
+
+func NewDefaultMetrics() Metrics <span class="cov8" title="1">{
+        return &amp;defaultMetrics{
+                actorStats: make(map[string]*actorStatsEntry),
+        }
+}</span>
+
+func (m *defaultMetrics) getOrCreateEntry(name string) *actorStatsEntry <span class="cov8" title="1">{
+        m.mu.RLock()
+        entry, ok := m.actorStats[name]
+        m.mu.RUnlock()
+        if ok </span><span class="cov8" title="1">{
+                return entry
+        }</span>
+
+        <span class="cov8" title="1">m.mu.Lock()
+        defer m.mu.Unlock()
+        entry, ok = m.actorStats[name]
+        if ok </span><span class="cov0" title="0">{
+                return entry
+        }</span>
+        <span class="cov8" title="1">entry = &amp;actorStatsEntry{}
+        m.actorStats[name] = entry
+        return entry</span>
+}
+
+func (m *defaultMetrics) ActorSpawned(name string) <span class="cov8" title="1">{
+        m.totalActors.Add(1)
+        m.getOrCreateEntry(name)
+}</span>
+
+func (m *defaultMetrics) ActorStopped(name string) <span class="cov8" title="1">{
+        m.totalActors.Add(-1)
+}</span>
+
+func (m *defaultMetrics) MessageProcessed(name string, duration time.Duration) <span class="cov8" title="1">{
+        m.totalMessages.Add(1)
+        entry := m.getOrCreateEntry(name)
+        entry.messagesProcessed.Add(1)
+}</span>
+
+func (m *defaultMetrics) MessageQueued(name string) <span class="cov0" title="0">{
+        entry := m.getOrCreateEntry(name)
+        entry.messagesQueued.Add(1)
+}</span>
+
+func (m *defaultMetrics) MessageDropped(name string) <span class="cov0" title="0">{
+        entry := m.getOrCreateEntry(name)
+        entry.messagesQueued.Add(-1)
+}</span>
+
+func (m *defaultMetrics) PanicRecovered(name string) <span class="cov8" title="1">{
+        m.totalPanics.Add(1)
+        entry := m.getOrCreateEntry(name)
+        entry.panics.Add(1)
+}</span>
+
+func (m *defaultMetrics) WatchAdded(watcher, watched string) <span class="cov8" title="1">{
+        m.totalWatches.Add(1)
+        entry := m.getOrCreateEntry(watcher)
+        entry.activeWatches.Add(1)
+}</span>
+
+func (m *defaultMetrics) WatchRemoved(watcher, watched string) <span class="cov8" title="1">{
+        m.totalWatches.Add(-1)
+        entry := m.getOrCreateEntry(watcher)
+        entry.activeWatches.Add(-1)
+}</span>
+
+func (m *defaultMetrics) GetSnapshot() MetricsSnapshot <span class="cov8" title="1">{
+        m.mu.RLock()
+        defer m.mu.RUnlock()
+
+        actorStats := make(map[string]ActorStats, len(m.actorStats))
+        for name, entry := range m.actorStats </span><span class="cov8" title="1">{
+                actorStats[name] = ActorStats{
+                        Name:              name,
+                        MessagesQueued:    entry.messagesQueued.Load(),
+                        MessagesProcessed: entry.messagesProcessed.Load(),
+                        Panics:            entry.panics.Load(),
+                        ActiveWatches:     entry.activeWatches.Load(),
+                }
+        }</span>
+
+        <span class="cov8" title="1">return MetricsSnapshot{
+                TotalActors:   m.totalActors.Load(),
+                TotalMessages: m.totalMessages.Load(),
+                TotalPanics:   m.totalPanics.Load(),
+                TotalWatches:  m.totalWatches.Load(),
+                ActorStats:    actorStats,
+        }</span>
+}
+
+type noopMetrics struct{}
+
+func (noopMetrics) ActorSpawned(name string)                             {<span class="cov8" title="1">}</span>
+func (noopMetrics) ActorStopped(name string)                             {<span class="cov8" title="1">}</span>
+func (noopMetrics) MessageProcessed(name string, duration time.Duration) {<span class="cov8" title="1">}</span>
+func (noopMetrics) MessageQueued(name string)                            {<span class="cov0" title="0">}</span>
+func (noopMetrics) MessageDropped(name string)                           {<span class="cov0" title="0">}</span>
+func (noopMetrics) PanicRecovered(name string)                           {<span class="cov8" title="1">}</span>
+func (noopMetrics) WatchAdded(watcher, watched string)                   {<span class="cov8" title="1">}</span>
+func (noopMetrics) WatchRemoved(watcher, watched string)                 {<span class="cov8" title="1">}</span>
+func (noopMetrics) GetSnapshot() MetricsSnapshot <span class="cov0" title="0">{
+        return MetricsSnapshot{ActorStats: make(map[string]ActorStats)}
+}</span>
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package actor
+
+import "fmt"
+
+type ReceiveFunc func(ctx Context)
+
+type Middleware func(next ReceiveFunc) ReceiveFunc
+
+type Logger interface {
+        Printf(format string, args ...any)
+}
+
+type defaultLogger struct{}
+
+func (*defaultLogger) Printf(format string, args ...any) <span class="cov8" title="1">{
+        fmt.Printf(format+"\n", args...)
+}</span>
+
+type MailboxFactory func() Mailbox
+
+type EngineOption func(*Engine)
+
+func WithLogger(l Logger) EngineOption <span class="cov0" title="0">{
+        return func(e *Engine) </span><span class="cov0" title="0">{
+                e.logger = l
+        }</span>
+}
+
+func WithMiddleware(m ...Middleware) EngineOption <span class="cov8" title="1">{
+        return func(e *Engine) </span><span class="cov8" title="1">{
+                e.middleware = append(e.middleware, m...)
+        }</span>
+}
+
+func WithMailboxFactory(f MailboxFactory) EngineOption <span class="cov0" title="0">{
+        return func(e *Engine) </span><span class="cov0" title="0">{
+                e.mailboxFactory = f
+        }</span>
+}
+
+func WithMailboxSize(size int) EngineOption <span class="cov0" title="0">{
+        return func(e *Engine) </span><span class="cov0" title="0">{
+                e.mailboxFactory = func() Mailbox </span><span class="cov0" title="0">{ return NewChanMailbox(size) }</span>
+        }
+}
+
+func WithMetrics(m Metrics) EngineOption <span class="cov8" title="1">{
+        return func(e *Engine) </span><span class="cov8" title="1">{
+                e.metrics = m
+        }</span>
+}
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">package actor
+
+import "sync"
+
+type watchedState struct {
+        watchers map[*ActorRef]struct{}
+        stopCh   chan struct{}
+}
+
+type watchManager struct {
+        mu      sync.RWMutex
+        watches map[*ActorRef]*watchedState
+}
+
+func newWatchManager() *watchManager <span class="cov8" title="1">{
+        return &amp;watchManager{
+                watches: make(map[*ActorRef]*watchedState),
+        }
+}</span>
+
+func (wm *watchManager) add(watcher, watched *ActorRef) bool <span class="cov8" title="1">{
+        select </span>{
+        case &lt;-watched.Done():<span class="cov8" title="1">
+                watcher.Tell(Terminated{Who: watched})
+                return false</span>
+        default:<span class="cov8" title="1"></span>
+        }
+
+        <span class="cov8" title="1">wm.mu.Lock()
+        defer wm.mu.Unlock()
+
+        state, ok := wm.watches[watched]
+        if !ok </span><span class="cov8" title="1">{
+                state = &amp;watchedState{
+                        watchers: make(map[*ActorRef]struct{}),
+                        stopCh:   make(chan struct{}),
+                }
+                wm.watches[watched] = state
+                go wm.monitor(watched, state.stopCh)
+        }</span>
+
+        <span class="cov8" title="1">if _, exists := state.watchers[watcher]; exists </span><span class="cov8" title="1">{
+                return false
+        }</span>
+
+        <span class="cov8" title="1">state.watchers[watcher] = struct{}{}
+        return true</span>
+}
+
+func (wm *watchManager) remove(watcher, watched *ActorRef) bool <span class="cov8" title="1">{
+        wm.mu.Lock()
+        defer wm.mu.Unlock()
+
+        state, ok := wm.watches[watched]
+        if !ok </span><span class="cov0" title="0">{
+                return false
+        }</span>
+
+        <span class="cov8" title="1">if _, exists := state.watchers[watcher]; !exists </span><span class="cov0" title="0">{
+                return false
+        }</span>
+
+        <span class="cov8" title="1">delete(state.watchers, watcher)
+
+        if len(state.watchers) == 0 </span><span class="cov8" title="1">{
+                close(state.stopCh)
+                delete(wm.watches, watched)
+        }</span>
+
+        <span class="cov8" title="1">return true</span>
+}
+
+func (wm *watchManager) cleanupForWatcher(watcher *ActorRef) <span class="cov8" title="1">{
+        wm.mu.Lock()
+        defer wm.mu.Unlock()
+
+        var toRemove []*ActorRef
+        var toClose []chan struct{}
+        for watched, state := range wm.watches </span><span class="cov8" title="1">{
+                if _, exists := state.watchers[watcher]; exists </span><span class="cov0" title="0">{
+                        delete(state.watchers, watcher)
+                        if len(state.watchers) == 0 </span><span class="cov0" title="0">{
+                                toRemove = append(toRemove, watched)
+                                toClose = append(toClose, state.stopCh)
+                        }</span>
+                }
+        }
+        <span class="cov8" title="1">for i, watched := range toRemove </span><span class="cov0" title="0">{
+                close(toClose[i])
+                delete(wm.watches, watched)
+        }</span>
+}
+
+func (wm *watchManager) monitor(watched *ActorRef, stopCh &lt;-chan struct{}) <span class="cov8" title="1">{
+        select </span>{
+        case &lt;-watched.Done():<span class="cov8" title="1"></span>
+        case &lt;-stopCh:<span class="cov8" title="1">
+                return</span>
+        }
+
+        <span class="cov8" title="1">wm.mu.Lock()
+        state := wm.watches[watched]
+        watchers := make([]*ActorRef, 0, len(state.watchers))
+        for watcher := range state.watchers </span><span class="cov8" title="1">{
+                watchers = append(watchers, watcher)
+        }</span>
+        <span class="cov8" title="1">delete(wm.watches, watched)
+        wm.mu.Unlock()
+
+        for _, watcher := range watchers </span><span class="cov8" title="1">{
+                watcher.Tell(Terminated{Who: watched})
+        }</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>
