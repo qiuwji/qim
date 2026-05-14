@@ -7,7 +7,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"collab-actor-demo/internal/actor"
+	"qim/internal/actor"
 )
 
 type JoinMsg struct {

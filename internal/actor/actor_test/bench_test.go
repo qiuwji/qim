@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"collab-actor-demo/internal/actor"
+	"qim/internal/actor"
 )
 
 type benchMsg struct{}

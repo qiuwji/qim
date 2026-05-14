@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"collab-actor-demo/internal/actor"
+	"qim/internal/actor"
 )
 
 func TestMonitorNilStateRace(t *testing.T) {

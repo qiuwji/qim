@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"collab-actor-demo/internal/actor"
+	"qim/internal/actor"
 )
 
 type EditMsg struct {

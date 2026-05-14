@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"collab-actor-demo/internal/actor"
+	"qim/internal/actor"
 )
 
 type pingMsg struct{}
