@@ -8,6 +8,7 @@ import (
 	"qim/internal/domain/message"
 	"qim/internal/domain/presence"
 	"qim/internal/domain/user"
+	"qim/internal/eventbus"
 	"qim/internal/service"
 	httphandler "qim/internal/transport/http"
 	"qim/internal/transport/ws"
@@ -16,7 +17,7 @@ import (
 )
 
 type stores struct {
-	conv   dal.ConvStore
+	conv   conversation.Store
 	user   dal.UserStore
 	msg    dal.MsgStore
 	friend dal.FriendStore
@@ -35,6 +36,10 @@ func initEngine() *actor.Engine {
 	)
 }
 
+func initEventBus() eventbus.Bus {
+	return eventbus.NewLocalBus(1024)
+}
+
 func initDB() *gorm.DB {
 	return nil
 }
@@ -48,9 +53,9 @@ func initStores(db *gorm.DB) stores {
 	}
 }
 
-func initServices(engine *actor.Engine, s stores) svcs {
+func initServices(engine *actor.Engine, s stores, events eventbus.Bus) svcs {
 	convFn := func(convID uint64) actor.Actor {
-		return conversation.NewConversationActor(convID, s.conv, engine)
+		return conversation.NewConversationActor(convID, s.conv, engine, events)
 	}
 	sessionFn := func(uid uint64) actor.Actor {
 		return user.NewSessionActor(uid, s.user, engine)
@@ -63,12 +68,20 @@ func initServices(engine *actor.Engine, s stores) svcs {
 	}
 }
 
-func initActors(engine *actor.Engine, s stores) {
-	engine.Spawn("conv-manager", conversation.NewManagerActor(s.conv, engine))
+func initActors(engine *actor.Engine, s stores, events eventbus.Bus) {
+	engine.Spawn("conv-manager", conversation.NewManagerActor(s.conv, engine, events))
 	engine.Spawn("user-manager", user.NewManagerActor(s.user, engine))
 	engine.Spawn("msg-store", message.NewMessageStoreActor(s.msg, engine))
 	engine.Spawn("friend-manager", friend.NewManagerActor(s.friend, engine))
 	engine.Spawn("presence", presence.NewPresenceActor(engine))
+}
+
+func initEventHandlers(engine *actor.Engine, events eventbus.Bus) {
+	presenceRef, ok := engine.Lookup("presence")
+	if !ok {
+		return
+	}
+	events.Subscribe(conversation.EventMessageSent, ws.NewMessagePushHandler(presenceRef))
 }
 
 func initHandlers(s svcs) *httphandler.Handlers {

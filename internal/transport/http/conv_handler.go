@@ -22,6 +22,10 @@ func handleResult(c *gin.Context, r conversation.Result, err error) {
 		return
 	}
 	if r.Err != nil {
+		if payload, ok := conversation.ToErrorPayload(r.Err); ok {
+			resp.Fail(c, 400, payload.Message)
+			return
+		}
 		resp.Fail(c, 400, r.Err.Error())
 		return
 	}

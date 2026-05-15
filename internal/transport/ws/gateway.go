@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"qim/internal/actor"
+	"qim/internal/domain/presence"
 
 	"github.com/gorilla/websocket"
 )
@@ -16,6 +17,7 @@ type GatewayActor struct {
 	uid        uint64
 	engine     *actor.Engine
 	dispatcher WsDispatcher
+	presence   *actor.ActorRef
 	idleTimer  *actor.Timer
 }
 
@@ -25,6 +27,7 @@ func NewGatewayActor(uid uint64, conn *websocket.Conn, engine *actor.Engine, dis
 
 func (a *GatewayActor) OnStart(ctx actor.Context) {
 	self := ctx.Self()
+	a.registerPresence(self)
 	go func() {
 		for {
 			var req WsRequest
@@ -42,6 +45,7 @@ func (a *GatewayActor) OnStop(ctx actor.Context) {
 	if a.idleTimer != nil {
 		a.idleTimer.Cancel()
 	}
+	a.unregisterPresence(ctx.Self())
 	a.conn.Close()
 }
 
@@ -71,4 +75,20 @@ func (a *GatewayActor) resetIdleTimer(ctx actor.Context) {
 		a.idleTimer.Cancel()
 	}
 	a.idleTimer = ctx.ScheduleAfter(idleTimeout, IdleTimeout{})
+}
+
+func (a *GatewayActor) registerPresence(self *actor.ActorRef) {
+	ref, ok := a.engine.Lookup("presence")
+	if !ok {
+		return
+	}
+	a.presence = ref
+	_ = ref.Tell(presence.UserConnected{UID: a.uid, Gateway: self})
+}
+
+func (a *GatewayActor) unregisterPresence(self *actor.ActorRef) {
+	if a.presence == nil {
+		return
+	}
+	_ = a.presence.Tell(presence.UserDisconnected{UID: a.uid, Gateway: self})
 }

@@ -33,6 +33,18 @@ type UserConvDTO struct {
 	Conv           *ConversationDTO `json:"conv,omitempty"`
 }
 
+type MessageDTO struct {
+	ID             uint64 `json:"id"`
+	ConversationID uint64 `json:"conversation_id"`
+	Seq            int64  `json:"seq"`
+	SenderID       uint64 `json:"sender_id"`
+	MsgType        int8   `json:"msg_type"`
+	Content        string `json:"content"`
+	ReplyTo        uint64 `json:"reply_to"`
+	ClientID       string `json:"client_id"`
+	CreatedAt      int64  `json:"created_at"`
+}
+
 type ListUserConversationsCmd struct {
 	UID uint64
 }
@@ -47,6 +59,14 @@ type CreateGroupConvCmd struct {
 	Name    string
 	Avatar  string
 	Members []uint64
+}
+
+type SendMessageCmd struct {
+	SenderID uint64
+	MsgType  int8
+	Content  string
+	ReplyTo  uint64
+	ClientID string
 }
 
 type GetConvInfoQuery struct{}

@@ -1,11 +1,11 @@
 package conversation
 
 import (
-	"fmt"
+	"context"
 	"time"
 
 	"qim/internal/actor"
-	"qim/internal/dal"
+	"qim/internal/eventbus"
 )
 
 const idleTimeout = 6 * time.Hour
@@ -20,8 +20,9 @@ type ConversationActor struct {
 	members     map[uint64]*MemberState
 	memberLimit int
 	createdAt   int64
-	store       dal.ConvStore
+	store       Store
 	engine      *actor.Engine
+	events      eventbus.Bus
 	idleTimer   *actor.Timer
 }
 
@@ -32,12 +33,13 @@ type MemberState struct {
 	JoinTime    int64
 }
 
-func NewConversationActor(convID uint64, store dal.ConvStore, engine *actor.Engine) *ConversationActor {
+func NewConversationActor(convID uint64, store Store, engine *actor.Engine, events eventbus.Bus) *ConversationActor {
 	return &ConversationActor{
 		convID:  convID,
 		members: make(map[uint64]*MemberState),
 		store:   store,
 		engine:  engine,
+		events:  events,
 	}
 }
 
@@ -86,6 +88,9 @@ func (a *ConversationActor) Receive(ctx actor.Context) {
 	// 查询会话基本信息
 	case GetConvInfoQuery:
 		ctx.Reply(Result{Data: a.toDTO()})
+	// 会话内发消息：由聚合根统一校验成员、分配 seq、提交事务
+	case SendMessageCmd:
+		a.handleSendMessage(ctx, msg)
 	// 更新会话名称和头像
 	case UpdateConvInfoCmd:
 		a.handleUpdateInfo(ctx, msg)
@@ -183,18 +188,96 @@ func (a *ConversationActor) handleListMembers(ctx actor.Context) {
 	ctx.Reply(Result{Data: members})
 }
 
-func (a *ConversationActor) handleAddMember(ctx actor.Context, msg AddMemberCmd) {
-	if _, exists := a.members[msg.UID]; exists {
-		ctx.Reply(Result{Err: fmt.Errorf("member already exists")})
+func (a *ConversationActor) handleSendMessage(ctx actor.Context, msg SendMessageCmd) {
+	if msg.Content == "" {
+		ctx.Reply(Result{Err: ErrEmptyMessage})
 		return
 	}
-	if len(a.members) >= a.memberLimit {
-		ctx.Reply(Result{Err: fmt.Errorf("member limit reached")})
+	if _, exists := a.members[msg.SenderID]; !exists {
+		ctx.Reply(Result{Err: ErrNotMember})
 		return
 	}
 
 	now := time.Now().Unix()
-	member := &dal.Member{
+	nextSeq := a.maxSeq + 1
+	memberUIDs := a.memberUIDs()
+
+	result, err := a.store.CommitMessage(MessageCommitInput{
+		Message: MessageAppendInput{
+			ConversationID: a.convID,
+			Seq:            nextSeq,
+			SenderID:       msg.SenderID,
+			MsgType:        msg.MsgType,
+			Content:        msg.Content,
+			ReplyTo:        msg.ReplyTo,
+			ClientID:       msg.ClientID,
+			CreatedAt:      now,
+		},
+		UnreadProjection: UnreadProjectionInput{
+			ConversationID: a.convID,
+			SenderID:       msg.SenderID,
+			MemberUIDs:     memberUIDs,
+			LastMsgAt:      now,
+		},
+	})
+	if err != nil {
+		ctx.Reply(Result{Err: err})
+		return
+	}
+
+	a.maxSeq = nextSeq
+	a.publishMessageSent(result.MessageID, nextSeq, msg, memberUIDs, now)
+	ctx.Reply(Result{Data: MessageDTO{
+		ID:             result.MessageID,
+		ConversationID: a.convID,
+		Seq:            nextSeq,
+		SenderID:       msg.SenderID,
+		MsgType:        msg.MsgType,
+		Content:        msg.Content,
+		ReplyTo:        msg.ReplyTo,
+		ClientID:       msg.ClientID,
+		CreatedAt:      now,
+	}})
+}
+
+func (a *ConversationActor) publishMessageSent(messageID uint64, seq int64, msg SendMessageCmd, memberUIDs []uint64, createdAt int64) {
+	if a.events == nil {
+		return
+	}
+	a.events.Publish(context.Background(), MessageSentEvent{
+		MessageID:      messageID,
+		ConversationID: a.convID,
+		Seq:            seq,
+		SenderID:       msg.SenderID,
+		MemberUIDs:     append([]uint64(nil), memberUIDs...),
+		MsgType:        msg.MsgType,
+		Content:        msg.Content,
+		ReplyTo:        msg.ReplyTo,
+		ClientID:       msg.ClientID,
+		CreatedAt:      createdAt,
+	})
+}
+
+func (a *ConversationActor) memberUIDs() []uint64 {
+	uids := make([]uint64, 0, len(a.members))
+	for uid := range a.members {
+		uids = append(uids, uid)
+	}
+	return uids
+}
+
+func (a *ConversationActor) handleAddMember(ctx actor.Context, msg AddMemberCmd) {
+	if _, exists := a.members[msg.UID]; exists {
+		ctx.Reply(Result{Err: ErrMemberExists})
+		return
+	}
+	if len(a.members) >= a.memberLimit {
+		ctx.Reply(Result{Err: ErrMemberLimitReached})
+		return
+	}
+
+	now := time.Now().Unix()
+	member := &MemberRecord{
 		ConversationID: a.convID,
 		UserID:         msg.UID,
 		Role:           int8(msg.Role),
@@ -215,7 +298,7 @@ func (a *ConversationActor) handleAddMember(ctx actor.Context, msg AddMemberCmd)
 
 func (a *ConversationActor) handleRemoveMember(ctx actor.Context, msg RemoveMemberCmd) {
 	if _, exists := a.members[msg.UID]; !exists {
-		ctx.Reply(Result{Err: fmt.Errorf("member not found")})
+		ctx.Reply(Result{Err: ErrMemberNotFound})
 		return
 	}
 	if err := a.store.DeleteMember(a.convID, msg.UID); err != nil {
@@ -228,7 +311,7 @@ func (a *ConversationActor) handleRemoveMember(ctx actor.Context, msg RemoveMemb
 
 func (a *ConversationActor) handleLeave(ctx actor.Context, msg LeaveConvCmd) {
 	if _, exists := a.members[msg.UID]; !exists {
-		ctx.Reply(Result{Err: fmt.Errorf("not a member")})
+		ctx.Reply(Result{Err: ErrNotMember})
 		return
 	}
 	if err := a.store.DeleteMember(a.convID, msg.UID); err != nil {
@@ -242,7 +325,7 @@ func (a *ConversationActor) handleLeave(ctx actor.Context, msg LeaveConvCmd) {
 func (a *ConversationActor) handleSetRole(ctx actor.Context, msg SetRoleCmd) {
 	m, exists := a.members[msg.UID]
 	if !exists {
-		ctx.Reply(Result{Err: fmt.Errorf("member not found")})
+		ctx.Reply(Result{Err: ErrMemberNotFound})
 		return
 	}
 	if err := a.store.UpdateMember(a.convID, msg.UID, map[string]any{"role": msg.Role}); err != nil {
@@ -256,7 +339,7 @@ func (a *ConversationActor) handleSetRole(ctx actor.Context, msg SetRoleCmd) {
 func (a *ConversationActor) handleTransferOwner(ctx actor.Context, msg TransferOwnerCmd) {
 	newOwner, exists := a.members[msg.NewOwnerID]
 	if !exists {
-		ctx.Reply(Result{Err: fmt.Errorf("new owner is not a member")})
+		ctx.Reply(Result{Err: ErrMemberNotFound})
 		return
 	}
 	oldOwner := a.members[a.ownerID]
@@ -274,7 +357,7 @@ func (a *ConversationActor) handleTransferOwner(ctx actor.Context, msg TransferO
 
 func (a *ConversationActor) handleDissolve(ctx actor.Context, msg DissolveConvCmd) {
 	if msg.OwnerID != a.ownerID {
-		ctx.Reply(Result{Err: fmt.Errorf("only owner can dissolve")})
+		ctx.Reply(Result{Err: ErrOwnerRequired})
 		return
 	}
 	if err := a.store.DeleteAllMembers(a.convID); err != nil {
@@ -308,7 +391,7 @@ func (a *ConversationActor) handleMute(ctx actor.Context, msg MuteConvCmd) {
 func (a *ConversationActor) handleRead(ctx actor.Context, msg ReadConvCmd) {
 	m, exists := a.members[msg.UID]
 	if !exists {
-		ctx.Reply(Result{Err: fmt.Errorf("not a member")})
+		ctx.Reply(Result{Err: ErrNotMember})
 		return
 	}
 	if msg.Seq <= m.LastReadSeq {
@@ -326,7 +409,7 @@ func (a *ConversationActor) handleRead(ctx actor.Context, msg ReadConvCmd) {
 func (a *ConversationActor) handleReadAll(ctx actor.Context, msg ReadAllConvCmd) {
 	m, exists := a.members[msg.UID]
 	if !exists {
-		ctx.Reply(Result{Err: fmt.Errorf("not a member")})
+		ctx.Reply(Result{Err: ErrNotMember})
 		return
 	}
 	if err := a.store.UpdateMember(a.convID, msg.UID, map[string]any{"last_read_seq": a.maxSeq}); err != nil {

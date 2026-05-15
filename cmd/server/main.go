@@ -8,10 +8,12 @@ import (
 
 func main() {
 	engine := initEngine()
+	events := initEventBus()
 	db := initDB()
 	stores := initStores(db)
-	svcs := initServices(engine, stores)
-	initActors(engine, stores)
+	svcs := initServices(engine, stores, events)
+	initActors(engine, stores, events)
+	initEventHandlers(engine, events)
 	handlers := initHandlers(svcs)
 	dispatcher := initDispatcher(svcs)
 

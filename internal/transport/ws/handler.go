@@ -5,6 +5,10 @@ import (
 	"time"
 
 	"qim/internal/actor"
+	"qim/internal/domain/conversation"
+	"qim/internal/domain/friend"
+	"qim/internal/domain/message"
+	"qim/internal/domain/user"
 	"qim/internal/service"
 )
 
@@ -20,6 +24,9 @@ func askDispatch(ref *actor.ActorRef, cmd any, action string) WsResponse {
 	raw, err := ref.Ask(cmd, askTimeout)
 	if err != nil {
 		return WsResponse{Type: "error", Action: action, Data: err.Error()}
+	}
+	if resp, ok := resultReply(action, raw); ok {
+		return resp
 	}
 	return WsResponse{Type: "ack", Action: action, Data: raw}
 }
@@ -44,7 +51,7 @@ func NewDispatcher(
 ) *Dispatcher {
 	return &Dispatcher{
 		conv:   &convRouter{svc: convSvc},
-		msg:    &msgRouter{svc: msgSvc},
+		msg:    &msgRouter{msgSvc: msgSvc, convSvc: convSvc},
 		friend: &friendRouter{svc: friendSvc},
 		user:   &userRouter{svc: userSvc},
 	}
@@ -67,4 +74,36 @@ func (d *Dispatcher) Dispatch(uid uint64, req WsRequest) WsResponse {
 
 func errReply(action string, msg string) WsResponse {
 	return WsResponse{Type: "error", Action: action, Data: msg}
+}
+
+func resultReply(action string, raw any) (WsResponse, bool) {
+	switch r := raw.(type) {
+	case conversation.Result:
+		return domainResultReply(action, r.Data, r.Err), true
+	case message.Result:
+		return genericResultReply(action, r.Data, r.Err), true
+	case friend.Result:
+		return genericResultReply(action, r.Data, r.Err), true
+	case user.Result:
+		return genericResultReply(action, r.Data, r.Err), true
+	default:
+		return WsResponse{}, false
+	}
+}
+
+func domainResultReply(action string, data any, err error) WsResponse {
+	if err == nil {
+		return WsResponse{Type: "ack", Action: action, Data: data}
+	}
+	if payload, ok := conversation.ToErrorPayload(err); ok {
+		return WsResponse{Type: "error", Action: action, Data: payload}
+	}
+	return errReply(action, err.Error())
+}
+
+func genericResultReply(action string, data any, err error) WsResponse {
+	if err != nil {
+		return errReply(action, err.Error())
+	}
+	return WsResponse{Type: "ack", Action: action, Data: data}
 }
