@@ -1,0 +1,1271 @@
+internal/service/msg_service.go
+  0bcaad18be79612c 1-48 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a075512d1921616a88ad208","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[1,48]}]}]}
+internal/transport/http/conv_handler.go
+  0bcaad18be79612c 6,12,15-16 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a075512d1921616a88ad208","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Single":6},{"Single":12},{"Range":[15,16]}]}]}
+internal/service/conv_service.go
+  0bcaad18be79612c 1-79 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a075512d1921616a88ad208","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[1,79]}]}]}
+internal/transport/http/conv_conv.go
+  0bcaad18be79612c 12,25,40,52,66 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a075512d1921616a88ad208","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Single":12},{"Single":25},{"Single":40},{"Single":52},{"Single":66}]}]}
+internal/service/friend_service.go
+  0bcaad18be79612c 1-48 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a075512d1921616a88ad208","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[1,48]}]}]}
+internal/transport/ws/conv.go
+  0bcaad18be79612c 9,13,166,168 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a075512d1921616a88ad208","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Single":9},{"Single":13},{"Single":166},{"Single":168}]}]}
+cmd/server/main.go
+  0bcaad18be79612c 13,15-16,18 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a075512d1921616a88ad208","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Single":13},{"Range":[15,16]},{"Single":18}]}]}
+internal/transport/http/user_handler.go
+  0bcaad18be79612c 6,12,15-16,19,21-22,24-26,28,41,58,67,82,100,109,115 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a075512d1921616a88ad208","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Single":6},{"Single":12},{"Range":[15,16]},{"Single":19},{"Range":[21,22]},{"Range":[24,26]},{"Single":28},{"Single":41},{"Single":58},{"Single":67},{"Single":82},{"Single":100},{"Single":109},{"Single":115}]}]}
+internal/transport/ws/friend.go
+  0bcaad18be79612c 8,12,20-22 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a075512d1921616a88ad208","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Single":8},{"Single":12},{"Range":[20,22]}]}]}
+internal/transport/http/friend_group.go
+  0bcaad18be79612c 12,25,39,46,70 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a075512d1921616a88ad208","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Single":12},{"Single":25},{"Single":39},{"Single":46},{"Single":70}]}]}
+internal/service/user_service.go
+  0bcaad18be79612c 1-76 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a075512d1921616a88ad208","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[1,76]}]}]}
+internal/transport/ws/handler.go
+  0bcaad18be79612c 8,39-44,46-49 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a075512d1921616a88ad208","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Single":8},{"Range":[39,44]},{"Range":[46,49]}]}]}
+internal/transport/server.go
+  0bcaad18be79612c 22-25,30,34-37,55-71,76,81-88,93-97,102-104,109-110,114-115 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a075512d1921616a88ad208","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[22,25]},{"Single":30},{"Range":[34,37]},{"Range":[55,71]},{"Single":76},{"Range":[81,88]},{"Range":[93,97]},{"Range":[102,104]},{"Range":[109,110]},{"Range":[114,115]}]}]}
+internal/transport/ws/msg.go
+  0bcaad18be79612c 8,12,20-22 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a075512d1921616a88ad208","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Single":8},{"Single":12},{"Range":[20,22]}]}]}
+internal/transport/http/msg_handler.go
+  0bcaad18be79612c 8,14,17-18,21,23-24,26-28,30,40,55 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a075512d1921616a88ad208","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Single":8},{"Single":14},{"Range":[17,18]},{"Single":21},{"Range":[23,24]},{"Range":[26,28]},{"Single":30},{"Single":40},{"Single":55}]}]}
+internal/transport/http/conv_member.go
+  0bcaad18be79612c 12,26,33,40,54,67,74 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a075512d1921616a88ad208","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Single":12},{"Single":26},{"Single":33},{"Single":40},{"Single":54},{"Single":67},{"Single":74}]}]}
+internal/transport/http/handlers.go
+  0bcaad18be79612c 1-8 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a075512d1921616a88ad208","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[1,8]}]}]}
+internal/transport/http/friend_handler.go
+  0bcaad18be79612c 6,12,15-16,19-28,41,47,53,67,74,80,94,108 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a075512d1921616a88ad208","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Single":6},{"Single":12},{"Range":[15,16]},{"Range":[19,28]},{"Single":41},{"Single":47},{"Single":53},{"Single":67},{"Single":74},{"Single":80},{"Single":94},{"Single":108}]}]}
+internal/transport/ws/user.go
+  0bcaad18be79612c 9,13,35-37,48-50,60-62,72-74,78,92,105 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a075512d1921616a88ad208","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Single":9},{"Single":13},{"Range":[35,37]},{"Range":[48,50]},{"Range":[60,62]},{"Range":[72,74]},{"Single":78},{"Single":92},{"Single":105}]}]}
+cmd/server/app.go
+  0bcaad18be79612c 11,13,25-29,51-65,74-79,83-84 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a075512d1921616a88ad208","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Single":11},{"Single":13},{"Range":[25,29]},{"Range":[51,65]},{"Range":[74,79]},{"Range":[83,84]}]}]}
+internal/transport/http/conv_setting.go
+  0bcaad18be79612c 20,34,48,54 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a075512d1921616a88ad208","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Single":20},{"Single":34},{"Single":48},{"Single":54}]}]}
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "824e93b82a567385c80303f0187f31ba850b860f",
+  "prompts": {
+    "0bcaad18be79612c": {
+      "agent_id": {
+        "tool": "trae",
+        "id": "6a07422cd1921616a88ace78",
+        "model": "glm-5.1__dev"
+      },
+      "human_author": "qiuji.322@BYTEDANCE.COM <qiuji.322@BYTEDANCE.COM@bytedance.com>",
+      "messages": [],
+      "total_additions": 474,
+      "total_deletions": 400,
+      "accepted_lines": 474,
+      "overriden_lines": 0
+    }
+  },
+  "attestation_metadata": {
+    "cmd/server/app.go": [
+      {
+        "hash": "0bcaad18be79612c",
+        "line_ranges": [
+          {
+            "Single": 11
+          },
+          {
+            "Single": 13
+          },
+          {
+            "Range": [
+              25,
+              29
+            ]
+          },
+          {
+            "Range": [
+              51,
+              65
+            ]
+          },
+          {
+            "Range": [
+              74,
+              79
+            ]
+          },
+          {
+            "Range": [
+              83,
+              84
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a075512d1921616a88ad208",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Single": 11
+              },
+              {
+                "Single": 13
+              },
+              {
+                "Range": [
+                  25,
+                  29
+                ]
+              },
+              {
+                "Range": [
+                  51,
+                  65
+                ]
+              },
+              {
+                "Range": [
+                  74,
+                  79
+                ]
+              },
+              {
+                "Range": [
+                  83,
+                  84
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "cmd/server/main.go": [
+      {
+        "hash": "0bcaad18be79612c",
+        "line_ranges": [
+          {
+            "Single": 13
+          },
+          {
+            "Range": [
+              15,
+              16
+            ]
+          },
+          {
+            "Single": 18
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a075512d1921616a88ad208",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Single": 13
+              },
+              {
+                "Range": [
+                  15,
+                  16
+                ]
+              },
+              {
+                "Single": 18
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "internal/service/conv_service.go": [
+      {
+        "hash": "0bcaad18be79612c",
+        "line_ranges": [
+          {
+            "Range": [
+              1,
+              79
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a075512d1921616a88ad208",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  1,
+                  79
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "internal/service/friend_service.go": [
+      {
+        "hash": "0bcaad18be79612c",
+        "line_ranges": [
+          {
+            "Range": [
+              1,
+              48
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a075512d1921616a88ad208",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  1,
+                  48
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "internal/service/msg_service.go": [
+      {
+        "hash": "0bcaad18be79612c",
+        "line_ranges": [
+          {
+            "Range": [
+              1,
+              48
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a075512d1921616a88ad208",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  1,
+                  48
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "internal/service/user_service.go": [
+      {
+        "hash": "0bcaad18be79612c",
+        "line_ranges": [
+          {
+            "Range": [
+              1,
+              76
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a075512d1921616a88ad208",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  1,
+                  76
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "internal/transport/http/conv_conv.go": [
+      {
+        "hash": "0bcaad18be79612c",
+        "line_ranges": [
+          {
+            "Single": 12
+          },
+          {
+            "Single": 25
+          },
+          {
+            "Single": 40
+          },
+          {
+            "Single": 52
+          },
+          {
+            "Single": 66
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a075512d1921616a88ad208",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Single": 12
+              },
+              {
+                "Single": 25
+              },
+              {
+                "Single": 40
+              },
+              {
+                "Single": 52
+              },
+              {
+                "Single": 66
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "internal/transport/http/conv_handler.go": [
+      {
+        "hash": "0bcaad18be79612c",
+        "line_ranges": [
+          {
+            "Single": 6
+          },
+          {
+            "Single": 12
+          },
+          {
+            "Range": [
+              15,
+              16
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a075512d1921616a88ad208",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Single": 6
+              },
+              {
+                "Single": 12
+              },
+              {
+                "Range": [
+                  15,
+                  16
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "internal/transport/http/conv_member.go": [
+      {
+        "hash": "0bcaad18be79612c",
+        "line_ranges": [
+          {
+            "Single": 12
+          },
+          {
+            "Single": 26
+          },
+          {
+            "Single": 33
+          },
+          {
+            "Single": 40
+          },
+          {
+            "Single": 54
+          },
+          {
+            "Single": 67
+          },
+          {
+            "Single": 74
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a075512d1921616a88ad208",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Single": 12
+              },
+              {
+                "Single": 26
+              },
+              {
+                "Single": 33
+              },
+              {
+                "Single": 40
+              },
+              {
+                "Single": 54
+              },
+              {
+                "Single": 67
+              },
+              {
+                "Single": 74
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "internal/transport/http/conv_setting.go": [
+      {
+        "hash": "0bcaad18be79612c",
+        "line_ranges": [
+          {
+            "Single": 20
+          },
+          {
+            "Single": 34
+          },
+          {
+            "Single": 48
+          },
+          {
+            "Single": 54
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a075512d1921616a88ad208",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Single": 20
+              },
+              {
+                "Single": 34
+              },
+              {
+                "Single": 48
+              },
+              {
+                "Single": 54
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "internal/transport/http/friend_group.go": [
+      {
+        "hash": "0bcaad18be79612c",
+        "line_ranges": [
+          {
+            "Single": 12
+          },
+          {
+            "Single": 25
+          },
+          {
+            "Single": 39
+          },
+          {
+            "Single": 46
+          },
+          {
+            "Single": 70
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a075512d1921616a88ad208",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Single": 12
+              },
+              {
+                "Single": 25
+              },
+              {
+                "Single": 39
+              },
+              {
+                "Single": 46
+              },
+              {
+                "Single": 70
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "internal/transport/http/friend_handler.go": [
+      {
+        "hash": "0bcaad18be79612c",
+        "line_ranges": [
+          {
+            "Single": 6
+          },
+          {
+            "Single": 12
+          },
+          {
+            "Range": [
+              15,
+              16
+            ]
+          },
+          {
+            "Range": [
+              19,
+              28
+            ]
+          },
+          {
+            "Single": 41
+          },
+          {
+            "Single": 47
+          },
+          {
+            "Single": 53
+          },
+          {
+            "Single": 67
+          },
+          {
+            "Single": 74
+          },
+          {
+            "Single": 80
+          },
+          {
+            "Single": 94
+          },
+          {
+            "Single": 108
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a075512d1921616a88ad208",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Single": 6
+              },
+              {
+                "Single": 12
+              },
+              {
+                "Range": [
+                  15,
+                  16
+                ]
+              },
+              {
+                "Range": [
+                  19,
+                  28
+                ]
+              },
+              {
+                "Single": 41
+              },
+              {
+                "Single": 47
+              },
+              {
+                "Single": 53
+              },
+              {
+                "Single": 67
+              },
+              {
+                "Single": 74
+              },
+              {
+                "Single": 80
+              },
+              {
+                "Single": 94
+              },
+              {
+                "Single": 108
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "internal/transport/http/handlers.go": [
+      {
+        "hash": "0bcaad18be79612c",
+        "line_ranges": [
+          {
+            "Range": [
+              1,
+              8
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a075512d1921616a88ad208",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  1,
+                  8
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "internal/transport/http/msg_handler.go": [
+      {
+        "hash": "0bcaad18be79612c",
+        "line_ranges": [
+          {
+            "Single": 8
+          },
+          {
+            "Single": 14
+          },
+          {
+            "Range": [
+              17,
+              18
+            ]
+          },
+          {
+            "Single": 21
+          },
+          {
+            "Range": [
+              23,
+              24
+            ]
+          },
+          {
+            "Range": [
+              26,
+              28
+            ]
+          },
+          {
+            "Single": 30
+          },
+          {
+            "Single": 40
+          },
+          {
+            "Single": 55
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a075512d1921616a88ad208",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Single": 8
+              },
+              {
+                "Single": 14
+              },
+              {
+                "Range": [
+                  17,
+                  18
+                ]
+              },
+              {
+                "Single": 21
+              },
+              {
+                "Range": [
+                  23,
+                  24
+                ]
+              },
+              {
+                "Range": [
+                  26,
+                  28
+                ]
+              },
+              {
+                "Single": 30
+              },
+              {
+                "Single": 40
+              },
+              {
+                "Single": 55
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "internal/transport/http/user_handler.go": [
+      {
+        "hash": "0bcaad18be79612c",
+        "line_ranges": [
+          {
+            "Single": 6
+          },
+          {
+            "Single": 12
+          },
+          {
+            "Range": [
+              15,
+              16
+            ]
+          },
+          {
+            "Single": 19
+          },
+          {
+            "Range": [
+              21,
+              22
+            ]
+          },
+          {
+            "Range": [
+              24,
+              26
+            ]
+          },
+          {
+            "Single": 28
+          },
+          {
+            "Single": 41
+          },
+          {
+            "Single": 58
+          },
+          {
+            "Single": 67
+          },
+          {
+            "Single": 82
+          },
+          {
+            "Single": 100
+          },
+          {
+            "Single": 109
+          },
+          {
+            "Single": 115
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a075512d1921616a88ad208",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Single": 6
+              },
+              {
+                "Single": 12
+              },
+              {
+                "Range": [
+                  15,
+                  16
+                ]
+              },
+              {
+                "Single": 19
+              },
+              {
+                "Range": [
+                  21,
+                  22
+                ]
+              },
+              {
+                "Range": [
+                  24,
+                  26
+                ]
+              },
+              {
+                "Single": 28
+              },
+              {
+                "Single": 41
+              },
+              {
+                "Single": 58
+              },
+              {
+                "Single": 67
+              },
+              {
+                "Single": 82
+              },
+              {
+                "Single": 100
+              },
+              {
+                "Single": 109
+              },
+              {
+                "Single": 115
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "internal/transport/server.go": [
+      {
+        "hash": "0bcaad18be79612c",
+        "line_ranges": [
+          {
+            "Range": [
+              22,
+              25
+            ]
+          },
+          {
+            "Single": 30
+          },
+          {
+            "Range": [
+              34,
+              37
+            ]
+          },
+          {
+            "Range": [
+              55,
+              71
+            ]
+          },
+          {
+            "Single": 76
+          },
+          {
+            "Range": [
+              81,
+              88
+            ]
+          },
+          {
+            "Range": [
+              93,
+              97
+            ]
+          },
+          {
+            "Range": [
+              102,
+              104
+            ]
+          },
+          {
+            "Range": [
+              109,
+              110
+            ]
+          },
+          {
+            "Range": [
+              114,
+              115
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a075512d1921616a88ad208",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  22,
+                  25
+                ]
+              },
+              {
+                "Single": 30
+              },
+              {
+                "Range": [
+                  34,
+                  37
+                ]
+              },
+              {
+                "Range": [
+                  55,
+                  71
+                ]
+              },
+              {
+                "Single": 76
+              },
+              {
+                "Range": [
+                  81,
+                  88
+                ]
+              },
+              {
+                "Range": [
+                  93,
+                  97
+                ]
+              },
+              {
+                "Range": [
+                  102,
+                  104
+                ]
+              },
+              {
+                "Range": [
+                  109,
+                  110
+                ]
+              },
+              {
+                "Range": [
+                  114,
+                  115
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "internal/transport/ws/conv.go": [
+      {
+        "hash": "0bcaad18be79612c",
+        "line_ranges": [
+          {
+            "Single": 9
+          },
+          {
+            "Single": 13
+          },
+          {
+            "Single": 166
+          },
+          {
+            "Single": 168
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a075512d1921616a88ad208",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Single": 9
+              },
+              {
+                "Single": 13
+              },
+              {
+                "Single": 166
+              },
+              {
+                "Single": 168
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "internal/transport/ws/friend.go": [
+      {
+        "hash": "0bcaad18be79612c",
+        "line_ranges": [
+          {
+            "Single": 8
+          },
+          {
+            "Single": 12
+          },
+          {
+            "Range": [
+              20,
+              22
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a075512d1921616a88ad208",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Single": 8
+              },
+              {
+                "Single": 12
+              },
+              {
+                "Range": [
+                  20,
+                  22
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "internal/transport/ws/handler.go": [
+      {
+        "hash": "0bcaad18be79612c",
+        "line_ranges": [
+          {
+            "Single": 8
+          },
+          {
+            "Range": [
+              39,
+              44
+            ]
+          },
+          {
+            "Range": [
+              46,
+              49
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a075512d1921616a88ad208",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Single": 8
+              },
+              {
+                "Range": [
+                  39,
+                  44
+                ]
+              },
+              {
+                "Range": [
+                  46,
+                  49
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "internal/transport/ws/msg.go": [
+      {
+        "hash": "0bcaad18be79612c",
+        "line_ranges": [
+          {
+            "Single": 8
+          },
+          {
+            "Single": 12
+          },
+          {
+            "Range": [
+              20,
+              22
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a075512d1921616a88ad208",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Single": 8
+              },
+              {
+                "Single": 12
+              },
+              {
+                "Range": [
+                  20,
+                  22
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "internal/transport/ws/user.go": [
+      {
+        "hash": "0bcaad18be79612c",
+        "line_ranges": [
+          {
+            "Single": 9
+          },
+          {
+            "Single": 13
+          },
+          {
+            "Range": [
+              35,
+              37
+            ]
+          },
+          {
+            "Range": [
+              48,
+              50
+            ]
+          },
+          {
+            "Range": [
+              60,
+              62
+            ]
+          },
+          {
+            "Range": [
+              72,
+              74
+            ]
+          },
+          {
+            "Single": 78
+          },
+          {
+            "Single": 92
+          },
+          {
+            "Single": 105
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a075512d1921616a88ad208",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Single": 9
+              },
+              {
+                "Single": 13
+              },
+              {
+                "Range": [
+                  35,
+                  37
+                ]
+              },
+              {
+                "Range": [
+                  48,
+                  50
+                ]
+              },
+              {
+                "Range": [
+                  60,
+                  62
+                ]
+              },
+              {
+                "Range": [
+                  72,
+                  74
+                ]
+              },
+              {
+                "Single": 78
+              },
+              {
+                "Single": 92
+              },
+              {
+                "Single": 105
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "remote_transcripts": {
+    "0bcaad18be79612c": {
+      "tool": "trae",
+      "conversation_id": "6a07422cd1921616a88ace78",
+      "session_id": "6a07422cd1921616a88ace78",
+      "status": "remote_only",
+      "message": "Remote transcript resolution is not implemented yet for TRAE prompts."
+    }
+  }
+}
