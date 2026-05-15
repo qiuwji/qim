@@ -228,6 +228,36 @@ func BenchmarkFanOut(b *testing.B) {
 	b.StopTimer()
 }
 
+func benchmarkFanOutN(b *testing.B, n int) {
+	engine := actor.NewEngine()
+	var received atomic.Int64
+
+	actors := make([]*actor.ActorRef, n)
+	for i := 0; i < n; i++ {
+		ref, _ := engine.Spawn(fmt.Sprintf("fan-%d", i), actorFunc(func(ctx actor.Context) {
+			received.Add(1)
+		}))
+		actors[i] = ref
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		for _, ref := range actors {
+			ref.Tell(benchMsg{})
+		}
+	}
+
+	waitForCount(b, &received, int64(b.N)*int64(n), "fan-out messages")
+	b.StopTimer()
+}
+
+func BenchmarkFanOut_1(b *testing.B)   { benchmarkFanOutN(b, 1) }
+func BenchmarkFanOut_5(b *testing.B)   { benchmarkFanOutN(b, 5) }
+func BenchmarkFanOut_10(b *testing.B)  { benchmarkFanOutN(b, 10) }
+func BenchmarkFanOut_50(b *testing.B)  { benchmarkFanOutN(b, 50) }
+func BenchmarkFanOut_100(b *testing.B) { benchmarkFanOutN(b, 100) }
+func BenchmarkFanOut_500(b *testing.B) { benchmarkFanOutN(b, 500) }
+
 func BenchmarkMiddlewareOverhead(b *testing.B) {
 	noop := func(next actor.ReceiveFunc) actor.ReceiveFunc {
 		return func(ctx actor.Context) {

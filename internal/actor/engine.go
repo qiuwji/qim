@@ -217,6 +217,34 @@ func (e *Engine) Lookup(name string) (*ActorRef, bool) {
 	return inst.ref, true
 }
 
+func (e *Engine) GetOrCreate(name string, factory func() Actor) (*ActorRef, error) {
+	if e.shutdown.Load() {
+		return nil, ErrEngineShutdown
+	}
+
+	e.mu.RLock()
+	inst, ok := e.actors[name]
+	e.mu.RUnlock()
+	if ok {
+		return inst.ref, nil
+	}
+
+	a := factory()
+	ref, err := e.Spawn(name, a)
+	if err == nil {
+		return ref, nil
+	}
+	if err == ErrActorExists {
+		e.mu.RLock()
+		inst = e.actors[name]
+		e.mu.RUnlock()
+		if inst != nil {
+			return inst.ref, nil
+		}
+	}
+	return nil, err
+}
+
 // Stop 停止指定名称的 actor
 func (e *Engine) Stop(name string) {
 	inst := e.removeActor(name)
