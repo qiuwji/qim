@@ -1,7 +1,6 @@
 package actor
 
 import (
-	"context"
 	"time"
 )
 
@@ -49,12 +48,12 @@ func (f *future) wait(timeout time.Duration) (any, error) {
 			return nil, &AskTimeoutError{Timeout: 0}
 		}
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
+	timer := time.NewTimer(timeout)
+	defer timer.Stop()
 	select {
 	case r := <-f.ch:
 		return r.value, r.err
-	case <-ctx.Done():
+	case <-timer.C:
 		return nil, &AskTimeoutError{Timeout: timeout}
 	}
 }
