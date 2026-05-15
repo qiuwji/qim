@@ -6,11 +6,11 @@ import (
 
 	"qim/internal/actor"
 	"qim/internal/domain/conversation"
+	"qim/internal/service"
 )
 
 type convRouter struct {
-	engine    *actor.Engine
-	newConvFn func(convID uint64) actor.Actor
+	svc *service.ConvService
 }
 
 func (r *convRouter) dispatch(uid uint64, action string, data json.RawMessage) WsResponse {
@@ -163,18 +163,7 @@ func (r *convRouter) resolveAction(uid uint64, action string, data json.RawMessa
 
 func (r *convRouter) resolveRef(convID uint64) (*actor.ActorRef, error) {
 	if convID == 0 {
-		ref, ok := r.engine.Lookup("conv-manager")
-		if !ok {
-			return nil, fmt.Errorf("conv-manager unavailable")
-		}
-		return ref, nil
+		return r.svc.ManagerRef()
 	}
-	name := fmt.Sprintf("conv:%d", convID)
-	ref, err := r.engine.GetOrCreate(name, func() actor.Actor {
-		return r.newConvFn(convID)
-	})
-	if err != nil {
-		return nil, fmt.Errorf("conv actor unavailable: %w", err)
-	}
-	return ref, nil
+	return r.svc.ConvRef(convID)
 }

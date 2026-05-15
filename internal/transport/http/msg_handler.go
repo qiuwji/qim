@@ -1,45 +1,33 @@
 package http
 
 import (
-	"fmt"
 	"strconv"
-	"time"
 
-	"qim/internal/actor"
 	"qim/internal/domain/message"
 	"qim/internal/pkg/resp"
+	"qim/internal/service"
 
 	"github.com/gin-gonic/gin"
 )
 
-const msgAskTimeout = 5 * time.Second
-
 type MessageHandler struct {
-	engine *actor.Engine
+	svc *service.MsgService
 }
 
-func NewMessageHandler(engine *actor.Engine) *MessageHandler {
-	return &MessageHandler{engine: engine}
+func NewMessageHandler(svc *service.MsgService) *MessageHandler {
+	return &MessageHandler{svc: svc}
 }
 
-func (h *MessageHandler) storeRef() (*actor.ActorRef, bool) {
-	return h.engine.Lookup("msg-store")
-}
-
-func (h *MessageHandler) askStore(cmd any) (message.Result, error) {
-	ref, ok := h.storeRef()
-	if !ok {
-		return message.Result{}, fmt.Errorf("message store unavailable")
-	}
-	raw, err := ref.Ask(cmd, msgAskTimeout)
+func handleMsgResult(c *gin.Context, r message.Result, err error) {
 	if err != nil {
-		return message.Result{}, err
+		resp.Fail(c, 500, err.Error())
+		return
 	}
-	r, ok := raw.(message.Result)
-	if !ok {
-		return message.Result{}, fmt.Errorf("unexpected result type")
+	if r.Err != nil {
+		resp.Fail(c, 400, r.Err.Error())
+		return
 	}
-	return r, nil
+	resp.OK(c, r.Data)
 }
 
 func (h *MessageHandler) List(c *gin.Context) {
@@ -49,8 +37,7 @@ func (h *MessageHandler) List(c *gin.Context) {
 	if l, err := strconv.Atoi(c.DefaultQuery("limit", "20")); err == nil {
 		limit = l
 	}
-
-	r, err := h.askStore(message.ListMessagesCmd{
+	r, err := h.svc.Ask(message.ListMessagesCmd{
 		ConversationID: convID,
 		BeforeSeq:      int64(beforeSeq),
 		Limit:          limit,
@@ -65,23 +52,10 @@ func (h *MessageHandler) Search(c *gin.Context) {
 	if l, err := strconv.Atoi(c.DefaultQuery("limit", "20")); err == nil {
 		limit = l
 	}
-
-	r, err := h.askStore(message.SearchMessagesCmd{
+	r, err := h.svc.Ask(message.SearchMessagesCmd{
 		ConversationID: convID,
 		Keyword:        keyword,
 		Limit:          limit,
 	})
 	handleMsgResult(c, r, err)
-}
-
-func handleMsgResult(c *gin.Context, r message.Result, err error) {
-	if err != nil {
-		resp.Fail(c, 500, err.Error())
-		return
-	}
-	if r.Err != nil {
-		resp.Fail(c, 400, r.Err.Error())
-		return
-	}
-	resp.OK(c, r.Data)
 }

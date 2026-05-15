@@ -9,7 +9,7 @@ import (
 
 func (h *FriendHandler) ListGroups(c *gin.Context) {
 	uid := c.GetUint64("uid")
-	r, err := h.ask(friend.ListGroupsCmd{UID: uid})
+	r, err := h.svc.Ask(friend.ListGroupsCmd{UID: uid})
 	handleFriendResult(c, r, err)
 }
 
@@ -22,7 +22,7 @@ func (h *FriendHandler) CreateGroup(c *gin.Context) {
 		resp.Fail(c, 400, err.Error())
 		return
 	}
-	r, err := h.ask(friend.CreateGroupCmd{UID: uid, Name: req.Name})
+	r, err := h.svc.Ask(friend.CreateGroupCmd{UID: uid, Name: req.Name})
 	handleFriendResult(c, r, err)
 }
 
@@ -36,14 +36,14 @@ func (h *FriendHandler) RenameGroup(c *gin.Context) {
 		resp.Fail(c, 400, err.Error())
 		return
 	}
-	r, err := h.ask(friend.RenameGroupCmd{UID: uid, GroupID: groupID, Name: req.Name})
+	r, err := h.svc.Ask(friend.RenameGroupCmd{UID: uid, GroupID: groupID, Name: req.Name})
 	handleFriendResult(c, r, err)
 }
 
 func (h *FriendHandler) DeleteGroup(c *gin.Context) {
 	uid := c.GetUint64("uid")
 	groupID := c.GetUint64("group_id")
-	r, err := h.ask(friend.DeleteGroupCmd{UID: uid, GroupID: groupID})
+	r, err := h.svc.Ask(friend.DeleteGroupCmd{UID: uid, GroupID: groupID})
 	handleFriendResult(c, r, err)
 }
 
@@ -67,6 +67,6 @@ func (h *FriendHandler) SortGroups(c *gin.Context) {
 		groups[i].GroupID = g.GroupID
 		groups[i].SortOrder = g.SortOrder
 	}
-	r, err := h.ask(friend.SortGroupsCmd{UID: uid, Groups: groups})
+	r, err := h.svc.Ask(friend.SortGroupsCmd{UID: uid, Groups: groups})
 	handleFriendResult(c, r, err)
 }

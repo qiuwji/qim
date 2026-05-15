@@ -6,11 +6,11 @@ import (
 
 	"qim/internal/actor"
 	"qim/internal/domain/user"
+	"qim/internal/service"
 )
 
 type userRouter struct {
-	engine       *actor.Engine
-	newSessionFn func(uid uint64) actor.Actor
+	svc *service.UserService
 }
 
 func (r *userRouter) dispatch(uid uint64, action string, data json.RawMessage) WsResponse {
@@ -32,9 +32,9 @@ func (r *userRouter) resolve(uid uint64, action string, data json.RawMessage) (a
 		if err := json.Unmarshal(data, &req); err != nil {
 			return nil, nil, nil, err
 		}
-		ref, ok := r.engine.Lookup("user-manager")
-		if !ok {
-			return nil, nil, nil, fmt.Errorf("user-manager unavailable")
+		ref, err := r.svc.ManagerRef()
+		if err != nil {
+			return nil, nil, nil, err
 		}
 		return user.RegisterCmd{Username: req.Username, Password: req.Password, Nickname: req.Nickname}, ref, askDispatch, nil
 	case "login":
@@ -45,9 +45,9 @@ func (r *userRouter) resolve(uid uint64, action string, data json.RawMessage) (a
 		if err := json.Unmarshal(data, &req); err != nil {
 			return nil, nil, nil, err
 		}
-		ref, ok := r.engine.Lookup("user-manager")
-		if !ok {
-			return nil, nil, nil, fmt.Errorf("user-manager unavailable")
+		ref, err := r.svc.ManagerRef()
+		if err != nil {
+			return nil, nil, nil, err
 		}
 		return user.LoginCmd{Username: req.Username, Password: req.Password}, ref, askDispatch, nil
 	case "search":
@@ -57,9 +57,9 @@ func (r *userRouter) resolve(uid uint64, action string, data json.RawMessage) (a
 		if err := json.Unmarshal(data, &req); err != nil {
 			return nil, nil, nil, err
 		}
-		ref, ok := r.engine.Lookup("user-manager")
-		if !ok {
-			return nil, nil, nil, fmt.Errorf("user-manager unavailable")
+		ref, err := r.svc.ManagerRef()
+		if err != nil {
+			return nil, nil, nil, err
 		}
 		return user.SearchUsersCmd{Keyword: req.Keyword}, ref, askDispatch, nil
 	case "get":
@@ -69,13 +69,13 @@ func (r *userRouter) resolve(uid uint64, action string, data json.RawMessage) (a
 		if err := json.Unmarshal(data, &req); err != nil {
 			return nil, nil, nil, err
 		}
-		ref, ok := r.engine.Lookup("user-manager")
-		if !ok {
-			return nil, nil, nil, fmt.Errorf("user-manager unavailable")
+		ref, err := r.svc.ManagerRef()
+		if err != nil {
+			return nil, nil, nil, err
 		}
 		return user.GetUserCmd{UID: req.UID}, ref, askDispatch, nil
 	case "profile":
-		ref, err := r.sessionRef(uid)
+		ref, err := r.svc.SessionRef(uid)
 		if err != nil {
 			return nil, nil, nil, err
 		}
@@ -89,7 +89,7 @@ func (r *userRouter) resolve(uid uint64, action string, data json.RawMessage) (a
 		if err := json.Unmarshal(data, &req); err != nil {
 			return nil, nil, nil, err
 		}
-		ref, err := r.sessionRef(uid)
+		ref, err := r.svc.SessionRef(uid)
 		if err != nil {
 			return nil, nil, nil, err
 		}
@@ -102,7 +102,7 @@ func (r *userRouter) resolve(uid uint64, action string, data json.RawMessage) (a
 		if err := json.Unmarshal(data, &req); err != nil {
 			return nil, nil, nil, err
 		}
-		ref, err := r.sessionRef(uid)
+		ref, err := r.svc.SessionRef(uid)
 		if err != nil {
 			return nil, nil, nil, err
 		}
@@ -110,15 +110,4 @@ func (r *userRouter) resolve(uid uint64, action string, data json.RawMessage) (a
 	default:
 		return nil, nil, nil, fmt.Errorf("unknown user action: %s", action)
 	}
-}
-
-func (r *userRouter) sessionRef(uid uint64) (*actor.ActorRef, error) {
-	name := fmt.Sprintf("session:%d", uid)
-	ref, err := r.engine.GetOrCreate(name, func() actor.Actor {
-		return r.newSessionFn(uid)
-	})
-	if err != nil {
-		return nil, fmt.Errorf("session actor unavailable: %w", err)
-	}
-	return ref, nil
 }

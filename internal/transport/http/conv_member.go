@@ -9,7 +9,7 @@ import (
 
 func (h *ConversationHandler) Members(c *gin.Context) {
 	convID := c.GetUint64("id")
-	r, err := h.askConv(convID, conversation.ListMembersQuery{})
+	r, err := h.svc.AskConv(convID, conversation.ListMembersQuery{})
 	handleResult(c, r, err)
 }
 
@@ -23,21 +23,21 @@ func (h *ConversationHandler) AddMember(c *gin.Context) {
 		resp.Fail(c, 400, err.Error())
 		return
 	}
-	r, err := h.askConv(convID, conversation.AddMemberCmd{UID: req.UID, Role: conversation.MemberRole(req.Role)})
+	r, err := h.svc.AskConv(convID, conversation.AddMemberCmd{UID: req.UID, Role: conversation.MemberRole(req.Role)})
 	handleResult(c, r, err)
 }
 
 func (h *ConversationHandler) RemoveMember(c *gin.Context) {
 	convID := c.GetUint64("id")
 	uid := c.GetUint64("uid")
-	r, err := h.askConv(convID, conversation.RemoveMemberCmd{UID: uid})
+	r, err := h.svc.AskConv(convID, conversation.RemoveMemberCmd{UID: uid})
 	handleResult(c, r, err)
 }
 
 func (h *ConversationHandler) Leave(c *gin.Context) {
 	convID := c.GetUint64("id")
 	uid := c.GetUint64("uid")
-	r, err := h.askConv(convID, conversation.LeaveConvCmd{UID: uid})
+	r, err := h.svc.AskConv(convID, conversation.LeaveConvCmd{UID: uid})
 	handleResult(c, r, err)
 }
 
@@ -51,7 +51,7 @@ func (h *ConversationHandler) SetRole(c *gin.Context) {
 		resp.Fail(c, 400, err.Error())
 		return
 	}
-	r, err := h.askConv(convID, conversation.SetRoleCmd{UID: uid, Role: conversation.MemberRole(req.Role)})
+	r, err := h.svc.AskConv(convID, conversation.SetRoleCmd{UID: uid, Role: conversation.MemberRole(req.Role)})
 	handleResult(c, r, err)
 }
 
@@ -64,13 +64,13 @@ func (h *ConversationHandler) TransferOwner(c *gin.Context) {
 		resp.Fail(c, 400, err.Error())
 		return
 	}
-	r, err := h.askConv(convID, conversation.TransferOwnerCmd{NewOwnerID: req.NewOwnerID})
+	r, err := h.svc.AskConv(convID, conversation.TransferOwnerCmd{NewOwnerID: req.NewOwnerID})
 	handleResult(c, r, err)
 }
 
 func (h *ConversationHandler) Dissolve(c *gin.Context) {
 	convID := c.GetUint64("id")
 	uid := c.GetUint64("uid")
-	r, err := h.askConv(convID, conversation.DissolveConvCmd{OwnerID: uid})
+	r, err := h.svc.AskConv(convID, conversation.DissolveConvCmd{OwnerID: uid})
 	handleResult(c, r, err)
 }

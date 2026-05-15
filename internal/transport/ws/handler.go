@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"qim/internal/actor"
+	"qim/internal/service"
 )
 
 const askTimeout = 5 * time.Second
@@ -29,20 +30,23 @@ func tellDispatch(ref *actor.ActorRef, cmd any, action string) WsResponse {
 }
 
 type Dispatcher struct {
-	engine *actor.Engine
 	conv   *convRouter
 	msg    *msgRouter
 	friend *friendRouter
 	user   *userRouter
 }
 
-func NewDispatcher(engine *actor.Engine, convFn func(convID uint64) actor.Actor, sessionFn func(uid uint64) actor.Actor) *Dispatcher {
+func NewDispatcher(
+	convSvc *service.ConvService,
+	msgSvc *service.MsgService,
+	friendSvc *service.FriendService,
+	userSvc *service.UserService,
+) *Dispatcher {
 	return &Dispatcher{
-		engine: engine,
-		conv:   &convRouter{engine: engine, newConvFn: convFn},
-		msg:    &msgRouter{engine: engine},
-		friend: &friendRouter{engine: engine},
-		user:   &userRouter{engine: engine, newSessionFn: sessionFn},
+		conv:   &convRouter{svc: convSvc},
+		msg:    &msgRouter{svc: msgSvc},
+		friend: &friendRouter{svc: friendSvc},
+		user:   &userRouter{svc: userSvc},
 	}
 }
 

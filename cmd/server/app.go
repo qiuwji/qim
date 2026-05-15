@@ -1,9 +1,6 @@
 package main
 
 import (
-	"fmt"
-	"time"
-
 	"qim/internal/actor"
 	"qim/internal/dal"
 	"qim/internal/domain/conversation"
@@ -11,18 +8,12 @@ import (
 	"qim/internal/domain/message"
 	"qim/internal/domain/presence"
 	"qim/internal/domain/user"
+	"qim/internal/service"
 	httphandler "qim/internal/transport/http"
-	wsdispatcher "qim/internal/transport/ws"
+	"qim/internal/transport/ws"
 
 	"gorm.io/gorm"
 )
-
-type app struct {
-	engine   *actor.Engine
-	db       *gorm.DB
-	stores   stores
-	handlers handlers
-}
 
 type stores struct {
 	conv   dal.ConvStore
@@ -31,11 +22,11 @@ type stores struct {
 	friend dal.FriendStore
 }
 
-type handlers struct {
-	conv   *httphandler.ConversationHandler
-	user   *httphandler.UserHandler
-	msg    *httphandler.MessageHandler
-	friend *httphandler.FriendHandler
+type svcs struct {
+	conv   *service.ConvService
+	user   *service.UserService
+	msg    *service.MsgService
+	friend *service.FriendService
 }
 
 func initEngine() *actor.Engine {
@@ -57,6 +48,21 @@ func initStores(db *gorm.DB) stores {
 	}
 }
 
+func initServices(engine *actor.Engine, s stores) svcs {
+	convFn := func(convID uint64) actor.Actor {
+		return conversation.NewConversationActor(convID, s.conv, engine)
+	}
+	sessionFn := func(uid uint64) actor.Actor {
+		return user.NewSessionActor(uid, s.user, engine)
+	}
+	return svcs{
+		conv:   service.NewConvService(engine, convFn),
+		user:   service.NewUserService(engine, sessionFn),
+		msg:    service.NewMsgService(engine),
+		friend: service.NewFriendService(engine),
+	}
+}
+
 func initActors(engine *actor.Engine, s stores) {
 	engine.Spawn("conv-manager", conversation.NewManagerActor(s.conv, engine))
 	engine.Spawn("user-manager", user.NewManagerActor(s.user, engine))
@@ -65,41 +71,15 @@ func initActors(engine *actor.Engine, s stores) {
 	engine.Spawn("presence", presence.NewPresenceActor(engine))
 }
 
-func initHandlers(engine *actor.Engine, s stores) handlers {
-	convFn := func(convID uint64) actor.Actor {
-		return conversation.NewConversationActor(convID, s.conv, engine)
-	}
-	sessionFn := func(uid uint64) actor.Actor {
-		return user.NewSessionActor(uid, s.user, engine)
-	}
-	return handlers{
-		conv: httphandler.NewConversationHandler(engine, convFn),
-		user: httphandler.NewUserHandler(engine, sessionFn),
-		msg:  httphandler.NewMessageHandler(engine),
-		friend: httphandler.NewFriendHandler(func(cmd any) (friend.Result, error) {
-			ref, ok := engine.Lookup("friend-manager")
-			if !ok {
-				return friend.Result{}, fmt.Errorf("friend manager unavailable")
-			}
-			raw, err := ref.Ask(cmd, 5*time.Second)
-			if err != nil {
-				return friend.Result{}, err
-			}
-			r, ok := raw.(friend.Result)
-			if !ok {
-				return friend.Result{}, fmt.Errorf("unexpected result type")
-			}
-			return r, nil
-		}),
+func initHandlers(s svcs) *httphandler.Handlers {
+	return &httphandler.Handlers{
+		Conv:   httphandler.NewConversationHandler(s.conv),
+		User:   httphandler.NewUserHandler(s.user),
+		Msg:    httphandler.NewMessageHandler(s.msg),
+		Friend: httphandler.NewFriendHandler(s.friend),
 	}
 }
 
-func initDispatcher(engine *actor.Engine, s stores) *wsdispatcher.Dispatcher {
-	convFn := func(convID uint64) actor.Actor {
-		return conversation.NewConversationActor(convID, s.conv, engine)
-	}
-	sessionFn := func(uid uint64) actor.Actor {
-		return user.NewSessionActor(uid, s.user, engine)
-	}
-	return wsdispatcher.NewDispatcher(engine, convFn, sessionFn)
+func initDispatcher(s svcs) *ws.Dispatcher {
+	return ws.NewDispatcher(s.conv, s.msg, s.friend, s.user)
 }

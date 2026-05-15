@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"qim/internal/actor"
 	"qim/internal/domain/message"
+	"qim/internal/service"
 )
 
 type msgRouter struct {
-	engine *actor.Engine
+	svc *service.MsgService
 }
 
 func (r *msgRouter) dispatch(uid uint64, action string, data json.RawMessage) WsResponse {
@@ -17,9 +17,9 @@ func (r *msgRouter) dispatch(uid uint64, action string, data json.RawMessage) Ws
 	if err != nil {
 		return errReply(action, err.Error())
 	}
-	ref, ok := r.engine.Lookup("msg-store")
-	if !ok {
-		return errReply(action, "msg-store unavailable")
+	ref, err := r.svc.Ref()
+	if err != nil {
+		return errReply(action, err.Error())
 	}
 	return fn(ref, cmd, action)
 }

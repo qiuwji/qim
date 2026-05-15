@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"qim/internal/actor"
 	"qim/internal/domain/friend"
+	"qim/internal/service"
 )
 
 type friendRouter struct {
-	engine *actor.Engine
+	svc *service.FriendService
 }
 
 func (r *friendRouter) dispatch(uid uint64, action string, data json.RawMessage) WsResponse {
@@ -17,9 +17,9 @@ func (r *friendRouter) dispatch(uid uint64, action string, data json.RawMessage)
 	if err != nil {
 		return errReply(action, err.Error())
 	}
-	ref, ok := r.engine.Lookup("friend-manager")
-	if !ok {
-		return errReply(action, "friend-manager unavailable")
+	ref, err := r.svc.Ref()
+	if err != nil {
+		return errReply(action, err.Error())
 	}
 	return fn(ref, cmd, action)
 }

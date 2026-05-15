@@ -19,31 +19,22 @@ var upgrader = websocket.Upgrader{
 }
 
 type Server struct {
-	engine        *actor.Engine
-	router        *gin.Engine
-	convHandler   *httphandler.ConversationHandler
-	userHandler   *httphandler.UserHandler
-	msgHandler    *httphandler.MessageHandler
-	friendHandler *httphandler.FriendHandler
-	dispatcher    ws.WsDispatcher
+	engine     *actor.Engine
+	router     *gin.Engine
+	dispatcher ws.WsDispatcher
+	handlers   *httphandler.Handlers
 }
 
 func NewServer(
 	engine *actor.Engine,
-	convHandler *httphandler.ConversationHandler,
-	userHandler *httphandler.UserHandler,
-	msgHandler *httphandler.MessageHandler,
-	friendHandler *httphandler.FriendHandler,
+	handlers *httphandler.Handlers,
 	dispatcher ws.WsDispatcher,
 ) *Server {
 	s := &Server{
-		engine:        engine,
-		router:        gin.Default(),
-		convHandler:   convHandler,
-		userHandler:   userHandler,
-		msgHandler:    msgHandler,
-		friendHandler: friendHandler,
-		dispatcher:    dispatcher,
+		engine:     engine,
+		router:     gin.Default(),
+		dispatcher: dispatcher,
+		handlers:   handlers,
 	}
 	s.setupRoutes()
 	return s
@@ -61,67 +52,67 @@ func (s *Server) setupRoutes() {
 		{
 			convGrp := authGrp.Group("/conversations")
 			{
-				convGrp.GET("", s.convHandler.List)
-				convGrp.POST("/private", s.convHandler.CreatePrivate)
-				convGrp.POST("/group", s.convHandler.CreateGroup)
-				convGrp.DELETE("/:id", s.convHandler.Delete)
-				convGrp.PUT("/:id/pin", s.convHandler.Pin)
-				convGrp.PUT("/:id/mute", s.convHandler.Mute)
-				convGrp.PUT("/:id/read", s.convHandler.Read)
-				convGrp.PUT("/read-all", s.convHandler.ReadAll)
-				convGrp.GET("/:id/members", s.convHandler.Members)
-				convGrp.POST("/:id/members", s.convHandler.AddMember)
-				convGrp.DELETE("/:id/members/:uid", s.convHandler.RemoveMember)
-				convGrp.DELETE("/:id/leave", s.convHandler.Leave)
-				convGrp.PUT("/:id/members/:uid/role", s.convHandler.SetRole)
-				convGrp.PUT("/:id/owner", s.convHandler.TransferOwner)
-				convGrp.DELETE("/:id/dissolve", s.convHandler.Dissolve)
-				convGrp.PUT("/:id/info", s.convHandler.UpdateInfo)
-				convGrp.GET("/:id/messages", s.msgHandler.List)
+				convGrp.GET("", s.handlers.Conv.List)
+				convGrp.POST("/private", s.handlers.Conv.CreatePrivate)
+				convGrp.POST("/group", s.handlers.Conv.CreateGroup)
+				convGrp.DELETE("/:id", s.handlers.Conv.Delete)
+				convGrp.PUT("/:id/pin", s.handlers.Conv.Pin)
+				convGrp.PUT("/:id/mute", s.handlers.Conv.Mute)
+				convGrp.PUT("/:id/read", s.handlers.Conv.Read)
+				convGrp.PUT("/read-all", s.handlers.Conv.ReadAll)
+				convGrp.GET("/:id/members", s.handlers.Conv.Members)
+				convGrp.POST("/:id/members", s.handlers.Conv.AddMember)
+				convGrp.DELETE("/:id/members/:uid", s.handlers.Conv.RemoveMember)
+				convGrp.DELETE("/:id/leave", s.handlers.Conv.Leave)
+				convGrp.PUT("/:id/members/:uid/role", s.handlers.Conv.SetRole)
+				convGrp.PUT("/:id/owner", s.handlers.Conv.TransferOwner)
+				convGrp.DELETE("/:id/dissolve", s.handlers.Conv.Dissolve)
+				convGrp.PUT("/:id/info", s.handlers.Conv.UpdateInfo)
+				convGrp.GET("/:id/messages", s.handlers.Msg.List)
 			}
 
 			msgGrp := authGrp.Group("/messages")
 			{
-				msgGrp.GET("/search", s.msgHandler.Search)
+				msgGrp.GET("/search", s.handlers.Msg.Search)
 			}
 
 			friendGrp := authGrp.Group("/friends")
 			{
-				friendGrp.POST("/request", s.friendHandler.SendRequest)
-				friendGrp.GET("/requests/incoming", s.friendHandler.ListIncoming)
-				friendGrp.GET("/requests/outgoing", s.friendHandler.ListOutgoing)
-				friendGrp.PUT("/requests/:req_id", s.friendHandler.HandleRequest)
-				friendGrp.DELETE("/:friend_uid", s.friendHandler.DeleteFriend)
-				friendGrp.GET("", s.friendHandler.ListFriends)
-				friendGrp.PUT("/:friend_uid/remark", s.friendHandler.UpdateRemark)
-				friendGrp.PUT("/:friend_uid/group", s.friendHandler.MoveGroup)
+				friendGrp.POST("/request", s.handlers.Friend.SendRequest)
+				friendGrp.GET("/requests/incoming", s.handlers.Friend.ListIncoming)
+				friendGrp.GET("/requests/outgoing", s.handlers.Friend.ListOutgoing)
+				friendGrp.PUT("/requests/:req_id", s.handlers.Friend.HandleRequest)
+				friendGrp.DELETE("/:friend_uid", s.handlers.Friend.DeleteFriend)
+				friendGrp.GET("", s.handlers.Friend.ListFriends)
+				friendGrp.PUT("/:friend_uid/remark", s.handlers.Friend.UpdateRemark)
+				friendGrp.PUT("/:friend_uid/group", s.handlers.Friend.MoveGroup)
 			}
 
 			friendGroupGrp := authGrp.Group("/friend/groups")
 			{
-				friendGroupGrp.GET("", s.friendHandler.ListGroups)
-				friendGroupGrp.POST("", s.friendHandler.CreateGroup)
-				friendGroupGrp.PUT("/:group_id", s.friendHandler.RenameGroup)
-				friendGroupGrp.DELETE("/:group_id", s.friendHandler.DeleteGroup)
-				friendGroupGrp.PUT("/sort", s.friendHandler.SortGroups)
+				friendGroupGrp.GET("", s.handlers.Friend.ListGroups)
+				friendGroupGrp.POST("", s.handlers.Friend.CreateGroup)
+				friendGroupGrp.PUT("/:group_id", s.handlers.Friend.RenameGroup)
+				friendGroupGrp.DELETE("/:group_id", s.handlers.Friend.DeleteGroup)
+				friendGroupGrp.PUT("/sort", s.handlers.Friend.SortGroups)
 			}
 
 			userGrp := authGrp.Group("/user")
 			{
-				userGrp.GET("/profile", s.userHandler.Profile)
-				userGrp.PUT("/profile", s.userHandler.UpdateProfile)
-				userGrp.PUT("/password", s.userHandler.ChangePassword)
+				userGrp.GET("/profile", s.handlers.User.Profile)
+				userGrp.PUT("/profile", s.handlers.User.UpdateProfile)
+				userGrp.PUT("/password", s.handlers.User.ChangePassword)
 			}
 
 			usersGrp := authGrp.Group("/users")
 			{
-				usersGrp.GET("/search", s.userHandler.Search)
-				usersGrp.GET("/:id", s.userHandler.GetUser)
+				usersGrp.GET("/search", s.handlers.User.Search)
+				usersGrp.GET("/:id", s.handlers.User.GetUser)
 			}
 		}
 
-		api.POST("/auth/register", s.userHandler.Register)
-		api.POST("/auth/login", s.userHandler.Login)
+		api.POST("/auth/register", s.handlers.User.Register)
+		api.POST("/auth/login", s.handlers.User.Login)
 	}
 
 	s.router.GET("/ws", auth, s.HandleWebSocket)
