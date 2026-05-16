@@ -1,0 +1,217 @@
+backend/docs/api.md
+  6701d3a75c6aac18 55 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0898afd1921616a88afd28","tool_type":"agent","tool_id":"Write","line_ranges":[{"Single":55}]}]}
+backend/internal/pkg/apperr/apperr.go
+  6701d3a75c6aac18 12 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0898afd1921616a88afd28","tool_type":"agent","tool_id":"Write","line_ranges":[{"Single":12}]}]}
+.github/workflows/deploy.yml
+  6701d3a75c6aac18 1-57 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0898afd1921616a88afd28","tool_type":"agent","tool_id":"Write","line_ranges":[{"Range":[1,57]}]}]}
+backend/internal/transport/ws/gateway.go
+  6701d3a75c6aac18 10,19-20,31-32,89-100,152-161 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0898afd1921616a88afd28","tool_type":"agent","tool_id":"Write","line_ranges":[{"Single":10},{"Range":[19,20]},{"Range":[31,32]},{"Range":[89,100]},{"Range":[152,161]}]}]}
+backend/cmd/bench/main.go
+  6701d3a75c6aac18 1-188 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0898afd1921616a88afd28","tool_type":"agent","tool_id":"Write","line_ranges":[{"Range":[1,188]}]}]}
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "df584cd5597629da704b262c798dcd402bf3c5d4",
+  "prompts": {
+    "6701d3a75c6aac18": {
+      "agent_id": {
+        "tool": "trae",
+        "id": "6a0766b2d1921616a88ad6aa",
+        "model": "glm-5.1__dev"
+      },
+      "human_author": "qiuji.322@BYTEDANCE.COM <qiuji.322@BYTEDANCE.COM@bytedance.com>",
+      "messages": [],
+      "total_additions": 553,
+      "total_deletions": 279,
+      "accepted_lines": 274,
+      "overriden_lines": 0
+    }
+  },
+  "attestation_metadata": {
+    ".github/workflows/deploy.yml": [
+      {
+        "hash": "6701d3a75c6aac18",
+        "line_ranges": [
+          {
+            "Range": [
+              1,
+              57
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0898afd1921616a88afd28",
+            "tool_type": "agent",
+            "tool_id": "Write",
+            "line_ranges": [
+              {
+                "Range": [
+                  1,
+                  57
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "backend/cmd/bench/main.go": [
+      {
+        "hash": "6701d3a75c6aac18",
+        "line_ranges": [
+          {
+            "Range": [
+              1,
+              188
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0898afd1921616a88afd28",
+            "tool_type": "agent",
+            "tool_id": "Write",
+            "line_ranges": [
+              {
+                "Range": [
+                  1,
+                  188
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "backend/docs/api.md": [
+      {
+        "hash": "6701d3a75c6aac18",
+        "line_ranges": [
+          {
+            "Single": 55
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0898afd1921616a88afd28",
+            "tool_type": "agent",
+            "tool_id": "Write",
+            "line_ranges": [
+              {
+                "Single": 55
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "backend/internal/pkg/apperr/apperr.go": [
+      {
+        "hash": "6701d3a75c6aac18",
+        "line_ranges": [
+          {
+            "Single": 12
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0898afd1921616a88afd28",
+            "tool_type": "agent",
+            "tool_id": "Write",
+            "line_ranges": [
+              {
+                "Single": 12
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "backend/internal/transport/ws/gateway.go": [
+      {
+        "hash": "6701d3a75c6aac18",
+        "line_ranges": [
+          {
+            "Single": 10
+          },
+          {
+            "Range": [
+              19,
+              20
+            ]
+          },
+          {
+            "Range": [
+              31,
+              32
+            ]
+          },
+          {
+            "Range": [
+              89,
+              100
+            ]
+          },
+          {
+            "Range": [
+              152,
+              161
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0898afd1921616a88afd28",
+            "tool_type": "agent",
+            "tool_id": "Write",
+            "line_ranges": [
+              {
+                "Single": 10
+              },
+              {
+                "Range": [
+                  19,
+                  20
+                ]
+              },
+              {
+                "Range": [
+                  31,
+                  32
+                ]
+              },
+              {
+                "Range": [
+                  89,
+                  100
+                ]
+              },
+              {
+                "Range": [
+                  152,
+                  161
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "remote_transcripts": {
+    "6701d3a75c6aac18": {
+      "tool": "trae",
+      "conversation_id": "6a0766b2d1921616a88ad6aa",
+      "session_id": "6a0766b2d1921616a88ad6aa",
+      "status": "remote_only",
+      "message": "Remote transcript resolution is not implemented yet for TRAE prompts."
+    }
+  }
+}
