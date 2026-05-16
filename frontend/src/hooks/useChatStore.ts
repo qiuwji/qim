@@ -1,16 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { api, clearSession, getSavedUser, getToken, saveSession } from '../api/http';
-import { normalizePushMessage, RealtimeClient } from '../api/ws';
+import { RealtimeClient } from '../api/ws';
 import type { ConversationDTO, FriendDTO, FriendGroupDTO, FriendRequestDTO, MemberDTO, MessageDTO, UserConvDTO, UserDTO, WsResponse } from '../api/types';
-import { currentSecond, displayName, pushText, upsertMessage, validatePassword } from '../utils';
+import { currentSecond, displayName, upsertMessage, validatePassword } from '../utils';
 import type { ContextMenu, MainTab, MobilePane, ModalState, Notice } from '../types';
 import {
   applyIncomingConversation,
-  decrementConversationUnread,
   groupConversations as filterGroupConversations,
   markConversationReadLocally,
   sortConversations,
 } from './chat/conversationModel';
+import { buildFriendMap, collectMissingFriendUserIDs, ensureFriendOnlineEntries } from './chat/friendModel';
 import {
   applyMessagePreview,
   applyPreviewTexts,
@@ -19,16 +19,23 @@ import {
   mergeLoadedMessages,
   messagePreviewText,
   MESSAGE_PAGE_SIZE,
+  MSG_TYPE_SYSTEM,
+  MSG_TYPE_TEXT,
   persistDeletedMessageID,
   readDeletedMessageIDs,
   removeMessageByID,
-  revokedPreviewUpdate,
   visibleMessages,
 } from './chat/messageModel';
+import { handleRealtimeMessage } from './chat/realtimeModel';
+
+const FRIEND_ACCEPTED_SYSTEM_TEXT = '我们的好友申请已经通过了，可以继续聊天了';
+const FRIEND_ACCEPTED_DEFAULT_TEXT = '我们的好友申请通过了~';
 
 export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) {
   const wsRef = useRef(new RealtimeClient());
   const selectedIDRef = useRef<number | null>(null);
+  const messagesRef = useRef<Record<number, MessageDTO[]>>({});
+  const realtimeHandlerRef = useRef<(msg: WsResponse) => void>(() => undefined);
   const typingTimers = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
   const deletedStorageKey = deletedMessageStorageKey(user.id);
   const deletedMessageIDs = useRef<Set<number>>(new Set(readDeletedMessageIDs(deletedStorageKey)));
@@ -67,13 +74,10 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
   const sortedConversations = useMemo(() => sortConversations(conversations), [conversations]);
   const groupConversations = useMemo(() => filterGroupConversations(sortedConversations, details), [sortedConversations, details]);
   const unreadTotal = useMemo(() => conversations.reduce((s, c) => s + c.unread_count, 0), [conversations]);
-  const friendMap = useMemo(() => {
-    const m: Record<number, FriendDTO> = {};
-    for (const f of friends) m[f.friend_uid] = f;
-    return m;
-  }, [friends]);
+  const friendMap = useMemo(() => buildFriendMap(friends), [friends]);
 
   useEffect(() => { selectedIDRef.current = selectedID; }, [selectedID]);
+  useEffect(() => { messagesRef.current = messages; }, [messages]);
 
   useEffect(() => {
     if (unreadTotal > 0) document.title = `(${unreadTotal}) QIM`;
@@ -88,6 +92,7 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
       ]);
       setConversations(convList);
       setFriends(friendList);
+      setOnlineMap((prev) => ensureFriendOnlineEntries(friendList, prev));
       setRequests(incoming.filter((i) => i.status === 0));
       setOutgoingReqs(outgoing.filter((i) => i.status === 0));
       setFriendGroups(groups);
@@ -102,11 +107,7 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
   }, [user.id]);
 
   async function hydrateFriendUsers(friendList: FriendDTO[], incomingReqs: FriendRequestDTO[], outgoingReqs: FriendRequestDTO[]) {
-    const uids = new Set<number>();
-    for (const f of friendList) uids.add(f.friend_uid);
-    for (const r of incomingReqs) uids.add(r.from_uid);
-    for (const r of outgoingReqs) uids.add(r.to_uid);
-    const missing = [...uids].filter((uid) => !userCache[uid]);
+    const missing = collectMissingFriendUserIDs(friendList, incomingReqs, outgoingReqs, userCache);
     if (!missing.length) return;
     const users = await Promise.all(missing.map((uid) => api.getUser(uid).catch(() => null)));
     const next: Record<number, UserDTO> = {};
@@ -166,7 +167,7 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
   }
 
   useEffect(() => {
-    const off = wsRef.current.on(handleWsMessage);
+    const off = wsRef.current.on((msg) => realtimeHandlerRef.current(msg));
     wsRef.current.connect(() => { setOnlineMap({}); void refreshBase(); });
     void refreshBase();
     return () => { off(); wsRef.current.close(); };
@@ -176,74 +177,26 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
   useEffect(() => { if (!selectedID) return; const t = window.setInterval(() => void loadChatMembers(selectedID, true), 5000); return () => window.clearInterval(t); }, [selectedID]);
 
   function handleWsMessage(msg: WsResponse) {
-    if (msg.type === 'system') {
-      if (msg.action === 'connected') {
-        wsRef.current.requestOnlineFriends();
-      }
-      return;
-    }
-    if (msg.type === 'error') { setNotice({ kind: 'error', text: msg.error?.message || '请求失败' }); return; }
-    if ((msg.type === 'ack' && msg.action === 'send') || (msg.type === 'message' && msg.action === 'new')) {
-      const next = normalizePushMessage(msg.data);
-      if (next) applyIncomingMessage(next);
-      return;
-    }
-    if (msg.type === 'message' && msg.action === 'revoked') {
-      const d = msg.data as Record<string, unknown> | undefined;
-      const cid = Number(d?.conversation_id ?? 0);
-      const mid = Number(d?.message_id ?? 0);
-      const senderID = Number(d?.sender_id ?? 0);
-      const isLatest = Boolean(d?.is_latest);
-      const currentList = messages[cid] ?? [];
-      setMessages((p) => ({ ...p, [cid]: (p[cid] ?? []).map((i) => (i.id === mid ? { ...i, revoked: true } : i)) }));
-      const previewUpdate = revokedPreviewUpdate(currentList, mid, isLatest, deletedMessageIDs.current);
-      if (previewUpdate.kind === 'message') {
-        setLastMessagePreview(cid, previewUpdate.message);
-      } else if (previewUpdate.kind === 'text') {
-        setLastMsgMap((prev) => ({ ...prev, [cid]: previewUpdate.text }));
-      }
-      if (isLatest && senderID !== user.id) {
-        setConversations((p) => decrementConversationUnread(p, cid));
-      }
-      return;
-    }
-    if (msg.type === 'typing' && msg.action === 'indicator') {
-      const d = msg.data as Record<string, unknown> | undefined;
-      const cid = Number(d?.conversation_id ?? 0);
-      const uid = Number(d?.user_id ?? 0);
-      if (cid && uid !== user.id) {
-        setTyping((p) => ({ ...p, [cid]: '对方正在输入中' }));
-        if (typingTimers.current[cid]) clearTimeout(typingTimers.current[cid]);
-        typingTimers.current[cid] = setTimeout(() => setTyping((p) => ({ ...p, [cid]: '' })), 6000);
-      }
-      return;
-    }
-    if (msg.type === 'ack' && msg.action === 'online_friends') {
-      const d = msg.data as Record<string, unknown> | undefined;
-      if (d) {
-        const m: Record<number, boolean> = {};
-        for (const [k, v] of Object.entries(d)) {
-          const uid = Number(k);
-          if (uid && typeof v === 'boolean') m[uid] = v;
-        }
-        setOnlineMap((p) => ({ ...p, ...m }));
-      }
-      return;
-    }
-    if (msg.type === 'presence') {
-      const d = msg.data as Record<string, unknown> | undefined;
-      const uid = Number(d?.uid ?? 0);
-      if (uid) {
-        const online = msg.action === 'online';
-        setOnlineMap((p) => ({ ...p, [uid]: online }));
-      }
-      return;
-    }
-    if (['friend', 'member', 'conversation'].includes(msg.type)) {
-      setNotice({ kind: 'info', text: pushText(msg) });
-      void refreshBase();
-    }
+    handleRealtimeMessage(msg, {
+      currentUID: user.id,
+      ws: wsRef.current,
+      typingTimers,
+      deletedMessageIDs,
+      getMessages: () => messagesRef.current,
+      getDisplayName: (uid) => displayName(uid, userCache, friendMap),
+      applyIncomingMessage,
+      setLastMessagePreview,
+      setNotice,
+      setMessages,
+      setLastMsgMap,
+      setConversations,
+      setTyping,
+      setOnlineMap,
+      refreshBase,
+    });
   }
+
+  realtimeHandlerRef.current = handleWsMessage;
 
   function applyIncomingMessage(next: MessageDTO) {
     if (deletedMessageIDs.current.has(next.id)) return;
@@ -285,12 +238,28 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
     catch { setMembers((p) => ({ ...p, [cid]: [] })); }
   }
 
+  function sendConversationMessage(conversationID: number, text: string, msgType = MSG_TYPE_TEXT, replyToID = msgType === MSG_TYPE_TEXT ? replyTo?.id ?? 0 : 0) {
+    const content = text.trim();
+    if (!content) return;
+    const clientID = wsRef.current.sendMessage({ conversation_id: conversationID, content, msg_type: msgType, reply_to: replyToID });
+    const optimistic: MessageDTO = {
+      id: Date.now(),
+      conversation_id: conversationID,
+      seq: Number.MAX_SAFE_INTEGER,
+      sender_id: user.id,
+      msg_type: msgType,
+      content,
+      reply_to: replyToID,
+      client_id: clientID,
+      created_at: currentSecond(),
+    };
+    applyIncomingMessage(optimistic);
+  }
+
   async function sendText(text: string) {
     if (!selectedID || !text.trim()) return;
     try {
-      const clientID = wsRef.current.sendMessage({ conversation_id: selectedID, content: text.trim(), reply_to: replyTo?.id ?? 0 });
-      const optimistic: MessageDTO = { id: Date.now(), conversation_id: selectedID, seq: Number.MAX_SAFE_INTEGER, sender_id: user.id, msg_type: 1, content: text.trim(), reply_to: replyTo?.id ?? 0, client_id: clientID, created_at: currentSecond() };
-      applyIncomingMessage(optimistic);
+      sendConversationMessage(selectedID, text, MSG_TYPE_TEXT);
       setReplyTo(null);
     } catch (err) {
       setNotice({ kind: 'error', text: err instanceof Error ? err.message : '发送失败' });
@@ -316,28 +285,50 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
     catch (err) { setNotice({ kind: 'error', text: err instanceof Error ? err.message : '搜索失败' }); }
   }
 
+  async function ensurePrivateConversation(uid: number): Promise<number> {
+    const existing = conversations.find((conv) => {
+      if (details[conv.conversation_id]?.type !== 1) return false;
+      return (members[conv.conversation_id] ?? []).some((m) => m.uid === uid);
+    });
+    if (existing) return existing.conversation_id;
+
+    const conv = await api.createPrivateChat(uid);
+    const [peer, memberList] = await Promise.all([
+      userCache[uid] ? Promise.resolve(userCache[uid]) : api.getUser(uid).catch(() => null),
+      api.members(conv.id).catch(() => []),
+    ]);
+    if (peer) setUserCache((p) => ({ ...p, [uid]: peer }));
+    setDetails((p) => ({ ...p, [conv.id]: peer ? { ...conv, type: 1, name: peer.nickname || peer.username, avatar: peer.avatar } : conv }));
+    setMembers((p) => ({ ...p, [conv.id]: memberList.length ? memberList : [{ uid: user.id, role: 1, last_read_seq: 0, join_time: conv.created_at }, { uid, role: 1, last_read_seq: 0, join_time: conv.created_at }] }));
+    setConversations((p) => (p.some((i) => i.conversation_id === conv.id) ? p : [{ conversation_id: conv.id, is_pinned: false, is_muted: false, unread_count: 0, last_msg_at: conv.created_at }, ...p]));
+    return conv.id;
+  }
+
   async function startPrivate(uid: number) {
     if (!friendMap[uid]) {
       setNotice({ kind: 'error', text: '只能给好友发消息，请先添加好友' });
       return;
     }
     try {
-      const existing = conversations.find((conv) => {
-        if (details[conv.conversation_id]?.type !== 1) return false;
-        return (members[conv.conversation_id] ?? []).some((m) => m.uid === uid);
-      });
-      if (existing) {
-        openConversation(existing.conversation_id);
-        return;
-      }
-      const conv = await api.createPrivateChat(uid);
-      const peer = userCache[uid] ?? (await api.getUser(uid).catch(() => null));
-      if (peer) setUserCache((p) => ({ ...p, [uid]: peer }));
-      setDetails((p) => ({ ...p, [conv.id]: peer ? { ...conv, type: 1, name: peer.nickname || peer.username, avatar: peer.avatar } : conv }));
-      setConversations((p) => (p.some((i) => i.conversation_id === conv.id) ? p : [{ conversation_id: conv.id, is_pinned: false, is_muted: false, unread_count: 0, last_msg_at: conv.created_at }, ...p]));
-      openConversation(conv.id);
+      const cid = await ensurePrivateConversation(uid);
+      openConversation(cid);
     } catch (err) {
       setNotice({ kind: 'error', text: err instanceof Error ? err.message : '创建聊天失败' });
+    }
+  }
+
+  async function acceptFriendRequest(req: FriendRequestDTO) {
+    await api.handleFriendRequest(req.id, 'accept');
+    await refreshBase();
+    const cid = await ensurePrivateConversation(req.from_uid);
+    openConversation(cid);
+    setReplyTo(null);
+    try {
+      sendConversationMessage(cid, FRIEND_ACCEPTED_SYSTEM_TEXT, MSG_TYPE_SYSTEM, 0);
+      sendConversationMessage(cid, FRIEND_ACCEPTED_DEFAULT_TEXT, MSG_TYPE_TEXT, 0);
+      setNotice({ kind: 'ok', text: '已同意好友申请' });
+    } catch {
+      setNotice({ kind: 'error', text: '已同意好友申请，但自动消息发送失败' });
     }
   }
 
@@ -387,7 +378,15 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
   }
 
   async function handleRequest(reqID: number, action: 'accept' | 'reject') {
-    try { await api.handleFriendRequest(reqID, action); await refreshBase(); }
+    try {
+      const req = requests.find((item) => item.id === reqID);
+      if (action === 'accept' && req) {
+        await acceptFriendRequest(req);
+        return;
+      }
+      await api.handleFriendRequest(reqID, action);
+      await refreshBase();
+    }
     catch (err) { setNotice({ kind: 'error', text: err instanceof Error ? err.message : '处理申请失败' }); }
   }
 

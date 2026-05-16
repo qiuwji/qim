@@ -47,11 +47,9 @@ function ChatPage({ user, onUserChange, onLogout }: { user: import('./api/types'
 
   const typingText = selectedID ? typing[selectedID] : '';
   const subtitle = selectedConv
-    ? typingText
-      ? typingText
-      : selectedDetail?.type === 1
-        ? (() => { const peer = selectedMembers.find((m) => m.uid !== user.id); return peer ? `${displayName(peer.uid, userCache, friendMap)} · ${onlineMap[peer.uid] ? '在线' : '离线'}` : '私聊'; })()
-        : `${selectedMembers.length} 位成员`
+    ? selectedDetail?.type === 1
+      ? (() => { const peer = selectedMembers.find((m) => m.uid !== user.id); const base = peer ? `${displayName(peer.uid, userCache, friendMap)} · ${onlineMap[peer.uid] ? '在线' : '离线'}` : '私聊'; return typingText ? typingText : base; })()
+      : `${selectedMembers.length} 位成员`
     : '选择聊天后开始';
 
   function handleAvatarEnter(uid: number, e: React.MouseEvent) {
@@ -81,18 +79,16 @@ function ChatPage({ user, onUserChange, onLogout }: { user: import('./api/types'
       <section className={`pane-list ${mobilePane === 'list' || mobilePane === 'contacts' ? 'mobile-show' : ''}`}>
         <div className="list-header">
           <div><strong>{tab === 'chats' ? '消息' : tab === 'contacts' ? '通讯录' : '我'}</strong><span>{loading ? '同步中...' : '在线'}</span></div>
-          {tab === 'chats'
-            ? <div className="quick-action-wrap" onClick={(e) => e.stopPropagation()}>
+          {tab === 'chats' && <div className="quick-action-wrap" onClick={(e) => e.stopPropagation()}>
               <button className="icon-btn" onClick={() => setQuickActionOpen((open) => !open)}>+</button>
               {quickActionOpen && <div className="quick-action-menu">
                 <button onClick={() => { setQuickActionOpen(false); createGroup(); }}>创建群聊</button>
                 <button onClick={() => { setQuickActionOpen(false); addFriendByUsername(); }}>添加好友</button>
               </div>}
-            </div>
-            : <button className="icon-btn" onClick={searchUsers}>搜</button>}
+            </div>}
         </div>
         {tab === 'chats' && <ConversationList conversations={sortedConversations} details={details} lastMsgMap={lastMsgMap} selectedID={selectedID} onSelect={selectChat} members={members} userCache={userCache} onlineMap={onlineMap} friendMap={friendMap} currentUID={user.id} onTogglePin={togglePin} onToggleMute={toggleMute} />}
-        {tab === 'contacts' && <ContactsPanel currentUID={user.id} keyword={searchKeyword} setKeyword={setSearchKeyword} onSearch={searchUsers} results={searchResult} friends={friends} friendGroups={friendGroups} requests={requests} outgoingReqs={outgoingReqs} groupConversations={groupConversations} details={details} userCache={userCache} friendMap={friendMap} onStartPrivate={startPrivate} onRequest={async (target) => { if (target.id === user.id) return; await api.sendFriendRequestByUsername(target.username, '你好'); setNotice({ kind: 'ok', text: '好友申请已发送' }); }} onHandleRequest={handleRequest} onSelectChat={selectChat} onDeleteFriend={deleteFriend} onUpdateRemark={updateFriendRemark} onCreateGroup={createFriendGroup} onRenameGroup={renameFriendGroup} onDeleteGroup={deleteFriendGroup} onViewUser={viewUserProfile} />}
+        {tab === 'contacts' && <ContactsPanel currentUID={user.id} keyword={searchKeyword} setKeyword={setSearchKeyword} onSearch={searchUsers} results={searchResult} friends={friends} friendGroups={friendGroups} requests={requests} outgoingReqs={outgoingReqs} groupConversations={groupConversations} details={details} userCache={userCache} onlineMap={onlineMap} friendMap={friendMap} onStartPrivate={startPrivate} onRequest={async (target) => { if (target.id === user.id) return; await api.sendFriendRequestByUsername(target.username, '你好'); setNotice({ kind: 'ok', text: '好友申请已发送' }); }} onHandleRequest={handleRequest} onSelectChat={selectChat} onDeleteFriend={deleteFriend} onUpdateRemark={updateFriendRemark} onCreateGroup={createFriendGroup} onRenameGroup={renameFriendGroup} onDeleteGroup={deleteFriendGroup} onViewUser={viewUserProfile} />}
         {tab === 'profile' && <ProfilePanel user={user} onUploadAvatar={uploadAvatar} onUpdateProfile={updateProfile} onChangePassword={changePassword} />}
       </section>
       <section className={`pane-chat ${mobilePane === 'chat' ? 'mobile-show' : ''}`}>

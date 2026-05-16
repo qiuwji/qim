@@ -32,19 +32,19 @@ export function AuthPage({ onLoggedIn, notice, setNotice }: {
   }
 
   return (
-    <main className="auth-screen">
-      <section className="auth-card">
-        <div className="brand-mark">Q</div>
-        <h1>QIM</h1>
-        <p>像 QQ / 微信一样轻量的即时通讯 Demo</p>
-        {notice && <div className={`notice ${notice.kind}`}>{notice.text}</div>}
-        <form onSubmit={submit} className="auth-form">
-          <label>账号<input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="请输入纯数字账号" inputMode="numeric" pattern="[0-9]*" required /></label>
-          {mode === 'register' && <label>昵称<input value={nickname} onChange={(e) => setNickname(e.target.value)} placeholder="Alice" /></label>}
-          <label>密码<input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="至少输入一个密码" required /></label>
-          <button className="primary-btn" disabled={loading}>{loading ? '处理中...' : mode === 'login' ? '登录' : '注册并登录'}</button>
+    <main className="grid min-h-full place-items-center bg-[#e9edf2] p-6">
+      <section className="w-[min(400px,100%)] rounded-[18px] border border-[#dfe3e8] bg-white p-9 text-center shadow-[0_12px_36px_rgba(31,35,41,0.08)] max-[760px]:rounded-2xl max-[760px]:px-5 max-[760px]:py-7">
+        <div className="mx-auto mb-4 grid h-[68px] w-[68px] place-items-center rounded-[18px] bg-[#12b35f] text-[32px] font-extrabold text-white">Q</div>
+        <h1 className="m-0 text-3xl tracking-[0.5px]">QIM</h1>
+        <p className="mt-2 mb-[26px] text-[#7b8491]">像 QQ / 微信一样轻量的即时通讯 Demo</p>
+        {notice && <div className={`mb-3 rounded-lg px-3 py-2.5 text-sm ${notice.kind === 'ok' ? 'bg-[#e8f7ef] text-[#0f7a43]' : notice.kind === 'error' ? 'bg-[#fff1f0] text-[#a61d24]' : 'bg-[#edf6ff] text-[#1d5f99]'}`}>{notice.text}</div>}
+        <form onSubmit={submit} className="grid gap-3.5 text-left">
+          <label className="grid gap-2 text-sm text-[#555f6d]">账号<input className="w-full rounded-lg border border-[#d8dde4] bg-white px-3 py-2.5 outline-none focus:border-[#12b35f] focus:shadow-[0_0_0_3px_rgba(18,179,95,0.1)]" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="请输入纯数字账号" inputMode="numeric" pattern="[0-9]*" required /></label>
+          {mode === 'register' && <label className="grid gap-2 text-sm text-[#555f6d]">昵称<input className="w-full rounded-lg border border-[#d8dde4] bg-white px-3 py-2.5 outline-none focus:border-[#12b35f] focus:shadow-[0_0_0_3px_rgba(18,179,95,0.1)]" value={nickname} onChange={(e) => setNickname(e.target.value)} placeholder="Alice" /></label>}
+          <label className="grid gap-2 text-sm text-[#555f6d]">密码<input className="w-full rounded-lg border border-[#d8dde4] bg-white px-3 py-2.5 outline-none focus:border-[#12b35f] focus:shadow-[0_0_0_3px_rgba(18,179,95,0.1)]" value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="至少输入一个密码" required /></label>
+          <button className="rounded-lg bg-[#12b35f] px-[18px] py-2.5 font-semibold text-white hover:bg-[#0ea254]" disabled={loading}>{loading ? '处理中...' : mode === 'login' ? '登录' : '注册并登录'}</button>
         </form>
-        <button className="link-btn" onClick={() => setMode(mode === 'login' ? 'register' : 'login')}>{mode === 'login' ? '没有账号？去注册' : '已有账号？去登录'}</button>
+        <button className="mt-[18px] bg-transparent text-[#1677c7]" onClick={() => setMode(mode === 'login' ? 'register' : 'login')}>{mode === 'login' ? '没有账号？去注册' : '已有账号？去登录'}</button>
       </section>
     </main>
   );

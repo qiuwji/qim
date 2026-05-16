@@ -13,7 +13,7 @@ export function ConversationList({ conversations, details, lastMsgMap, selectedI
 
   if (!conversations.length) return <EmptyState title="暂无聊天" text="可以从通讯录搜索用户并创建单聊，或点击 + 创建群聊。" />;
   return (
-    <div className="conversation-list" onClick={() => setCtx(null)}>
+    <div className="overflow-auto px-2 py-1" onClick={() => setCtx(null)}>
       {conversations.map((item) => {
         const detail = details[item.conversation_id];
         const title = chatTitle(item, detail);
@@ -22,22 +22,22 @@ export function ConversationList({ conversations, details, lastMsgMap, selectedI
         const convMembers = members[item.conversation_id] ?? [];
         const peer = isPrivate ? convMembers.find((m) => m.uid !== currentUID) : undefined;
         const peerUser = peer ? userCache[peer.uid] : undefined;
-        const peerOnline = peer ? onlineMap[peer.uid] : undefined;
+        const peerOnline = peer ? onlineMap[peer.uid] ?? false : undefined;
 
         return (
-          <button key={item.conversation_id} className={`conversation-item ${selectedID === item.conversation_id ? 'active' : ''}`} onClick={() => onSelect(item.conversation_id)} onContextMenu={(e) => { e.preventDefault(); setCtx({ x: e.clientX, y: e.clientY, item }); }}>
+          <button key={item.conversation_id} className={`flex w-full items-center gap-3 rounded-lg px-2.5 py-3 text-left text-inherit transition hover:bg-[#e8e8e8] max-[760px]:px-2 max-[760px]:py-[9px] ${selectedID === item.conversation_id ? 'bg-[#d4edda]' : 'bg-transparent'}`} onClick={() => onSelect(item.conversation_id)} onContextMenu={(e) => { e.preventDefault(); setCtx({ x: e.clientX, y: e.clientY, item }); }}>
             {peerUser
               ? <Avatar user={peerUser} online={peerOnline} badge={item.unread_count > 0 ? item.unread_count : undefined} />
-              : <div className="avatar-wrap"><div className="avatar fallback">{shortName(title)}</div>{item.unread_count > 0 && <b className="avatar-badge">{item.unread_count > 99 ? '99+' : item.unread_count}</b>}</div>
+              : <div className="relative inline-flex shrink-0"><div className="grid h-[42px] w-[42px] place-items-center rounded-[10px] bg-gradient-to-br from-[#43a047] to-[#07c160] font-bold text-white">{shortName(title)}</div>{item.unread_count > 0 && <b className="absolute -top-1 -right-1 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-[#f04b45] px-1 text-[10px] font-semibold leading-none text-white">{item.unread_count > 99 ? '99+' : item.unread_count}</b>}</div>
             }
-            <div className="conversation-main">
-              <div className="row between">
-                <strong>{item.is_pinned && <span className="pin-icon">📌</span>}{title}</strong>
-                <time>{timeText(item.last_msg_at)}</time>
+            <div className="grid min-w-0 flex-1 gap-1">
+              <div className="flex min-w-0 items-center justify-between gap-2">
+                <strong className="min-w-0 truncate text-[15px] font-semibold text-[#1f2329]">{item.is_pinned && <span className="mr-0.5 text-xs">📌</span>}{title}</strong>
+                <time className="shrink-0 text-xs text-[#999]">{timeText(item.last_msg_at)}</time>
               </div>
-              <div className="row between">
-                <span className="last-msg">{lastMsg || '暂无消息'}</span>
-                {item.unread_count > 0 && <b className={`badge ${item.is_muted ? 'muted' : ''}`}>{item.unread_count}</b>}
+              <div className="flex min-w-0 items-center justify-between gap-2">
+                <span className="min-w-0 flex-1 truncate text-[13px] text-[#858c98]">{lastMsg || '暂无消息'}</span>
+                {item.unread_count > 0 && <b className={`grid h-5 min-w-5 place-items-center rounded-full px-1.5 text-[11px] font-semibold text-white ${item.is_muted ? 'bg-[#c9ced6]' : 'bg-[#f04b45]'}`}>{item.unread_count}</b>}
               </div>
             </div>
           </button>

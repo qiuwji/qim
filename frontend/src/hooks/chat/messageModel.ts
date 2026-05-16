@@ -2,6 +2,8 @@ import type { MessageDTO, UserConvDTO } from '../../api/types';
 
 export const MESSAGE_PAGE_SIZE = 20;
 export const REVOKED_MESSAGE_PREVIEW = '消息已撤回';
+export const MSG_TYPE_TEXT = 1;
+export const MSG_TYPE_SYSTEM = 5;
 
 export type PreviewUpdate =
   | { kind: 'none' }
