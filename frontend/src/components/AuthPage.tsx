@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { UserDTO } from '../api/types';
 import type { Notice } from '../types';
 import { api } from '../api/http';
+import { validatePassword } from '../utils';
 
 export function AuthPage({ onLoggedIn, notice, setNotice }: {
   onLoggedIn: (token: string, user: UserDTO) => void; notice: Notice; setNotice: (n: Notice) => void;
@@ -19,7 +20,11 @@ export function AuthPage({ onLoggedIn, notice, setNotice }: {
         setNotice({ kind: 'error', text: '账号只能使用纯数字' });
         return;
       }
-      if (mode === 'register') await api.register({ username, password, nickname: nickname || username });
+      if (mode === 'register') {
+        const pwdErr = validatePassword(password);
+        if (pwdErr) { setNotice({ kind: 'error', text: pwdErr }); return; }
+        await api.register({ username, password, nickname: nickname || username });
+      }
       const data = await api.login({ username, password });
       onLoggedIn(data.token, data.user);
     } catch (err) { setNotice({ kind: 'error', text: err instanceof Error ? err.message : '登录失败' }); }

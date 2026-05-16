@@ -2,6 +2,14 @@ export function currentSecond() {
   return Math.floor(Date.now() / 1000);
 }
 
+export function validatePassword(pwd: string): string | null {
+  if (pwd.length < 8 || pwd.length > 20) return '密码长度需为 8-20 位';
+  if (!/[A-Z]/.test(pwd)) return '密码需包含大写字母';
+  if (!/[a-z]/.test(pwd)) return '密码需包含小写字母';
+  if (!/[^A-Za-z0-9]/.test(pwd)) return '密码需包含特殊字符';
+  return null;
+}
+
 export function timeText(value?: number) {
   if (!value) return '';
   const d = new Date(value * 1000);

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { api, clearSession, getSavedUser, getToken, saveSession } from '../api/http';
 import { normalizePushMessage, RealtimeClient } from '../api/ws';
 import type { ConversationDTO, FriendDTO, FriendGroupDTO, FriendRequestDTO, MemberDTO, MessageDTO, UserConvDTO, UserDTO, WsResponse } from '../api/types';
-import { currentSecond, displayName, pushText, upsertMessage } from '../utils';
+import { currentSecond, displayName, pushText, upsertMessage, validatePassword } from '../utils';
 import type { ContextMenu, MainTab, MobilePane, ModalState, Notice } from '../types';
 import {
   applyIncomingConversation,
@@ -563,7 +563,9 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
   }
 
   function changePassword() {
-    setModal({ type: 'prompt', title: '修改密码', fields: [{ key: 'old', label: '旧密码', placeholder: '输入旧密码' }, { key: 'new', label: '新密码', placeholder: '输入新密码' }], onConfirm: async (v) => {
+    setModal({ type: 'prompt', title: '修改密码', fields: [{ key: 'old', label: '旧密码', placeholder: '输入旧密码' }, { key: 'new', label: '新密码', placeholder: '8-20位，含大小写字母和特殊字符' }], onConfirm: async (v) => {
+      const pwdErr = validatePassword(v.new ?? '');
+      if (pwdErr) { setNotice({ kind: 'error', text: pwdErr }); return; }
       try { await api.changePassword({ old_password: v.old ?? '', new_password: v.new ?? '' }); setNotice({ kind: 'ok', text: '密码已修改' }); }
       catch (err) { setNotice({ kind: 'error', text: err instanceof Error ? err.message : '修改密码失败' }); }
     } });

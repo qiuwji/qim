@@ -83,6 +83,10 @@ func (a *SessionActor) handleChangePassword(ctx actor.Context, msg ChangePasswor
 		ctx.Reply(Result{Err: ErrIncorrectPassword})
 		return
 	}
+	if !validatePassword(msg.NewPassword) {
+		ctx.Reply(Result{Err: ErrWeakPassword})
+		return
+	}
 	passwordHash, err := hashPassword(msg.NewPassword)
 	if err != nil {
 		ctx.Reply(Result{Err: err})

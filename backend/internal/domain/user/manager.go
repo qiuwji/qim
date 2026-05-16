@@ -45,6 +45,10 @@ func (a *ManagerActor) handleRegister(ctx actor.Context, msg RegisterCmd) {
 		ctx.Reply(Result{Err: ErrInvalidUsername})
 		return
 	}
+	if !validatePassword(msg.Password) {
+		ctx.Reply(Result{Err: ErrWeakPassword})
+		return
+	}
 	now := time.Now().Unix()
 	passwordHash, err := hashPassword(msg.Password)
 	if err != nil {

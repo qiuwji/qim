@@ -57,6 +57,7 @@ ws://host/ws?token=<token>
 | `user.invalid_credentials` | 用户名或密码错误 |
 | `user.incorrect_password` | 旧密码错误 |
 | `user.invalid_username` | 账号格式非法，账号只能是纯数字字符串 |
+| `user.weak_password` | 密码强度不足，需 8-20 位且包含大小写字母和特殊字符 |
 | `conversation.empty_message` | 消息内容为空 |
 | `conversation.not_member` | 不是会话成员 |
 | `conversation.member_exists` | 成员已存在 |
