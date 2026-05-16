@@ -20,17 +20,7 @@ jobs:
           npm ci
           npm run build
 
-      - name: Deploy source and frontend
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "backend/,frontend/dist/"
-          target: "/tmp/qim-ci"
-          strip_components: 0
-
-      - name: Build backend and restart
+      - name: Deploy and build on server
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -39,9 +29,11 @@ jobs:
           command_timeout: 10m
           script: |
             set -e
-            rsync -a --delete --exclude data --exclude qim-server /tmp/qim-ci/backend/ /opt/qim/qim/backend/
-            rsync -a --delete /tmp/qim-ci/frontend/dist/ /opt/qim/qim/frontend/dist/
-            rm -rf /tmp/qim-ci
+            cd /opt/qim/qim
+            git pull origin main
+            cd frontend
+            npm ci
+            npm run build
             cd /opt/qim/qim/backend
             go build -o qim-server ./cmd/server/
             systemctl restart qim
