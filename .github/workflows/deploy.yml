@@ -10,19 +10,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-go@v5
-        with:
-          go-version: "1.26"
-          cache-dependency-path: backend/go.sum
-
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-
-      - name: Build backend
-        run: |
-          cd backend
-          CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -o qim-server ./cmd/server/
 
       - name: Build frontend
         run: |
@@ -30,29 +20,30 @@ jobs:
           npm ci
           npm run build
 
-      - name: Deploy to server
+      - name: Deploy source and frontend
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "backend/qim-server,frontend/dist"
-          target: "/tmp/qim-deploy"
-          strip_components: 1
+          source: "backend/,frontend/dist/"
+          target: "/tmp/qim-ci"
+          strip_components: 0
 
-      - name: Restart service
+      - name: Build backend and restart
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          command_timeout: 10m
           script: |
             set -e
-            cp /tmp/qim-deploy/qim-server /opt/qim/qim/backend/qim-server
-            chmod +x /opt/qim/qim/backend/qim-server
-            rm -rf /opt/qim/qim/frontend/dist
-            cp -r /tmp/qim-deploy/dist /opt/qim/qim/frontend/dist
-            rm -rf /tmp/qim-deploy
-            sudo systemctl restart qim
+            rsync -a --delete --exclude data --exclude qim-server /tmp/qim-ci/backend/ /opt/qim/qim/backend/
+            rsync -a --delete /tmp/qim-ci/frontend/dist/ /opt/qim/qim/frontend/dist/
+            rm -rf /tmp/qim-ci
+            cd /opt/qim/qim/backend
+            go build -o qim-server ./cmd/server/
+            systemctl restart qim
             sleep 2
-            sudo systemctl status qim --no-pager
+            systemctl status qim --no-pager
