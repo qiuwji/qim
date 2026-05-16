@@ -153,14 +153,22 @@ export function ChatWindow({ user, conversation, detail, title, subtitle, messag
       </div>
       {replyMsg && <div className="reply-bar"><span>回复: {replyMsg.content.slice(0, 40)}{replyMsg.content.length > 40 ? '...' : ''}</span><button onClick={() => onReply(null)}>✕</button></div>}
       <form className="composer" onSubmit={submit}>
-        <div className="composer-toolbar">
-          <span onClick={() => imageRef.current?.click()} style={{ cursor: 'pointer' }}>图片</span>
-          <span>表情</span>
-          <span>文件</span>
-          <input ref={imageRef} type="file" accept="image/*" hidden onChange={(e) => e.target.files?.[0] && onSendImage(e.target.files[0])} />
-        </div>
         <textarea value={draft} disabled={!conversation} onChange={handleDraftChange} onKeyDown={handleKeyDown} placeholder={conversation ? '输入消息，Enter 发送，Shift+Enter 换行' : '请选择聊天'} rows={1} />
-        <button className="primary-btn" disabled={!conversation || !draft.trim()}>发送</button>
+        <div className="composer-bottom">
+          <div className="composer-toolbar">
+            <button type="button" onClick={() => imageRef.current?.click()} title="图片">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg>
+            </button>
+            <button type="button" title="表情">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M8 14s1.5 2 4 2 4-2 4-2" /><line x1="9" y1="9" x2="9.01" y2="9" /><line x1="15" y1="9" x2="15.01" y2="9" /></svg>
+            </button>
+            <button type="button" title="文件">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" /></svg>
+            </button>
+            <input ref={imageRef} type="file" accept="image/*" hidden onChange={(e) => e.target.files?.[0] && onSendImage(e.target.files[0])} />
+          </div>
+          <button className="primary-btn" disabled={!conversation || !draft.trim()}>发送</button>
+        </div>
       </form>
     </div>
   );

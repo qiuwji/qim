@@ -367,37 +367,48 @@ input {
 .mine .bubble p { color: #152b12; border-color: #b8e7a9; background: #95ec69; }
 .composer {
   flex: 0 0 auto;
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 10px;
-  padding: 10px 18px 16px;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
   background: #f9fafb;
   border-top: 1px solid #dfe3e8;
 }
-.composer-toolbar {
-  grid-column: 1 / -1;
-  display: flex;
-  gap: 14px;
-  color: #707987;
-  font-size: 13px;
-}
-.composer-toolbar span { cursor: default; }
 .composer textarea {
   width: 100%;
-  border: 1px solid #d8dde4;
-  border-radius: 8px;
-  padding: 10px 12px;
+  border: none;
+  padding: 10px 16px;
   outline: none;
-  background: #fff;
+  background: #f9fafb;
   resize: none;
   min-height: 38px;
   max-height: 120px;
   line-height: 1.4;
+  font-size: 14px;
 }
 .composer textarea:focus {
-  border-color: #12b35f;
-  box-shadow: 0 0 0 3px rgba(18, 179, 95, .1);
+  background: #fff;
 }
+.composer-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 12px 8px;
+}
+.composer-toolbar {
+  display: flex;
+  gap: 2px;
+}
+.composer-toolbar button {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  color: #8c8c8c;
+  background: transparent;
+  transition: all 0.12s;
+}
+.composer-toolbar button:hover { color: #07c160; background: rgba(7, 193, 96, 0.08); }
 
 .context-overlay {
   position: fixed;
@@ -1098,10 +1109,10 @@ input {
   .message-row { max-width: 100%; }
   .bubble { max-width: 82%; min-width: 0; }
   .composer {
-    padding: 8px 10px;
-    grid-template-columns: minmax(0, 1fr) 64px;
+    padding: 0;
   }
   .composer textarea { min-width: 0; }
+  .composer-bottom { padding: 4px 8px 8px; }
   .auth-card { padding: 28px 22px; border-radius: 16px; }
   .chat-header { height: 54px; padding: 0 12px; }
   .chat-header strong { font-size: 15px; }
