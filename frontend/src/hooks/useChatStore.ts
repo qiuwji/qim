@@ -93,6 +93,7 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
       setFriendGroups(groups);
       await hydrateChatMeta(convList, friendList);
       await hydrateFriendUsers(friendList, incoming, outgoing);
+      wsRef.current.requestOnlineFriends();
     } catch (err) {
       setNotice({ kind: 'error', text: err instanceof Error ? err.message : '加载失败' });
     } finally {
@@ -165,9 +166,9 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
   }
 
   useEffect(() => {
-    refreshBase();
-    wsRef.current.connect(() => { setOnlineMap({}); void refreshBase(); });
     const off = wsRef.current.on(handleWsMessage);
+    wsRef.current.connect(() => { setOnlineMap({}); void refreshBase(); });
+    void refreshBase();
     return () => { off(); wsRef.current.close(); };
   }, []);
 
@@ -211,7 +212,6 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
       const cid = Number(d?.conversation_id ?? 0);
       const uid = Number(d?.user_id ?? 0);
       if (cid && uid !== user.id) {
-        const name = displayName(uid, userCache, friendMap);
         setTyping((p) => ({ ...p, [cid]: '对方正在输入中' }));
         if (typingTimers.current[cid]) clearTimeout(typingTimers.current[cid]);
         typingTimers.current[cid] = setTimeout(() => setTyping((p) => ({ ...p, [cid]: '' })), 6000);

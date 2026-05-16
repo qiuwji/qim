@@ -163,7 +163,9 @@ export class RealtimeClient {
   }
 
   requestOnlineFriends() {
-    this.send('presence', 'online_friends');
+    if (this.socket?.readyState === WebSocket.OPEN) {
+      this.send('presence', 'online_friends');
+    }
   }
 
   transferOwner(conv_id: number, new_owner_id: number) {
