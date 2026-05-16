@@ -26,20 +26,22 @@ func NewMessagePushActor(presence *actor.ActorRef, friendMgr *actor.ActorRef) *M
 func (h *MessagePushHandler) Receive(ctx actor.Context) {
 	switch msg := ctx.Message().(type) {
 	case eventbus.EventEnvelope:
-		h.handleEvent(ctx, msg.Event)
+		h.handleEvent(msg.Event)
+	case conversation.TypingPushCmd:
+		h.handleTypingPush(msg)
 	}
 }
 
-func (h *MessagePushHandler) handleEvent(ctx actor.Context, event eventbus.Event) {
+func (h *MessagePushHandler) handleEvent(event eventbus.Event) {
 	if h.presence == nil {
 		return
 	}
 
 	switch e := event.(type) {
 	case presencedomain.UserOnlineEvent:
-		h.handlePresenceChange(ctx, e.UID, "online")
+		h.handlePresenceChange(e.UID, "online")
 	case presencedomain.UserOfflineEvent:
-		h.handlePresenceChange(ctx, e.UID, "offline")
+		h.handlePresenceChange(e.UID, "offline")
 	default:
 		pushType, action, recipients, data, ok := routePushEvent(event)
 		if !ok {
@@ -51,7 +53,7 @@ func (h *MessagePushHandler) handleEvent(ctx actor.Context, event eventbus.Event
 	}
 }
 
-func (h *MessagePushHandler) handlePresenceChange(ctx actor.Context, uid uint64, action string) {
+func (h *MessagePushHandler) handlePresenceChange(uid uint64, action string) {
 	if h.friendMgr == nil {
 		zap.L().Warn("presence push skipped: friendMgr is nil", zap.Uint64("uid", uid), zap.String("action", action))
 		return
@@ -108,8 +110,6 @@ func routePushEvent(event eventbus.Event) (pushType string, action string, recip
 		return "message", "new", e.MemberUIDs, e, true
 	case conversation.MessageRevokedEvent:
 		return "message", "revoked", e.MemberUIDs, e, true
-	case conversation.TypingEvent:
-		return "typing", "indicator", e.MemberUIDs, e, true
 	case conversation.ConversationUpdatedEvent:
 		return "conversation", "updated", e.MemberUIDs, e, true
 	case conversation.MemberJoinedEvent:
@@ -132,6 +132,16 @@ func routePushEvent(event eventbus.Event) (pushType string, action string, recip
 	default:
 		return "", "", nil, nil, false
 	}
+}
+
+func (h *MessagePushHandler) handleTypingPush(cmd conversation.TypingPushCmd) {
+	if h.presence == nil || cmd.ToUID == 0 {
+		return
+	}
+	h.pushToUser(cmd.ToUID, "typing", "indicator", map[string]any{
+		"conversation_id": cmd.ConversationID,
+		"user_id":         cmd.FromUID,
+	})
 }
 
 func (h *MessagePushHandler) pushToUser(uid uint64, pushType, action string, data any) {

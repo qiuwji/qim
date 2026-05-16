@@ -9,6 +9,7 @@ import (
 )
 
 const idleTimeout = 6 * time.Hour
+const realtimePushActorName = "message-push"
 
 type ConversationActor struct {
 	convID      uint64
@@ -138,14 +139,29 @@ func (a *ConversationActor) handleTyping(ctx actor.Context, msg TypingCmd) {
 		ctx.Reply(Result{Err: ErrNotMember})
 		return
 	}
-	if a.events != nil {
-		_ = a.events.Publish(TypingEvent{
-			ConversationID: a.convID,
-			UserID:         msg.UID,
-			MemberUIDs:     a.memberUIDsExcept(msg.UID),
-		})
+	if a.convType == store.ConvTypePrivate {
+		a.pushTypingToPeer(msg.UID)
 	}
 	ctx.Reply(Result{Data: true})
+}
+
+func (a *ConversationActor) pushTypingToPeer(fromUID uint64) {
+	if a.engine == nil {
+		return
+	}
+	peerUID := a.privatePeerUID(fromUID)
+	if peerUID == 0 {
+		return
+	}
+	pushRef, ok := a.engine.Lookup(realtimePushActorName)
+	if !ok {
+		return
+	}
+	_ = pushRef.Tell(TypingPushCmd{
+		ConversationID: a.convID,
+		FromUID:        fromUID,
+		ToUID:          peerUID,
+	})
 }
 
 func (a *ConversationActor) handleUpdateInfo(ctx actor.Context, msg UpdateConvInfoCmd) {
@@ -452,15 +468,13 @@ func (a *ConversationActor) memberUIDs() []uint64 {
 	return uids
 }
 
-func (a *ConversationActor) memberUIDsExcept(excluded uint64) []uint64 {
-	uids := make([]uint64, 0, len(a.members))
-	for uid := range a.members {
-		if uid == excluded {
-			continue
+func (a *ConversationActor) privatePeerUID(uid uint64) uint64 {
+	for memberUID := range a.members {
+		if memberUID != uid {
+			return memberUID
 		}
-		uids = append(uids, uid)
 	}
-	return uids
+	return 0
 }
 
 func (a *ConversationActor) requireAdmin(uid uint64) error {

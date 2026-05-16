@@ -3,7 +3,6 @@ package conversation
 const (
 	EventMessageSent         = "conversation.message_sent"
 	EventMessageRevoked      = "conversation.message_revoked"
-	EventTyping              = "conversation.typing"
 	EventMemberJoined        = "conversation.member_joined"
 	EventMemberLeft          = "conversation.member_left"
 	EventMemberKicked        = "conversation.member_kicked"
@@ -41,16 +40,6 @@ type MessageRevokedEvent struct {
 
 func (MessageRevokedEvent) Name() string {
 	return EventMessageRevoked
-}
-
-type TypingEvent struct {
-	ConversationID uint64   `json:"conversation_id"`
-	UserID         uint64   `json:"user_id"`
-	MemberUIDs     []uint64 `json:"member_uids"`
-}
-
-func (TypingEvent) Name() string {
-	return EventTyping
 }
 
 type ConversationUpdatedEvent struct {

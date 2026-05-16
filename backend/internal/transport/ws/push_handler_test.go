@@ -21,7 +21,6 @@ func TestRoutePushEvent_BitsUT(t *testing.T) {
 	}{
 		{"新消息", conversation.MessageSentEvent{MemberUIDs: []uint64{1, 2}}, "message", "new", 2},
 		{"撤回消息", conversation.MessageRevokedEvent{MemberUIDs: []uint64{1}}, "message", "revoked", 1},
-		{"正在输入", conversation.TypingEvent{MemberUIDs: []uint64{2}}, "typing", "indicator", 1},
 		{"会话更新", conversation.ConversationUpdatedEvent{MemberUIDs: []uint64{1, 2}}, "conversation", "updated", 2},
 		{"成员入群", conversation.MemberJoinedEvent{MemberUIDs: []uint64{1, 2, 3}}, "member", "joined", 3},
 		{"成员退群", conversation.MemberLeftEvent{MemberUIDs: []uint64{1}}, "member", "left", 1},
@@ -82,9 +81,22 @@ func TestMessagePushHandlerReceive_BitsUT(t *testing.T) {
 		t.Fatalf("gateway did not receive push")
 	}
 
+	if err := handler.Tell(conversation.TypingPushCmd{ConversationID: 1, FromUID: 1, ToUID: 2}); err != nil {
+		t.Fatalf("tell typing push: %v", err)
+	}
+	select {
+	case cmd := <-received:
+		if cmd.Type != "typing" || cmd.Action != "indicator" {
+			t.Fatalf("typing push cmd = %+v", cmd)
+		}
+	case <-time.After(time.Second):
+		t.Fatalf("gateway did not receive typing push")
+	}
+
 	// 未知事件和 nil presence 分支都应该安全忽略。
-	NewMessagePushActor(nil, nil).handleEvent(nil, nil)
-	NewMessagePushActor(presence, nil).handleEvent(nil, unknownPushEvent{})
+	NewMessagePushActor(nil, nil).handleEvent(nil)
+	NewMessagePushActor(presence, nil).handleEvent(unknownPushEvent{})
+	NewMessagePushActor(nil, nil).handleTypingPush(conversation.TypingPushCmd{ToUID: 1})
 }
 
 type pushGatewayActor struct {

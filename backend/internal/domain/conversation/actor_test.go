@@ -65,7 +65,6 @@ func TestConversationActorRealtimeGroupEvents_BitsUT(t *testing.T) {
 		cmd       any
 		eventName string
 	}{
-		{"正在输入广播", TypingCmd{UID: 1}, EventTyping},
 		{"更新群信息广播", UpdateConvInfoCmd{OperatorID: 1, Name: ptrString("new")}, EventConversationUpdated},
 		{"邀请成员广播", AddMemberCmd{OperatorID: 1, UID: 3, Role: MemberRoleRegular}, EventMemberJoined},
 		{"转让群主广播", TransferOwnerCmd{OperatorID: 1, NewOwnerID: 2}, EventOwnerTransferred},

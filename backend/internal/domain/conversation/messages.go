@@ -81,6 +81,12 @@ type TypingCmd struct {
 	UID uint64
 }
 
+type TypingPushCmd struct {
+	ConversationID uint64 `json:"conversation_id"`
+	FromUID        uint64 `json:"user_id"`
+	ToUID          uint64 `json:"-"`
+}
+
 type GetConvInfoQuery struct{}
 
 type UpdateConvInfoCmd struct {

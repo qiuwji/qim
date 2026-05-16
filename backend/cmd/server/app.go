@@ -195,7 +195,6 @@ func initEventHandlers(engine *actor.Engine, events eventbus.Bus) {
 	pushEvents := []string{
 		conversation.EventMessageSent,
 		conversation.EventMessageRevoked,
-		conversation.EventTyping,
 		conversation.EventConversationUpdated,
 		conversation.EventMemberJoined,
 		conversation.EventMemberLeft,
