@@ -30,13 +30,8 @@ jobs:
           script: |
             set -e
             cd /opt/qim/qim
-            cp -r backend/data /tmp/qim-data-backup 2>/dev/null || true
             git fetch origin main
             git reset --hard origin/main
-            if [ -d /tmp/qim-data-backup ]; then
-              rm -rf backend/data
-              mv /tmp/qim-data-backup backend/data
-            fi
             cd frontend
             npm ci
             npm run build
