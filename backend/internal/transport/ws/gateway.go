@@ -7,6 +7,7 @@ import (
 	"qim/internal/domain/presence"
 	userdomain "qim/internal/domain/user"
 	"qim/internal/eventbus"
+	"qim/internal/pkg/apperr"
 	"qim/internal/pkg/logx"
 
 	"github.com/gorilla/websocket"
@@ -14,6 +15,8 @@ import (
 )
 
 const idleTimeout = 6 * time.Hour
+
+const rateLimitPerSec = 10
 
 type GatewayActor struct {
 	conn       *websocket.Conn
@@ -25,6 +28,8 @@ type GatewayActor struct {
 	presence   *actor.ActorRef
 	idleTimer  *actor.Timer
 	connLogID  string
+	rateSec    int64
+	rateCount  int
 }
 
 func NewGatewayActor(uid uint64, conn *websocket.Conn, engine *actor.Engine, events eventbus.Bus, dispatcher WsDispatcher, connLogID string) *GatewayActor {
@@ -81,6 +86,18 @@ func (a *GatewayActor) Receive(ctx actor.Context) {
 	case WsRequest:
 		logger := a.messageLogger(msg.LogID)
 		logger.Info("websocket message received", zap.Uint64("uid", a.uid), zap.String("type", msg.Type), zap.String("action", msg.Action))
+		if msg.Type == "message" && msg.Action == "send" && !a.allowSend() {
+			resp := WsResponse{
+				Type:   "error",
+				Action: msg.Action,
+				Error:  &apperr.Payload{Code: apperr.CodeRateLimit, Message: "rate limit exceeded"},
+				LogID:  msg.LogID,
+			}
+			if err := a.conn.WriteJSON(resp); err != nil {
+				logger.Warn("write rate limit response failed", zap.Uint64("uid", a.uid), zap.Error(err))
+			}
+			break
+		}
 		resp := a.dispatcher.Dispatch(a.uid, msg)
 		resp.LogID = msg.LogID
 		if err := a.conn.WriteJSON(resp); err != nil {
@@ -131,4 +148,14 @@ func (a *GatewayActor) logger() *zap.Logger {
 
 func (a *GatewayActor) messageLogger(logID string) *zap.Logger {
 	return logx.WithLogIDField(logID).With(zap.String("conn_log_id", a.connLogID))
+}
+
+func (a *GatewayActor) allowSend() bool {
+	now := time.Now().Unix()
+	if a.rateSec != now {
+		a.rateSec = now
+		a.rateCount = 0
+	}
+	a.rateCount++
+	return a.rateCount <= rateLimitPerSec
 }

@@ -9,6 +9,7 @@ const (
 	CodeBadRequest     Code = "bad_request"
 	CodeInvalidRequest Code = "invalid_request"
 	CodeUnauthorized   Code = "unauthorized"
+	CodeRateLimit      Code = "rate_limit"
 	CodeInternal       Code = "internal_error"
 )
 

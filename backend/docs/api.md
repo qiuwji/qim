@@ -52,6 +52,7 @@ ws://host/ws?token=<token>
 | `bad_request` | 请求参数错误 |
 | `invalid_request` | 请求类型或 action 不支持 |
 | `unauthorized` | 未登录、token 缺失或无效 |
+| `rate_limit` | 发消息频率超限（每连接每秒最多 10 条） |
 | `internal_error` | 服务端内部错误 |
 | `user.invalid_credentials` | 用户名或密码错误 |
 | `user.incorrect_password` | 旧密码错误 |
