@@ -257,6 +257,12 @@ func TestFriendAndMsgStore_BitsUT(t *testing.T) {
 	if err := friendStore.AcceptFriendRequest(req.ID, 1, 2); err != nil {
 		t.Fatalf("AcceptFriendRequest error: %v", err)
 	}
+	if err := friendStore.AcceptFriendRequest(req.ID, 1, 2); err != nil {
+		t.Fatalf("AcceptFriendRequest should be idempotent: %v", err)
+	}
+	if friends, err := friendStore.ListFriends(1); err != nil || len(friends) != 1 || friends[0].FriendUID != 2 {
+		t.Fatalf("friends after duplicate accept = %+v err=%v", friends, err)
+	}
 	if err := friendStore.CreateFriend(&Friend{UserID: 1, FriendUID: 5, CreatedAt: 1}); err != nil {
 		t.Fatalf("CreateFriend error: %v", err)
 	}

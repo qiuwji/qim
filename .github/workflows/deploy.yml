@@ -49,6 +49,30 @@ jobs:
             cd /opt/qim/qim/frontend
             npm ci
             npm run build
+            mkdir -p /var/lib/qim /opt/qim/qim/backend/data/backups
+            OLD_DB=/opt/qim/qim/backend/data/qim.db
+            NEW_DB=/var/lib/qim/qim.db
+            if [ -f "$OLD_DB" ] && [ ! -f "$NEW_DB" ]; then
+              TS=$(date +%Y%m%d%H%M%S)
+              sqlite3 "$OLD_DB" "PRAGMA wal_checkpoint(FULL);"
+              sqlite3 "$OLD_DB" ".backup /opt/qim/qim/backend/data/backups/qim.db.pre-varlib.${TS}.bak"
+              sqlite3 "$OLD_DB" ".backup $NEW_DB"
+            fi
+            if [ ! -f "$NEW_DB" ]; then
+              echo "missing sqlite database: $NEW_DB" >&2
+              exit 1
+            fi
+            INTEGRITY=$(sqlite3 "$NEW_DB" "PRAGMA integrity_check;")
+            if [ "$INTEGRITY" != "ok" ]; then
+              echo "sqlite integrity check failed: $INTEGRITY" >&2
+              exit 1
+            fi
+            if grep -q "^Environment=QIM_DB_PATH=" /etc/systemd/system/qim.service; then
+              sed -i "s#^Environment=QIM_DB_PATH=.*#Environment=QIM_DB_PATH=/var/lib/qim/qim.db#" /etc/systemd/system/qim.service
+            else
+              sed -i "/^Environment=QIM_JWT_SECRET=/a Environment=QIM_DB_PATH=/var/lib/qim/qim.db" /etc/systemd/system/qim.service
+            fi
+            systemctl daemon-reload
             systemctl restart qim
             sleep 2
             systemctl status qim --no-pager

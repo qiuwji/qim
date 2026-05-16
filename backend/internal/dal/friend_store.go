@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type FriendStore interface {
@@ -69,15 +70,19 @@ func (s *gormFriendStore) AcceptFriendRequest(reqID uint64, fromUID, toUID uint6
 		tx.Rollback()
 		return err
 	}
-	friends := []Friend{
-		{UserID: fromUID, FriendUID: toUID, CreatedAt: now},
-		{UserID: toUID, FriendUID: fromUID, CreatedAt: now},
-	}
-	if err := tx.Create(&friends).Error; err != nil {
+	if err := createFriendEdges(tx, fromUID, toUID, now).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
 	return tx.Commit().Error
+}
+
+func createFriendEdges(tx *gorm.DB, fromUID, toUID uint64, createdAt int64) *gorm.DB {
+	friends := []Friend{
+		{UserID: fromUID, FriendUID: toUID, CreatedAt: createdAt},
+		{UserID: toUID, FriendUID: fromUID, CreatedAt: createdAt},
+	}
+	return tx.Clauses(clause.OnConflict{DoNothing: true}).Create(&friends)
 }
 
 func (s *gormFriendStore) RejectFriendRequest(reqID uint64) error {

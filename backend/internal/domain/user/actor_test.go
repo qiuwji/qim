@@ -19,7 +19,7 @@ func TestManagerAndSessionActor_BitsUT(t *testing.T) {
 		t.Fatalf("spawn manager: %v", err)
 	}
 
-	raw, err := managerRef.Ask(RegisterCmd{Username: "10001", Password: "secret", Nickname: "Alice"}, time.Second)
+	raw, err := managerRef.Ask(RegisterCmd{Username: "10001", Password: "Secret!1", Nickname: "Alice"}, time.Second)
 	if err != nil {
 		t.Fatalf("register ask: %v", err)
 	}
@@ -32,7 +32,7 @@ func TestManagerAndSessionActor_BitsUT(t *testing.T) {
 		t.Fatalf("register dto = %+v", dto)
 	}
 
-	raw, err = managerRef.Ask(LoginCmd{Username: "10001", Password: "secret"}, time.Second)
+	raw, err = managerRef.Ask(LoginCmd{Username: "10001", Password: "Secret!1"}, time.Second)
 	if err != nil {
 		t.Fatalf("login ask: %v", err)
 	}
@@ -57,11 +57,11 @@ func TestManagerAndSessionActor_BitsUT(t *testing.T) {
 	if err != nil || raw.(Result).Err != nil {
 		t.Fatalf("update profile raw=%+v err=%v", raw, err)
 	}
-	raw, err = sessionRef.Ask(ChangePasswordCmd{OldPassword: "secret", NewPassword: "new-secret"}, time.Second)
+	raw, err = sessionRef.Ask(ChangePasswordCmd{OldPassword: "Secret!1", NewPassword: "NewSecret!1"}, time.Second)
 	if err != nil || raw.(Result).Err != nil {
 		t.Fatalf("change password raw=%+v err=%v", raw, err)
 	}
-	if !checkPassword(store.users[1].Password, "new-secret") {
+	if !checkPassword(store.users[1].Password, "NewSecret!1") {
 		t.Fatalf("password should be updated")
 	}
 
