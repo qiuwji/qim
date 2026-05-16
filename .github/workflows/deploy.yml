@@ -10,11 +10,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.26"
+          cache-dependency-path: backend/go.sum
+
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
 
-      - name: Build frontend
+      - name: Check backend
+        run: |
+          cd backend
+          go mod tidy
+          go build ./...
+
+      - name: Check frontend
         run: |
           cd frontend
           npm ci
@@ -32,11 +43,12 @@ jobs:
             cd /opt/qim/qim
             git fetch origin main
             git reset --hard origin/main
-            cd frontend
+            cd backend
+            go mod tidy
+            go build -o qim-server ./cmd/server/
+            cd /opt/qim/qim/frontend
             npm ci
             npm run build
-            cd /opt/qim/qim/backend
-            go build -o qim-server ./cmd/server/
             systemctl restart qim
             sleep 2
             systemctl status qim --no-pager
