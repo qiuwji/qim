@@ -24,6 +24,7 @@ func TestDispatcherSystemFlow_BitsUT(t *testing.T) {
 		service.NewMsgService(engine),
 		service.NewFriendService(engine),
 		service.NewUserService(engine, func(uid uint64) actor.Actor { return wsUserResultActor{data: uid} }),
+		nil, nil,
 	)
 
 	requests := []WsRequest{

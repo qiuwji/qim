@@ -3,6 +3,8 @@ package presence
 import (
 	"qim/internal/actor"
 	"qim/internal/eventbus"
+
+	"go.uber.org/zap"
 )
 
 type PresenceActor struct {
@@ -42,6 +44,14 @@ type GatewaysResult struct {
 	Gateways []*actor.ActorRef
 }
 
+type BatchOnlineQuery struct {
+	UIDs []uint64
+}
+
+type BatchOnlineResult struct {
+	OnlineMap map[uint64]bool
+}
+
 type UserOnlineEvent struct {
 	UID uint64 `json:"uid"`
 }
@@ -66,6 +76,8 @@ func (a *PresenceActor) Receive(ctx actor.Context) {
 		a.handleDisconnected(ctx, msg)
 	case GetGatewaysQuery:
 		a.handleGetGateways(ctx, msg)
+	case BatchOnlineQuery:
+		a.handleBatchOnline(ctx, msg)
 	case actor.Terminated:
 		a.handleTerminated(msg.Who)
 	}
@@ -85,6 +97,7 @@ func (a *PresenceActor) handleConnected(ctx actor.Context, msg UserConnected) {
 	a.online[msg.UID] = struct{}{}
 	ctx.Watch(msg.Gateway)
 	if !wasOnline && a.events != nil {
+		zap.L().Info("user online", zap.Uint64("uid", msg.UID), zap.Int("gateway_count", len(a.gateways[msg.UID])))
 		_ = a.events.Publish(UserOnlineEvent{UID: msg.UID})
 	}
 }
@@ -103,6 +116,15 @@ func (a *PresenceActor) handleGetGateways(ctx actor.Context, msg GetGatewaysQuer
 		refs = append(refs, ref)
 	}
 	ctx.Reply(GatewaysResult{UID: msg.UID, Gateways: refs})
+}
+
+func (a *PresenceActor) handleBatchOnline(ctx actor.Context, msg BatchOnlineQuery) {
+	m := make(map[uint64]bool, len(msg.UIDs))
+	for _, uid := range msg.UIDs {
+		_, ok := a.online[uid]
+		m[uid] = ok
+	}
+	ctx.Reply(BatchOnlineResult{OnlineMap: m})
 }
 
 func (a *PresenceActor) handleTerminated(ref *actor.ActorRef) {
@@ -129,6 +151,7 @@ func (a *PresenceActor) removeGateway(uid uint64, gatewayName string) {
 		delete(a.gateways, uid)
 		delete(a.online, uid)
 		if a.events != nil {
+			zap.L().Info("user offline", zap.Uint64("uid", uid))
 			_ = a.events.Publish(UserOfflineEvent{UID: uid})
 		}
 	}

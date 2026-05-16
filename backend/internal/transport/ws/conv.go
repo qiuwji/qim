@@ -73,7 +73,7 @@ func (r *convRouter) resolveAction(uid uint64, action string, data json.RawMessa
 		if err := json.Unmarshal(data, &req); err != nil {
 			return nil, 0, nil, err
 		}
-		return conversation.PinConvCmd{UID: uid, Pinned: req.Pinned}, req.ConvID, tellDispatch, nil
+		return conversation.PinConvCmd{UID: uid, ConversationID: req.ConvID, Pinned: req.Pinned}, 0, tellDispatch, nil
 	case "mute":
 		var req struct {
 			ConvID uint64 `json:"conv_id"`
@@ -82,7 +82,7 @@ func (r *convRouter) resolveAction(uid uint64, action string, data json.RawMessa
 		if err := json.Unmarshal(data, &req); err != nil {
 			return nil, 0, nil, err
 		}
-		return conversation.MuteConvCmd{UID: uid, Muted: req.Muted}, req.ConvID, tellDispatch, nil
+		return conversation.MuteConvCmd{UID: uid, ConversationID: req.ConvID, Muted: req.Muted}, 0, tellDispatch, nil
 	case "read":
 		var req struct {
 			ConvID uint64 `json:"conv_id"`
@@ -91,7 +91,7 @@ func (r *convRouter) resolveAction(uid uint64, action string, data json.RawMessa
 		if err := json.Unmarshal(data, &req); err != nil {
 			return nil, 0, nil, err
 		}
-		return conversation.ReadConvCmd{UID: uid, Seq: req.Seq}, req.ConvID, tellDispatch, nil
+		return conversation.ReadConvCmd{UID: uid, ConversationID: req.ConvID, Seq: req.Seq}, 0, tellDispatch, nil
 	case "members":
 		var req struct {
 			ConvID uint64 `json:"conv_id"`

@@ -1,16 +1,17 @@
 package conversation
 
-type ConvType int8
+import "qim/internal/domain/conversation/store"
+
+type ConvType = store.ConvType
+type MemberRole = store.MemberRole
 
 const (
-	ConvTypePrivate ConvType = iota + 1
-	ConvTypeGroup
+	ConvTypePrivate = store.ConvTypePrivate
+	ConvTypeGroup   = store.ConvTypeGroup
 )
 
-type MemberRole int8
-
 const (
-	MemberRoleRegular MemberRole = iota
-	MemberRoleAdmin
-	MemberRoleOwner
+	MemberRoleRegular = store.MemberRoleRegular
+	MemberRoleAdmin   = store.MemberRoleAdmin
+	MemberRoleOwner   = store.MemberRoleOwner
 )

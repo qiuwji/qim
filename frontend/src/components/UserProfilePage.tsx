@@ -1,8 +1,8 @@
-import type { FriendDTO, UserDTO } from '../api/types';
+import type { UserDTO } from '../api/types';
 import { Avatar } from './Avatar';
 
-export function UserProfilePage({ user, isFriend, onBack, onStartPrivate, onAddFriend }: {
-  user: UserDTO; isFriend?: boolean; onBack: () => void; onStartPrivate: (uid: number) => void; onAddFriend?: (uid: number) => void;
+export function UserProfilePage({ user, isFriend, isSelf, onBack, onStartPrivate, onAddFriend }: {
+  user: UserDTO; isFriend?: boolean; isSelf?: boolean; onBack: () => void; onStartPrivate: (uid: number) => void; onAddFriend?: (uid: number) => void;
 }) {
   return (
     <div className="user-profile-page">
@@ -40,8 +40,8 @@ export function UserProfilePage({ user, isFriend, onBack, onStartPrivate, onAddF
           </div>
         </div>
         <div style={{ marginTop: 16, display: 'flex', gap: 8 }}>
-          {isFriend && <button className="primary-btn" onClick={() => onStartPrivate(user.id)}>发消息</button>}
-          {!isFriend && onAddFriend && <button className="primary-btn" onClick={() => onAddFriend(user.id)}>加好友</button>}
+          {!isSelf && isFriend && <button className="primary-btn" onClick={() => onStartPrivate(user.id)}>聊天记录</button>}
+          {!isSelf && !isFriend && onAddFriend && <button className="primary-btn" onClick={() => onAddFriend(user.id)}>加好友</button>}
         </div>
       </div>
     </div>

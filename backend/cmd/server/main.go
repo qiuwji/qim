@@ -20,7 +20,7 @@ func main() {
 	initActors(engine, stores, events)
 	initEventHandlers(engine, events)
 	handlers := initHandlers(svcs, jwt)
-	dispatcher := initDispatcher(svcs)
+	dispatcher := initDispatcher(svcs, engine)
 
 	srv := transport.NewServer(engine, handlers, events, dispatcher, jwt)
 

@@ -493,7 +493,10 @@ Authorization: Bearer <jwt>
   "data": {
     "conversation_id": 1,
     "message_id": 1,
+    "seq": 10,
+    "sender_id": 2,
     "operator_id": 1,
+    "is_latest": true,
     "member_uids": [1, 2]
   },
   "log_id": "..."

@@ -36,6 +36,7 @@ export class RealtimeClient {
     }
     this.socket.onopen = () => {
       this.retryCount = 0;
+      this.emit({ type: 'system', action: 'connected' });
     };
     this.socket.onmessage = (event) => {
       try {
@@ -159,6 +160,10 @@ export class RealtimeClient {
 
   setMemberRole(conv_id: number, uid: number, role: number) {
     this.send('conv', 'set_role', { conv_id, uid, role });
+  }
+
+  requestOnlineFriends() {
+    this.send('presence', 'online_friends');
   }
 
   transferOwner(conv_id: number, new_owner_id: number) {

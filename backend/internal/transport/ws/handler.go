@@ -43,10 +43,11 @@ func tellDispatch(ref *actor.ActorRef, cmd any, action string) WsResponse {
 }
 
 type Dispatcher struct {
-	conv   *convRouter
-	msg    *msgRouter
-	friend *friendRouter
-	user   *userRouter
+	conv     *convRouter
+	msg      *msgRouter
+	friend   *friendRouter
+	user     *userRouter
+	presence *presenceRouter
 }
 
 func NewDispatcher(
@@ -54,12 +55,15 @@ func NewDispatcher(
 	msgSvc *service.MsgService,
 	friendSvc *service.FriendService,
 	userSvc *service.UserService,
+	presenceRef *actor.ActorRef,
+	friendRef *actor.ActorRef,
 ) *Dispatcher {
 	return &Dispatcher{
-		conv:   &convRouter{svc: convSvc},
-		msg:    &msgRouter{msgSvc: msgSvc, convSvc: convSvc},
-		friend: &friendRouter{svc: friendSvc},
-		user:   &userRouter{svc: userSvc},
+		conv:     &convRouter{svc: convSvc},
+		msg:      &msgRouter{msgSvc: msgSvc, convSvc: convSvc},
+		friend:   &friendRouter{svc: friendSvc},
+		user:     &userRouter{svc: userSvc},
+		presence: &presenceRouter{presenceRef: presenceRef, friendRef: friendRef},
 	}
 }
 
@@ -73,6 +77,8 @@ func (d *Dispatcher) Dispatch(uid uint64, req WsRequest) WsResponse {
 		return d.friend.dispatch(uid, req.Action, req.Data)
 	case "user":
 		return d.user.dispatch(uid, req.Action, req.Data)
+	case "presence":
+		return d.presence.dispatch(uid, req.Action, req.Data)
 	default:
 		return errReply("", apperr.New(apperr.CodeInvalidRequest, fmt.Sprintf("unknown type: %s", req.Type)))
 	}

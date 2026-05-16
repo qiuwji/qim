@@ -32,7 +32,10 @@ func (MessageSentEvent) Name() string {
 type MessageRevokedEvent struct {
 	ConversationID uint64   `json:"conversation_id"`
 	MessageID      uint64   `json:"message_id"`
+	Seq            int64    `json:"seq"`
+	SenderID       uint64   `json:"sender_id"`
 	OperatorID     uint64   `json:"operator_id"`
+	IsLatest       bool     `json:"is_latest"`
 	MemberUIDs     []uint64 `json:"member_uids"`
 }
 

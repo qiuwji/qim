@@ -50,6 +50,10 @@ func (a *ManagerActor) Receive(ctx actor.Context) {
 }
 
 func (a *ManagerActor) handleSendRequest(ctx actor.Context, msg SendRequestCmd) {
+	if msg.FromUID == msg.ToUID {
+		ctx.Reply(Result{Err: ErrCannotAddSelf})
+		return
+	}
 	now := time.Now().Unix()
 	req := &dal.FriendRequest{
 		FromUID:   msg.FromUID,

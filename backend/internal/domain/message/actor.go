@@ -63,19 +63,7 @@ func (a *MessageStoreActor) handleList(ctx actor.Context, msg ListMessagesCmd) {
 
 	dtos := make([]MessageDTO, 0, len(messages))
 	for _, m := range messages {
-		dtos = append(dtos, MessageDTO{
-			ID:             m.ID,
-			ConversationID: m.ConversationID,
-			Seq:            m.Seq,
-			SenderID:       m.SenderID,
-			MsgType:        MsgType(m.MsgType),
-			Content:        m.Content,
-			ReplyTo:        m.ReplyTo,
-			Revoked:        m.Revoked,
-			Edited:         m.Edited,
-			ClientID:       m.ClientID,
-			CreatedAt:      m.CreatedAt,
-		})
+		dtos = append(dtos, toDTO(m))
 	}
 	ctx.Reply(Result{Data: dtos})
 }
@@ -89,19 +77,26 @@ func (a *MessageStoreActor) handleSearch(ctx actor.Context, msg SearchMessagesCm
 
 	dtos := make([]MessageDTO, 0, len(messages))
 	for _, m := range messages {
-		dtos = append(dtos, MessageDTO{
-			ID:             m.ID,
-			ConversationID: m.ConversationID,
-			Seq:            m.Seq,
-			SenderID:       m.SenderID,
-			MsgType:        MsgType(m.MsgType),
-			Content:        m.Content,
-			ReplyTo:        m.ReplyTo,
-			Revoked:        m.Revoked,
-			Edited:         m.Edited,
-			ClientID:       m.ClientID,
-			CreatedAt:      m.CreatedAt,
-		})
+		dtos = append(dtos, toDTO(m))
 	}
 	ctx.Reply(Result{Data: dtos})
+}
+
+func toDTO(m dal.Message) MessageDTO {
+	dto := MessageDTO{
+		ID:             m.ID,
+		ConversationID: m.ConversationID,
+		Seq:            m.Seq,
+		SenderID:       m.SenderID,
+		MsgType:        MsgType(m.MsgType),
+		ReplyTo:        m.ReplyTo,
+		Revoked:        m.Revoked,
+		Edited:         m.Edited,
+		ClientID:       m.ClientID,
+		CreatedAt:      m.CreatedAt,
+	}
+	if !m.Revoked {
+		dto.Content = m.Content
+	}
+	return dto
 }

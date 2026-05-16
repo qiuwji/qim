@@ -40,7 +40,7 @@ func (s *gormMsgStore) SearchMessages(convID uint64, keyword string, limit int) 
 	if limit <= 0 {
 		limit = 20
 	}
-	if err := s.db.Where("conversation_id = ? AND content LIKE ?", convID, "%"+keyword+"%").
+	if err := s.db.Where("conversation_id = ? AND content LIKE ? AND revoked = false", convID, "%"+keyword+"%").
 		Order("seq DESC").Limit(limit).Find(&messages).Error; err != nil {
 		return nil, err
 	}

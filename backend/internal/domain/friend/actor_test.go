@@ -35,6 +35,13 @@ func TestManagerActorRequestFlow_BitsUT(t *testing.T) {
 	if bus.count(EventFriendRequestCreated) != 1 {
 		t.Fatalf("request created event missing")
 	}
+	raw, err = ref.Ask(SendRequestCmd{FromUID: 1, ToUID: 1, Message: "self"}, time.Second)
+	if err != nil {
+		t.Fatalf("send self request ask: %v", err)
+	}
+	if !errors.Is(raw.(Result).Err, ErrCannotAddSelf) {
+		t.Fatalf("err = %v, want ErrCannotAddSelf", raw.(Result).Err)
+	}
 
 	raw, err = ref.Ask(ListIncomingCmd{UID: 2}, time.Second)
 	if err != nil {

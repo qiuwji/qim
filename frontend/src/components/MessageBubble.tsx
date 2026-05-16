@@ -1,11 +1,12 @@
-import type { MessageDTO } from '../api/types';
-import { shortName, timeText } from '../utils';
+import type { MessageDTO, UserDTO } from '../api/types';
+import { Avatar } from './Avatar';
+import { timeText } from '../utils';
 
-export function MessageBubble({ message, mine, senderName, replySource, onContextMenu, onAvatarEnter, onAvatarLeave, onAvatarClick }: {
-  message: MessageDTO; mine: boolean; senderName: string; replySource: MessageDTO | undefined;
+export function MessageBubble({ message, mine, senderName, senderUser, replySource, onContextMenu, onAvatarEnter, onAvatarLeave, onAvatarClick }: {
+  message: MessageDTO; mine: boolean; senderName: string; senderUser?: UserDTO; replySource: MessageDTO | undefined;
   onContextMenu: (e: React.MouseEvent, m: MessageDTO) => void;
   onAvatarEnter?: (e: React.MouseEvent) => void;
-  onAvatarLeave?: () => void;
+  onAvatarLeave?: (e: React.MouseEvent) => void;
   onAvatarClick?: (e: React.MouseEvent) => void;
 }) {
   const isImage = message.msg_type === 2 && !message.revoked;
@@ -20,11 +21,10 @@ export function MessageBubble({ message, mine, senderName, replySource, onContex
 
   return (
     <div className={`message-row ${mine ? 'mine' : ''}`} onContextMenu={(e) => onContextMenu(e, message)}>
-      <div className="mini-avatar avatar-interactive"
-        onMouseEnter={onAvatarEnter}
-        onMouseLeave={onAvatarLeave}
-        onClick={onAvatarClick}
-      >{shortName(senderName)}</div>
+      {senderUser
+        ? <Avatar user={senderUser} className="mini-avatar avatar-interactive" onClick={onAvatarClick} onMouseEnter={onAvatarEnter} onMouseLeave={onAvatarLeave} />
+        : <div className="mini-avatar avatar-interactive" onMouseEnter={onAvatarEnter} onMouseLeave={onAvatarLeave} onClick={onAvatarClick}>?</div>
+      }
       <div className="bubble">
         <span className="bubble-meta">{senderName} · {timeText(message.created_at)}</span>
         {replySource && <div className="reply-quote">↩ {replySource.content.slice(0, 50)}{replySource.content.length > 50 ? '...' : ''}</div>}

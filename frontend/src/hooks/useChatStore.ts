@@ -4,11 +4,34 @@ import { normalizePushMessage, RealtimeClient } from '../api/ws';
 import type { ConversationDTO, FriendDTO, FriendGroupDTO, FriendRequestDTO, MemberDTO, MessageDTO, UserConvDTO, UserDTO, WsResponse } from '../api/types';
 import { currentSecond, displayName, pushText, upsertMessage } from '../utils';
 import type { ContextMenu, MainTab, MobilePane, ModalState, Notice } from '../types';
+import {
+  applyIncomingConversation,
+  decrementConversationUnread,
+  groupConversations as filterGroupConversations,
+  markConversationReadLocally,
+  sortConversations,
+} from './chat/conversationModel';
+import {
+  applyMessagePreview,
+  applyPreviewTexts,
+  deletedMessageStorageKey,
+  latestVisibleMessage,
+  mergeLoadedMessages,
+  messagePreviewText,
+  MESSAGE_PAGE_SIZE,
+  persistDeletedMessageID,
+  readDeletedMessageIDs,
+  removeMessageByID,
+  revokedPreviewUpdate,
+  visibleMessages,
+} from './chat/messageModel';
 
 export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) {
   const wsRef = useRef(new RealtimeClient());
   const selectedIDRef = useRef<number | null>(null);
   const typingTimers = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
+  const deletedStorageKey = deletedMessageStorageKey(user.id);
+  const deletedMessageIDs = useRef<Set<number>>(new Set(readDeletedMessageIDs(deletedStorageKey)));
 
   const [tab, setTab] = useState<MainTab>('chats');
   const [mobilePane, setMobilePane] = useState<MobilePane>('list');
@@ -41,8 +64,8 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
   const [onlineMap, setOnlineMap] = useState<Record<number, boolean>>({});
 
   const selectedConv = conversations.find((item) => item.conversation_id === selectedID) ?? null;
-  const sortedConversations = useMemo(() => [...conversations].sort((a, b) => Number(b.is_pinned) - Number(a.is_pinned) || b.last_msg_at - a.last_msg_at), [conversations]);
-  const groupConversations = useMemo(() => sortedConversations.filter((c) => details[c.conversation_id]?.type === 2), [sortedConversations, details]);
+  const sortedConversations = useMemo(() => sortConversations(conversations), [conversations]);
+  const groupConversations = useMemo(() => filterGroupConversations(sortedConversations, details), [sortedConversations, details]);
   const unreadTotal = useMemo(() => conversations.reduce((s, c) => s + c.unread_count, 0), [conversations]);
   const friendMap = useMemo(() => {
     const m: Record<number, FriendDTO> = {};
@@ -90,19 +113,42 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
     if (Object.keys(next).length) setUserCache((prev) => ({ ...prev, ...next }));
   }
 
+  function rememberDeletedMessage(msg: MessageDTO) {
+    persistDeletedMessageID(deletedStorageKey, deletedMessageIDs.current, msg.id);
+  }
+
+  function setLastMessagePreview(cid: number, msg: MessageDTO | undefined) {
+    setLastMsgMap((prev) => applyMessagePreview(prev, cid, msg));
+  }
+
+  function markConversationRead(cid: number, seq = 0) {
+    setConversations((p) => markConversationReadLocally(p, cid));
+    void api.markRead(cid, seq).catch(() => undefined);
+  }
+
+  function openConversation(cid: number) {
+    setSelectedID(cid);
+    selectedIDRef.current = cid;
+    setViewingUser(null);
+    setDetailOpen(false);
+    setTab('chats');
+    setMobilePane('chat');
+    markConversationRead(cid);
+  }
+
   async function hydrateChatMeta(chatList: UserConvDTO[], friendList?: FriendDTO[]) {
     const nextM: Record<number, MemberDTO[]> = {};
     const nextD: Record<number, ConversationDTO> = {};
     const nextU: Record<number, UserDTO> = {};
-    const nextL: Record<number, string> = {};
+    const nextL: Record<number, string | undefined> = {};
     await Promise.all(chatList.map(async (chat) => {
       const id = chat.conversation_id;
-      const [ml, msgList] = await Promise.all([api.members(id).catch(() => []), api.messages(id, 0, 1).catch(() => [])]);
+      const [ml, msgList] = await Promise.all([api.members(id).catch(() => []), api.messages(id, 0, MESSAGE_PAGE_SIZE).catch(() => [])]);
       nextM[id] = ml;
-      if (msgList.length > 0 && msgList[0].content) nextL[id] = msgList[0].content;
+      nextL[id] = messagePreviewText(latestVisibleMessage(msgList, deletedMessageIDs.current));
       const peer = ml.length === 2 ? ml.find((m) => m.uid !== user.id) : undefined;
       if (peer) {
-        const pu = userCache[peer.uid] ?? (await api.getUser(peer.uid).catch(() => null));
+        const pu = await api.getUser(peer.uid).catch(() => null) ?? userCache[peer.uid];
         if (pu) {
           nextU[peer.uid] = pu;
           const peerName = friendList?.find((f) => f.friend_uid === peer.uid)?.remark || pu.nickname || pu.username;
@@ -115,12 +161,12 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
     setMembers((p) => ({ ...p, ...nextM }));
     setDetails((p) => ({ ...p, ...nextD }));
     if (Object.keys(nextU).length) setUserCache((p) => ({ ...p, ...nextU }));
-    if (Object.keys(nextL).length) setLastMsgMap((p) => ({ ...p, ...nextL }));
+    setLastMsgMap((p) => applyPreviewTexts(p, chatList, nextL));
   }
 
   useEffect(() => {
     refreshBase();
-    wsRef.current.connect(() => { void refreshBase(); });
+    wsRef.current.connect(() => { setOnlineMap({}); void refreshBase(); });
     const off = wsRef.current.on(handleWsMessage);
     return () => { off(); wsRef.current.close(); };
   }, []);
@@ -129,7 +175,12 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
   useEffect(() => { if (!selectedID) return; const t = window.setInterval(() => void loadChatMembers(selectedID, true), 5000); return () => window.clearInterval(t); }, [selectedID]);
 
   function handleWsMessage(msg: WsResponse) {
-    if (msg.type === 'system') return;
+    if (msg.type === 'system') {
+      if (msg.action === 'connected') {
+        wsRef.current.requestOnlineFriends();
+      }
+      return;
+    }
     if (msg.type === 'error') { setNotice({ kind: 'error', text: msg.error?.message || '请求失败' }); return; }
     if ((msg.type === 'ack' && msg.action === 'send') || (msg.type === 'message' && msg.action === 'new')) {
       const next = normalizePushMessage(msg.data);
@@ -140,7 +191,19 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
       const d = msg.data as Record<string, unknown> | undefined;
       const cid = Number(d?.conversation_id ?? 0);
       const mid = Number(d?.message_id ?? 0);
+      const senderID = Number(d?.sender_id ?? 0);
+      const isLatest = Boolean(d?.is_latest);
+      const currentList = messages[cid] ?? [];
       setMessages((p) => ({ ...p, [cid]: (p[cid] ?? []).map((i) => (i.id === mid ? { ...i, revoked: true } : i)) }));
+      const previewUpdate = revokedPreviewUpdate(currentList, mid, isLatest, deletedMessageIDs.current);
+      if (previewUpdate.kind === 'message') {
+        setLastMessagePreview(cid, previewUpdate.message);
+      } else if (previewUpdate.kind === 'text') {
+        setLastMsgMap((prev) => ({ ...prev, [cid]: previewUpdate.text }));
+      }
+      if (isLatest && senderID !== user.id) {
+        setConversations((p) => decrementConversationUnread(p, cid));
+      }
       return;
     }
     if (msg.type === 'typing' && msg.action === 'indicator') {
@@ -155,10 +218,25 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
       }
       return;
     }
+    if (msg.type === 'ack' && msg.action === 'online_friends') {
+      const d = msg.data as Record<string, unknown> | undefined;
+      if (d) {
+        const m: Record<number, boolean> = {};
+        for (const [k, v] of Object.entries(d)) {
+          const uid = Number(k);
+          if (uid && typeof v === 'boolean') m[uid] = v;
+        }
+        setOnlineMap((p) => ({ ...p, ...m }));
+      }
+      return;
+    }
     if (msg.type === 'presence') {
       const d = msg.data as Record<string, unknown> | undefined;
       const uid = Number(d?.uid ?? 0);
-      if (uid) setOnlineMap((p) => ({ ...p, [uid]: msg.action === 'online' }));
+      if (uid) {
+        const online = msg.action === 'online';
+        setOnlineMap((p) => ({ ...p, [uid]: online }));
+      }
       return;
     }
     if (['friend', 'member', 'conversation'].includes(msg.type)) {
@@ -168,15 +246,13 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
   }
 
   function applyIncomingMessage(next: MessageDTO) {
+    if (deletedMessageIDs.current.has(next.id)) return;
     setMessages((p) => ({ ...p, [next.conversation_id]: upsertMessage(p[next.conversation_id] ?? [], next) }));
-    if (next.content) setLastMsgMap((p) => ({ ...p, [next.conversation_id]: next.content }));
+    const text = messagePreviewText(next);
+    if (text) setLastMsgMap((p) => ({ ...p, [next.conversation_id]: text }));
     if (next.sender_id !== user.id) setTyping((p) => ({ ...p, [next.conversation_id]: '' }));
-    setConversations((p) => {
-      const found = p.some((i) => i.conversation_id === next.conversation_id);
-      const mapped = p.map((i) => i.conversation_id === next.conversation_id ? { ...i, last_msg_at: next.created_at, unread_count: selectedIDRef.current === next.conversation_id ? 0 : i.unread_count + 1 } : i);
-      return found ? mapped : [{ conversation_id: next.conversation_id, is_pinned: false, is_muted: false, unread_count: selectedIDRef.current === next.conversation_id ? 0 : 1, last_msg_at: next.created_at }, ...mapped];
-    });
-    if (selectedIDRef.current === next.conversation_id && next.seq > 0) void api.markRead(next.conversation_id, next.seq).catch(() => undefined);
+    setConversations((p) => applyIncomingConversation(p, next, selectedIDRef.current));
+    if (selectedIDRef.current === next.conversation_id && next.seq > 0) markConversationRead(next.conversation_id, next.seq);
     if (selectedIDRef.current !== next.conversation_id && !document.hasFocus()) {
       try { new Notification('QIM 新消息', { body: next.content.slice(0, 50) }); } catch {}
     }
@@ -184,20 +260,19 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
 
   async function loadMessages(cid: number, beforeSeq = 0) {
     try {
-      const list = await api.messages(cid, beforeSeq, 50);
+      const rawList = await api.messages(cid, beforeSeq, MESSAGE_PAGE_SIZE);
+      const list = visibleMessages(rawList, deletedMessageIDs.current);
       const newest = list.length > 0 ? list[0] : undefined;
       setMessages((p) => {
         const existing = beforeSeq > 0 ? (p[cid] ?? []) : [];
-        const merged = beforeSeq > 0 ? [...list.sort((a, b) => a.seq - b.seq), ...existing] : list.sort((a, b) => a.seq - b.seq);
-        return { ...p, [cid]: merged };
+        return { ...p, [cid]: mergeLoadedMessages(list, existing, beforeSeq) };
       });
-      if (beforeSeq === 0 && newest?.content) setLastMsgMap((p) => ({ ...p, [cid]: newest.content }));
-      setHasMore((p) => ({ ...p, [cid]: list.length >= 50 }));
+      if (beforeSeq === 0) setLastMessagePreview(cid, newest);
+      setHasMore((p) => ({ ...p, [cid]: rawList.length >= MESSAGE_PAGE_SIZE }));
       const maxSeq = newest?.seq ?? 0;
-      if (maxSeq > 0 && beforeSeq === 0) await api.markRead(cid, maxSeq).catch(() => undefined);
+      if (maxSeq > 0 && beforeSeq === 0) markConversationRead(cid, maxSeq);
       if (beforeSeq === 0) {
         await loadChatMembers(cid, true);
-        setConversations((p) => p.map((i) => (i.conversation_id === cid ? { ...i, unread_count: 0 } : i)));
       }
     } catch (err) {
       setNotice({ kind: 'error', text: err instanceof Error ? err.message : '消息加载失败' });
@@ -247,15 +322,20 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
       return;
     }
     try {
+      const existing = conversations.find((conv) => {
+        if (details[conv.conversation_id]?.type !== 1) return false;
+        return (members[conv.conversation_id] ?? []).some((m) => m.uid === uid);
+      });
+      if (existing) {
+        openConversation(existing.conversation_id);
+        return;
+      }
       const conv = await api.createPrivateChat(uid);
       const peer = userCache[uid] ?? (await api.getUser(uid).catch(() => null));
       if (peer) setUserCache((p) => ({ ...p, [uid]: peer }));
       setDetails((p) => ({ ...p, [conv.id]: peer ? { ...conv, type: 1, name: peer.nickname || peer.username, avatar: peer.avatar } : conv }));
       setConversations((p) => (p.some((i) => i.conversation_id === conv.id) ? p : [{ conversation_id: conv.id, is_pinned: false, is_muted: false, unread_count: 0, last_msg_at: conv.created_at }, ...p]));
-      setSelectedID(conv.id);
-      setDetailOpen(false);
-      setTab('chats');
-      setMobilePane('chat');
+      openConversation(conv.id);
     } catch (err) {
       setNotice({ kind: 'error', text: err instanceof Error ? err.message : '创建聊天失败' });
     }
@@ -290,6 +370,7 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
       const next = { ...user, avatar: u.url };
       saveSession(getToken(), next);
       onUserChange(next);
+      setUserCache((p) => ({ ...p, [user.id]: next }));
       setNotice({ kind: 'ok', text: '头像已更新' });
     } catch (err) { setNotice({ kind: 'error', text: err instanceof Error ? err.message : '上传失败' }); }
   }
@@ -436,6 +517,7 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
         const next = { ...user, nickname: v.nickname ?? user.nickname, sign: v.sign ?? user.sign };
         saveSession(getToken(), next);
         onUserChange(next);
+        setUserCache((p) => ({ ...p, [user.id]: next }));
       } catch (err) { setNotice({ kind: 'error', text: err instanceof Error ? err.message : '修改资料失败' }); }
     } });
   }
@@ -455,7 +537,15 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
   }
 
   function doDelete(msg: MessageDTO) {
-    setMessages((p) => ({ ...p, [msg.conversation_id]: (p[msg.conversation_id] ?? []).filter((m) => m.id !== msg.id) }));
+    setModal({ type: 'confirm', title: '删除消息', text: '确认删除这条消息？删除只会在本地生效。', danger: true, onConfirm: () => {
+      rememberDeletedMessage(msg);
+      setMessages((p) => {
+        const nextList = removeMessageByID(p[msg.conversation_id] ?? [], msg.id);
+        const last = nextList[nextList.length - 1];
+        setLastMessagePreview(msg.conversation_id, last);
+        return { ...p, [msg.conversation_id]: nextList };
+      });
+    } });
   }
 
   function doForward(msg: MessageDTO) {
@@ -468,13 +558,13 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
 
   async function doChatSearch() {
     if (!selectedID || !chatSearch.trim()) return;
-    try { const list = await api.searchMessages(selectedID, chatSearch.trim()); setChatSearchResult(list); }
+    try { const list = await api.searchMessages(selectedID, chatSearch.trim()); setChatSearchResult(visibleMessages(list, deletedMessageIDs.current).filter((m) => !m.revoked)); }
     catch { setChatSearchResult([]); }
   }
 
   function selectChat(id: number) {
     if (selectedID === id) { setSelectedID(null); selectedIDRef.current = null; setDetailOpen(false); setMobilePane('list'); }
-    else { setSelectedID(id); selectedIDRef.current = id; setDetailOpen(false); setConversations((p) => p.map((i) => (i.conversation_id === id ? { ...i, unread_count: 0 } : i))); setMobilePane('chat'); }
+    else { openConversation(id); }
     setReplyTo(null); setShowChatSearch(false); setChatSearchResult([]);
   }
 

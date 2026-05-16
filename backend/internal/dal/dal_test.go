@@ -111,6 +111,13 @@ func TestConvStoreCommitMessageIdempotent_BitsUT(t *testing.T) {
 	if record.SenderID != 1 || record.Revoked {
 		t.Fatalf("record = %+v", record)
 	}
+	var beforeRevoke UserConversation
+	if err := db.Where("user_id = ? AND conversation_id = ?", 2, conv.ID).First(&beforeRevoke).Error; err != nil {
+		t.Fatalf("query unread before revoke: %v", err)
+	}
+	if beforeRevoke.UnreadCount != 1 {
+		t.Fatalf("unread before revoke = %d, want 1", beforeRevoke.UnreadCount)
+	}
 	if err := store.RevokeMessage(conv.ID, first.MessageID); err != nil {
 		t.Fatalf("RevokeMessage error: %v", err)
 	}
@@ -120,6 +127,13 @@ func TestConvStoreCommitMessageIdempotent_BitsUT(t *testing.T) {
 	}
 	if !revoked.Revoked {
 		t.Fatalf("message should be revoked")
+	}
+	var afterRevoke UserConversation
+	if err := db.Where("user_id = ? AND conversation_id = ?", 2, conv.ID).First(&afterRevoke).Error; err != nil {
+		t.Fatalf("query unread after revoke: %v", err)
+	}
+	if afterRevoke.UnreadCount != 0 {
+		t.Fatalf("unread after revoke = %d, want 0", afterRevoke.UnreadCount)
 	}
 }
 
@@ -189,7 +203,7 @@ func TestConvStoreCRUD_BitsUT(t *testing.T) {
 	if err := store.DeleteMember(groupConv.ID, 4); err != nil {
 		t.Fatalf("DeleteMember error: %v", err)
 	}
-	if err := db.Create(&UserConversation{UserID: 2, ConversationID: groupConv.ID}).Error; err != nil {
+	if err := db.Create(&UserConversation{UserID: 2, ConversationID: groupConv.ID, UnreadCount: 3}).Error; err != nil {
 		t.Fatalf("create user conversation error: %v", err)
 	}
 	if err := store.UpdateUserConversation(2, groupConv.ID, map[string]any{"is_pinned": true, "is_muted": true}); err != nil {
@@ -201,6 +215,20 @@ func TestConvStoreCRUD_BitsUT(t *testing.T) {
 	}
 	if len(userConvs) == 0 || !userConvs[0].IsPinned || !userConvs[0].IsMuted {
 		t.Fatalf("user conversations = %+v", userConvs)
+	}
+	if err := store.MarkConversationRead(2, groupConv.ID, 5); err != nil {
+		t.Fatalf("MarkConversationRead error: %v", err)
+	}
+	var uc UserConversation
+	if err := db.Where("user_id = ? AND conversation_id = ?", 2, groupConv.ID).First(&uc).Error; err != nil {
+		t.Fatalf("query user conversation error: %v", err)
+	}
+	var member Member
+	if err := db.Where("user_id = ? AND conversation_id = ?", 2, groupConv.ID).First(&member).Error; err != nil {
+		t.Fatalf("query member error: %v", err)
+	}
+	if uc.UnreadCount != 0 || member.LastReadSeq != 5 {
+		t.Fatalf("read state not updated, uc=%+v member=%+v", uc, member)
 	}
 	if err := store.DissolveConversation(groupConv.ID); err != nil {
 		t.Fatalf("DissolveConversation error: %v", err)
@@ -277,6 +305,12 @@ func TestFriendAndMsgStore_BitsUT(t *testing.T) {
 	}
 	if found, err := msgStore.SearchMessages(1, "hello", 0); err != nil || len(found) != 2 {
 		t.Fatalf("SearchMessages len=%d err=%v", len(found), err)
+	}
+	if err := db.Model(&Message{}).Where("id = ?", messages[0].ID).Update("revoked", true).Error; err != nil {
+		t.Fatalf("revoke message error: %v", err)
+	}
+	if found, err := msgStore.SearchMessages(1, "hello", 0); err != nil || len(found) != 1 {
+		t.Fatalf("SearchMessages after revoke len=%d err=%v", len(found), err)
 	}
 }
 

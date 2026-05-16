@@ -414,6 +414,9 @@ input { -webkit-appearance: none; }
 .search-result-item strong { font-size: 13px; }
 .search-result-item span { color: #858c98; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
+.highlight-msg { animation: highlight-fade 2s ease-out; }
+@keyframes highlight-fade { 0% { background: #fff3cd; } 100% { background: transparent; } }
+
 .load-more-sentinel {
   text-align: center;
   color: #9aa1ad;

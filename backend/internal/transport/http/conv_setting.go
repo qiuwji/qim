@@ -20,7 +20,7 @@ func (h *ConversationHandler) Pin(c *gin.Context) {
 		resp.Fail(c, badRequest(err))
 		return
 	}
-	r, err := h.svc.AskConv(convID, conversation.PinConvCmd{UID: uid, Pinned: req.Pinned})
+	r, err := h.svc.AskManager(conversation.PinConvCmd{UID: uid, ConversationID: convID, Pinned: req.Pinned})
 	handleResult(c, r, err)
 }
 
@@ -37,7 +37,7 @@ func (h *ConversationHandler) Mute(c *gin.Context) {
 		resp.Fail(c, badRequest(err))
 		return
 	}
-	r, err := h.svc.AskConv(convID, conversation.MuteConvCmd{UID: uid, Muted: req.Muted})
+	r, err := h.svc.AskManager(conversation.MuteConvCmd{UID: uid, ConversationID: convID, Muted: req.Muted})
 	handleResult(c, r, err)
 }
 
@@ -54,7 +54,7 @@ func (h *ConversationHandler) Read(c *gin.Context) {
 		resp.Fail(c, badRequest(err))
 		return
 	}
-	r, err := h.svc.AskConv(convID, conversation.ReadConvCmd{UID: uid, Seq: req.Seq})
+	r, err := h.svc.AskManager(conversation.ReadConvCmd{UID: uid, ConversationID: convID, Seq: req.Seq})
 	handleResult(c, r, err)
 }
 

@@ -239,6 +239,8 @@ func initHandlers(s svcs, jwt *jwtpkg.Manager) *httphandler.Handlers {
 	}
 }
 
-func initDispatcher(s svcs) *ws.Dispatcher {
-	return ws.NewDispatcher(s.conv, s.msg, s.friend, s.user)
+func initDispatcher(s svcs, engine *actor.Engine) *ws.Dispatcher {
+	presenceRef, _ := engine.Lookup("presence")
+	friendRef, _ := engine.Lookup("friend-manager")
+	return ws.NewDispatcher(s.conv, s.msg, s.friend, s.user, presenceRef, friendRef)
 }

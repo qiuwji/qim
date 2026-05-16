@@ -4,17 +4,18 @@ import (
 	"fmt"
 
 	"qim/internal/actor"
+	"qim/internal/domain/conversation/store"
 	"qim/internal/eventbus"
 )
 
 type ManagerActor struct {
-	store  Store
+	store  store.Store
 	engine *actor.Engine
 	events eventbus.Bus
 }
 
-func NewManagerActor(store Store, engine *actor.Engine, events eventbus.Bus) *ManagerActor {
-	return &ManagerActor{store: store, engine: engine, events: events}
+func NewManagerActor(s store.Store, engine *actor.Engine, events eventbus.Bus) *ManagerActor {
+	return &ManagerActor{store: s, engine: engine, events: events}
 }
 
 func (a *ManagerActor) Receive(ctx actor.Context) {
@@ -27,6 +28,12 @@ func (a *ManagerActor) Receive(ctx actor.Context) {
 		a.handleCreateGroup(ctx, msg)
 	case ReadAllConvCmd:
 		a.handleReadAll(ctx, msg)
+	case PinConvCmd:
+		a.handlePin(ctx, msg)
+	case MuteConvCmd:
+		a.handleMute(ctx, msg)
+	case ReadConvCmd:
+		a.handleRead(ctx, msg)
 	}
 }
 
@@ -51,7 +58,7 @@ func (a *ManagerActor) handleListUserConversations(ctx actor.Context, msg ListUs
 }
 
 func (a *ManagerActor) handleCreatePrivate(ctx actor.Context, msg CreatePrivateConvCmd) {
-	conv, err := a.store.CreatePrivateConversation(CreatePrivateConversationInput{
+	conv, err := a.store.CreatePrivateConversation(store.CreatePrivateConversationInput{
 		UID1: msg.UID1,
 		UID2: msg.UID2,
 	})
@@ -59,17 +66,20 @@ func (a *ManagerActor) handleCreatePrivate(ctx actor.Context, msg CreatePrivateC
 		ctx.Reply(Result{Err: err})
 		return
 	}
-	a.spawnConvActor(conv.ID)
+	if err := a.spawnConvActor(conv.ID); err != nil {
+		ctx.Reply(Result{Err: err})
+		return
+	}
 
 	ctx.Reply(Result{Data: ConversationDTO{
 		ID:      conv.ID,
-		Type:    ConvType(conv.Type),
+		Type:    store.ConvType(conv.Type),
 		OwnerID: conv.OwnerID,
 	}})
 }
 
 func (a *ManagerActor) handleCreateGroup(ctx actor.Context, msg CreateGroupConvCmd) {
-	conv, err := a.store.CreateGroupConversation(CreateGroupConversationInput{
+	conv, err := a.store.CreateGroupConversation(store.CreateGroupConversationInput{
 		OwnerID:    msg.OwnerID,
 		Name:       msg.Name,
 		Avatar:     msg.Avatar,
@@ -79,11 +89,14 @@ func (a *ManagerActor) handleCreateGroup(ctx actor.Context, msg CreateGroupConvC
 		ctx.Reply(Result{Err: err})
 		return
 	}
-	a.spawnConvActor(conv.ID)
+	if err := a.spawnConvActor(conv.ID); err != nil {
+		ctx.Reply(Result{Err: err})
+		return
+	}
 
 	ctx.Reply(Result{Data: ConversationDTO{
 		ID:          conv.ID,
-		Type:        ConvType(conv.Type),
+		Type:        store.ConvType(conv.Type),
 		Name:        conv.Name,
 		Avatar:      conv.Avatar,
 		OwnerID:     conv.OwnerID,
@@ -92,11 +105,12 @@ func (a *ManagerActor) handleCreateGroup(ctx actor.Context, msg CreateGroupConvC
 	}})
 }
 
-func (a *ManagerActor) spawnConvActor(convID uint64) {
+func (a *ManagerActor) spawnConvActor(convID uint64) error {
 	name := fmt.Sprintf("conv:%d", convID)
-	a.engine.GetOrCreate(name, func() actor.Actor {
+	_, err := a.engine.GetOrCreate(name, func() actor.Actor {
 		return NewConversationActor(convID, a.store, a.engine, a.events)
 	})
+	return err
 }
 
 func (a *ManagerActor) handleReadAll(ctx actor.Context, msg ReadAllConvCmd) {
@@ -107,8 +121,35 @@ func (a *ManagerActor) handleReadAll(ctx actor.Context, msg ReadAllConvCmd) {
 	}
 	for _, uc := range ucs {
 		if uc.UnreadCount > 0 {
-			_ = a.store.UpdateUserConversation(msg.UID, uc.ConversationID, map[string]any{"unread_count": 0})
+			if err := a.store.UpdateUserConversation(msg.UID, uc.ConversationID, map[string]any{"unread_count": 0}); err != nil {
+				ctx.Reply(Result{Err: err})
+				return
+			}
 		}
+	}
+	ctx.Reply(Result{Data: true})
+}
+
+func (a *ManagerActor) handlePin(ctx actor.Context, msg PinConvCmd) {
+	if err := a.store.UpdateUserConversation(msg.UID, msg.ConversationID, map[string]any{"is_pinned": msg.Pinned}); err != nil {
+		ctx.Reply(Result{Err: err})
+		return
+	}
+	ctx.Reply(Result{Data: true})
+}
+
+func (a *ManagerActor) handleMute(ctx actor.Context, msg MuteConvCmd) {
+	if err := a.store.UpdateUserConversation(msg.UID, msg.ConversationID, map[string]any{"is_muted": msg.Muted}); err != nil {
+		ctx.Reply(Result{Err: err})
+		return
+	}
+	ctx.Reply(Result{Data: true})
+}
+
+func (a *ManagerActor) handleRead(ctx actor.Context, msg ReadConvCmd) {
+	if err := a.store.MarkConversationRead(msg.UID, msg.ConversationID, msg.Seq); err != nil {
+		ctx.Reply(Result{Err: err})
+		return
 	}
 	ctx.Reply(Result{Data: true})
 }

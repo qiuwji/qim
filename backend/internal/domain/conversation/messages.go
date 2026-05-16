@@ -1,27 +1,29 @@
 package conversation
 
+import "qim/internal/domain/conversation/store"
+
 type Result struct {
 	Data any
 	Err  error
 }
 
 type ConversationDTO struct {
-	ID          uint64   `json:"id"`
-	Type        ConvType `json:"type"`
-	Name        string   `json:"name"`
-	Avatar      string   `json:"avatar"`
-	OwnerID     uint64   `json:"owner_id"`
-	MemberCount int      `json:"member_count"`
-	MemberLimit int      `json:"member_limit"`
-	MaxSeq      int64    `json:"max_seq"`
-	CreatedAt   int64    `json:"created_at"`
+	ID          uint64         `json:"id"`
+	Type        store.ConvType `json:"type"`
+	Name        string         `json:"name"`
+	Avatar      string         `json:"avatar"`
+	OwnerID     uint64         `json:"owner_id"`
+	MemberCount int            `json:"member_count"`
+	MemberLimit int            `json:"member_limit"`
+	MaxSeq      int64          `json:"max_seq"`
+	CreatedAt   int64          `json:"created_at"`
 }
 
 type MemberDTO struct {
-	UID         uint64     `json:"uid"`
-	Role        MemberRole `json:"role"`
-	LastReadSeq int64      `json:"last_read_seq"`
-	JoinTime    int64      `json:"join_time"`
+	UID         uint64           `json:"uid"`
+	Role        store.MemberRole `json:"role"`
+	LastReadSeq int64            `json:"last_read_seq"`
+	JoinTime    int64            `json:"join_time"`
 }
 
 type UserConvDTO struct {
@@ -41,6 +43,7 @@ type MessageDTO struct {
 	MsgType        int8   `json:"msg_type"`
 	Content        string `json:"content"`
 	ReplyTo        uint64 `json:"reply_to"`
+	Revoked        bool   `json:"revoked"`
 	ClientID       string `json:"client_id"`
 	CreatedAt      int64  `json:"created_at"`
 }
@@ -92,7 +95,7 @@ type ListMembersQuery struct{}
 type AddMemberCmd struct {
 	OperatorID uint64
 	UID        uint64
-	Role       MemberRole
+	Role       store.MemberRole
 }
 
 type RemoveMemberCmd struct {
@@ -107,7 +110,7 @@ type LeaveConvCmd struct {
 type SetRoleCmd struct {
 	OperatorID uint64
 	UID        uint64
-	Role       MemberRole
+	Role       store.MemberRole
 }
 
 type TransferOwnerCmd struct {
@@ -120,18 +123,21 @@ type DissolveConvCmd struct {
 }
 
 type PinConvCmd struct {
-	UID    uint64
-	Pinned bool
+	UID            uint64
+	ConversationID uint64
+	Pinned         bool
 }
 
 type MuteConvCmd struct {
-	UID   uint64
-	Muted bool
+	UID            uint64
+	ConversationID uint64
+	Muted          bool
 }
 
 type ReadConvCmd struct {
-	UID uint64
-	Seq int64
+	UID            uint64
+	ConversationID uint64
+	Seq            int64
 }
 
 type ReadAllConvCmd struct {

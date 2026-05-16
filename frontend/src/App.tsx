@@ -1,4 +1,5 @@
-import { api, getSavedUser, getToken } from './api/http';
+import { useRef } from 'react';
+import { api, getToken } from './api/http';
 import { useAuth, useChatStore } from './hooks/useChatStore';
 import { chatTitle, displayName } from './utils';
 import { AuthPage } from './components/AuthPage';
@@ -20,9 +21,10 @@ function App() {
 
 function ChatPage({ user, onUserChange, onLogout }: { user: import('./api/types').UserDTO; onUserChange: (u: import('./api/types').UserDTO) => void; onLogout: () => void }) {
   const store = useChatStore(user, onUserChange);
+  const hoverCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const {
     tab, setTab, mobilePane, setMobilePane,
-    conversations, sortedConversations, groupConversations, details, userCache,
+    sortedConversations, groupConversations, details, userCache,
     selectedID, selectedConv, messages, lastMsgMap, hasMore, friends, friendGroups, friendMap,
     requests, outgoingReqs, members, searchKeyword, setSearchKeyword, searchResult,
     typing, loading, detailOpen, setDetailOpen, modal, setModal, contextMenu,
@@ -50,8 +52,24 @@ function ChatPage({ user, onUserChange, onLogout }: { user: import('./api/types'
     : '选择聊天后开始';
 
   function handleAvatarEnter(uid: number, e: React.MouseEvent) {
+    if (hoverCloseTimer.current) {
+      clearTimeout(hoverCloseTimer.current);
+      hoverCloseTimer.current = null;
+    }
     const el = e.currentTarget as HTMLElement;
     if (el) showHoverCard(uid, el.getBoundingClientRect());
+  }
+
+  function keepHoverCard() {
+    if (hoverCloseTimer.current) {
+      clearTimeout(hoverCloseTimer.current);
+      hoverCloseTimer.current = null;
+    }
+  }
+
+  function scheduleCloseHoverCard() {
+    if (hoverCloseTimer.current) clearTimeout(hoverCloseTimer.current);
+    hoverCloseTimer.current = setTimeout(() => setHoverCard(null), 180);
   }
 
   return (
@@ -63,13 +81,13 @@ function ChatPage({ user, onUserChange, onLogout }: { user: import('./api/types'
           <button className="icon-btn" onClick={tab === 'chats' ? createGroup : searchUsers}>{tab === 'chats' ? '+' : '搜'}</button>
         </div>
         {tab === 'chats' && <ConversationList conversations={sortedConversations} details={details} lastMsgMap={lastMsgMap} selectedID={selectedID} onSelect={selectChat} members={members} userCache={userCache} onlineMap={onlineMap} friendMap={friendMap} currentUID={user.id} />}
-        {tab === 'contacts' && <ContactsPanel keyword={searchKeyword} setKeyword={setSearchKeyword} onSearch={searchUsers} results={searchResult} friends={friends} friendGroups={friendGroups} requests={requests} outgoingReqs={outgoingReqs} groupConversations={groupConversations} details={details} userCache={userCache} friendMap={friendMap} onStartPrivate={startPrivate} onRequest={async (uid) => { await api.sendFriendRequest(uid, '你好'); setNotice({ kind: 'ok', text: '好友申请已发送' }); }} onHandleRequest={handleRequest} onSelectChat={selectChat} onDeleteFriend={deleteFriend} onUpdateRemark={updateFriendRemark} onCreateGroup={createFriendGroup} onRenameGroup={renameFriendGroup} onDeleteGroup={deleteFriendGroup} onViewUser={viewUserProfile} />}
+        {tab === 'contacts' && <ContactsPanel currentUID={user.id} keyword={searchKeyword} setKeyword={setSearchKeyword} onSearch={searchUsers} results={searchResult} friends={friends} friendGroups={friendGroups} requests={requests} outgoingReqs={outgoingReqs} groupConversations={groupConversations} details={details} userCache={userCache} friendMap={friendMap} onStartPrivate={startPrivate} onRequest={async (uid) => { if (uid === user.id) return; await api.sendFriendRequest(uid, '你好'); setNotice({ kind: 'ok', text: '好友申请已发送' }); }} onHandleRequest={handleRequest} onSelectChat={selectChat} onDeleteFriend={deleteFriend} onUpdateRemark={updateFriendRemark} onCreateGroup={createFriendGroup} onRenameGroup={renameFriendGroup} onDeleteGroup={deleteFriendGroup} onViewUser={viewUserProfile} />}
         {tab === 'profile' && <ProfilePanel user={user} onUploadAvatar={uploadAvatar} onUpdateProfile={updateProfile} onChangePassword={changePassword} />}
       </section>
       <section className={`pane-chat ${mobilePane === 'chat' ? 'mobile-show' : ''}`}>
         {viewingUser
-          ? <UserProfilePage user={viewingUser} isFriend={!!friendMap[viewingUser.id]} onBack={() => setViewingUser(null)} onStartPrivate={(uid) => { setViewingUser(null); startPrivate(uid); }} onAddFriend={async (uid) => { await api.sendFriendRequest(uid, '你好'); setNotice({ kind: 'ok', text: '好友申请已发送' }); setViewingUser(null); }} />
-          : <ChatWindow user={user} conversation={selectedConv} detail={selectedDetail} title={selectedConv ? chatTitle(selectedConv, selectedDetail) : '请选择聊天'} subtitle={subtitle} messages={selectedMessages} hasMore={selectedID ? hasMore[selectedID] ?? false : false} typingText={selectedID ? typing[selectedID] : ''} memberCount={selectedMembers.length} members={selectedMembers} userCache={userCache} friendMap={friendMap} detailOpen={detailOpen} replyTo={replyTo} showChatSearch={showChatSearch} chatSearch={chatSearch} chatSearchResult={chatSearchResult} onBack={() => setMobilePane(tab === 'contacts' ? 'contacts' : 'list')} onSend={sendText} onSendImage={sendImage} onTyping={() => selectedID && store.wsRef.current.typing(selectedID)} onToggleDetail={() => setDetailOpen(!detailOpen)} onContextMenu={(e, m) => { e.preventDefault(); setContextMenu({ x: e.clientX, y: e.clientY, message: m }); }} onReply={setReplyTo} onLoadMore={() => { if (selectedID) { const first = messages[selectedID]?.[0]; if (first) void store.loadMessages(selectedID, first.seq); } }} onChatSearch={doChatSearch} onChatSearchChange={setChatSearch} onToggleChatSearch={() => { setShowChatSearch(!showChatSearch); setChatSearchResult([]); }} onAvatarEnter={handleAvatarEnter} onAvatarLeave={() => setHoverCard(null)} onAvatarClick={(uid) => viewUserProfile(uid)} />
+          ? <UserProfilePage user={viewingUser} isFriend={!!friendMap[viewingUser.id]} isSelf={viewingUser.id === user.id} onBack={() => setViewingUser(null)} onStartPrivate={(uid) => { void startPrivate(uid); }} onAddFriend={async (uid) => { if (uid === user.id) return; await api.sendFriendRequest(uid, '你好'); setNotice({ kind: 'ok', text: '好友申请已发送' }); setViewingUser(null); }} />
+          : <ChatWindow user={user} conversation={selectedConv} detail={selectedDetail} title={selectedConv ? chatTitle(selectedConv, selectedDetail) : '请选择聊天'} subtitle={subtitle} messages={selectedMessages} hasMore={selectedID ? hasMore[selectedID] ?? false : false} typingText={selectedID ? typing[selectedID] : ''} memberCount={selectedMembers.length} members={selectedMembers} userCache={userCache} friendMap={friendMap} detailOpen={detailOpen} replyTo={replyTo} showChatSearch={showChatSearch} chatSearch={chatSearch} chatSearchResult={chatSearchResult} onBack={() => setMobilePane(tab === 'contacts' ? 'contacts' : 'list')} onSend={sendText} onSendImage={sendImage} onTyping={() => selectedID && store.wsRef.current.typing(selectedID)} onToggleDetail={() => setDetailOpen(!detailOpen)} onContextMenu={(e, m) => { e.preventDefault(); setContextMenu({ x: e.clientX, y: e.clientY, message: m }); }} onReply={setReplyTo} onLoadMore={() => { if (!selectedID) return undefined; const first = messages[selectedID]?.[0]; return first ? store.loadMessages(selectedID, first.seq) : undefined; }} onChatSearch={doChatSearch} onChatSearchChange={setChatSearch} onToggleChatSearch={() => { setShowChatSearch(!showChatSearch); setChatSearchResult([]); }} onJumpToMessage={(id) => { setShowChatSearch(false); setChatSearchResult([]); const el = document.getElementById(`msg-${id}`); if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.classList.add('highlight-msg'); setTimeout(() => el.classList.remove('highlight-msg'), 2000); } }} onAvatarEnter={handleAvatarEnter} onAvatarLeave={scheduleCloseHoverCard} onAvatarClick={(uid) => viewUserProfile(uid)} />
         }
       </section>
       <aside className="pane-detail">
@@ -78,7 +96,7 @@ function ChatPage({ user, onUserChange, onLogout }: { user: import('./api/types'
       {notice && <div className={`notice floating ${notice.kind}`} onClick={() => setNotice(null)}>{notice.text}</div>}
       <AppModal modal={modal} onClose={() => setModal(null)} />
       {contextMenu && <ContextMenuPopup menu={contextMenu} mine={contextMenu.message.sender_id === user.id} onRevoke={() => doRevoke(contextMenu.message)} onReply={() => setReplyTo(contextMenu.message)} onCopy={() => navigator.clipboard.writeText(contextMenu.message.content)} onDelete={() => doDelete(contextMenu.message)} onForward={() => doForward(contextMenu.message)} onClose={() => setContextMenu(null)} />}
-      {hoverCard && <UserCard data={hoverCard} isFriend={!!friendMap[hoverCard.user.id]} onStartPrivate={(uid) => { setHoverCard(null); startPrivate(uid); }} onAddFriend={async (uid) => { await api.sendFriendRequest(uid, '你好'); setNotice({ kind: 'ok', text: '好友申请已发送' }); setHoverCard(null); }} onViewProfile={(uid) => { setHoverCard(null); viewUserProfile(uid); }} />}
+      {hoverCard && <UserCard data={hoverCard} isFriend={!!friendMap[hoverCard.user.id]} isSelf={hoverCard.user.id === user.id} onMouseEnter={keepHoverCard} onMouseLeave={scheduleCloseHoverCard} onStartPrivate={(uid) => { setHoverCard(null); startPrivate(uid); }} onAddFriend={async (uid) => { if (uid === user.id) return; await api.sendFriendRequest(uid, '你好'); setNotice({ kind: 'ok', text: '好友申请已发送' }); setHoverCard(null); }} onViewProfile={(uid) => { setHoverCard(null); viewUserProfile(uid); }} />}
     </main>
   );
 }

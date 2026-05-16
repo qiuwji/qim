@@ -1,15 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
-import type { FriendDTO, UserDTO } from '../api/types';
-import { shortName } from '../utils';
+import type { UserDTO } from '../api/types';
 import { Avatar } from './Avatar';
 
 export type HoverCardData = { user: UserDTO; rect: DOMRect } | null;
 
-export function UserCard({ data, isFriend, onStartPrivate, onAddFriend, onViewProfile }: {
-  data: HoverCardData; isFriend?: boolean;
+export function UserCard({ data, isFriend, isSelf, onStartPrivate, onAddFriend, onViewProfile, onMouseEnter, onMouseLeave }: {
+  data: HoverCardData; isFriend?: boolean; isSelf?: boolean;
   onStartPrivate: (uid: number) => void;
   onAddFriend?: (uid: number) => void;
   onViewProfile: (uid: number) => void;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
 }) {
   const cardRef = useRef<HTMLDivElement | null>(null);
   const [pos, setPos] = useState<{ left: number; top: number }>({ left: 0, top: 0 });
@@ -35,7 +36,7 @@ export function UserCard({ data, isFriend, onStartPrivate, onAddFriend, onViewPr
   const u = data.user;
 
   return (
-    <div ref={cardRef} className="user-card" style={{ left: pos.left, top: pos.top }}>
+    <div ref={cardRef} className="user-card" style={{ left: pos.left, top: pos.top }} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave} onClick={(e) => e.stopPropagation()}>
       <div className="user-card-header">
         <Avatar user={u} />
         <div className="user-card-info">
@@ -46,8 +47,8 @@ export function UserCard({ data, isFriend, onStartPrivate, onAddFriend, onViewPr
       </div>
       {u.sign && <p className="user-card-sign">{u.sign}</p>}
       <div className="user-card-actions">
-        {isFriend && <button className="primary-btn" onClick={() => onStartPrivate(u.id)}>发消息</button>}
-        {!isFriend && onAddFriend && <button className="primary-btn" onClick={() => onAddFriend(u.id)}>加好友</button>}
+        {!isSelf && isFriend && <button className="primary-btn" onClick={() => onStartPrivate(u.id)}>发消息</button>}
+        {!isSelf && !isFriend && onAddFriend && <button className="primary-btn" onClick={() => onAddFriend(u.id)}>加好友</button>}
         <button className="wide-btn" onClick={() => onViewProfile(u.id)}>查看资料</button>
       </div>
     </div>

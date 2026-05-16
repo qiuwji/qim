@@ -53,6 +53,7 @@ func (h *MessagePushHandler) handleEvent(ctx actor.Context, event eventbus.Event
 
 func (h *MessagePushHandler) handlePresenceChange(ctx actor.Context, uid uint64, action string) {
 	if h.friendMgr == nil {
+		zap.L().Warn("presence push skipped: friendMgr is nil", zap.Uint64("uid", uid), zap.String("action", action))
 		return
 	}
 	raw, err := h.friendMgr.Ask(friend.ListFriendsCmd{UID: uid}, presenceAskTimeout)
@@ -62,15 +63,42 @@ func (h *MessagePushHandler) handlePresenceChange(ctx actor.Context, uid uint64,
 	}
 	result, ok := raw.(friend.Result)
 	if !ok || result.Err != nil {
+		zap.L().Warn("presence push: friend list result error", zap.Uint64("uid", uid), zap.Bool("ok", ok))
 		return
 	}
 	dtos, ok := result.Data.([]friend.FriendDTO)
 	if !ok {
+		zap.L().Warn("presence push: friend list type assertion failed", zap.Uint64("uid", uid))
 		return
 	}
+	zap.L().Info("presence change push", zap.Uint64("uid", uid), zap.String("action", action), zap.Int("friend_count", len(dtos)))
 	data := map[string]any{"uid": uid}
 	for _, f := range dtos {
 		h.pushToUser(f.FriendUID, "presence", action, data)
+	}
+	if action == "online" {
+		friendUIDs := make([]uint64, 0, len(dtos))
+		for _, f := range dtos {
+			friendUIDs = append(friendUIDs, f.FriendUID)
+		}
+		raw, err := h.presence.Ask(presencedomain.BatchOnlineQuery{UIDs: friendUIDs}, presenceAskTimeout)
+		if err != nil {
+			zap.L().Warn("presence online: batch query failed", zap.Uint64("uid", uid), zap.Error(err))
+			return
+		}
+		batchResult, ok := raw.(presencedomain.BatchOnlineResult)
+		if !ok {
+			zap.L().Warn("presence online: batch result type assertion failed", zap.Uint64("uid", uid))
+			return
+		}
+		onlineCount := 0
+		for friendUID, online := range batchResult.OnlineMap {
+			if online {
+				onlineCount++
+				h.pushToUser(uid, "presence", "online", map[string]any{"uid": friendUID})
+			}
+		}
+		zap.L().Info("presence online: pushed online friends to user", zap.Uint64("uid", uid), zap.Int("online_friend_count", onlineCount))
 	}
 }
 

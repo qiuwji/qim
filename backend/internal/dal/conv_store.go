@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	convdomain "qim/internal/domain/conversation"
+	"qim/internal/domain/conversation/store"
 
 	"github.com/mattn/go-sqlite3"
 	"gorm.io/gorm"
@@ -15,11 +15,11 @@ type gormConvStore struct {
 	db *gorm.DB
 }
 
-func NewConvStore(db *gorm.DB) convdomain.Store {
+func NewConvStore(db *gorm.DB) store.Store {
 	return &gormConvStore{db: db}
 }
 
-func (s *gormConvStore) GetConversation(id uint64) (*convdomain.ConversationRecord, error) {
+func (s *gormConvStore) GetConversation(id uint64) (*store.ConversationRecord, error) {
 	var conv Conversation
 	if err := s.db.First(&conv, id).Error; err != nil {
 		return nil, err
@@ -27,7 +27,7 @@ func (s *gormConvStore) GetConversation(id uint64) (*convdomain.ConversationReco
 	return toConversationRecord(conv), nil
 }
 
-func (s *gormConvStore) CreateConversation(conv *convdomain.ConversationRecord) error {
+func (s *gormConvStore) CreateConversation(conv *store.ConversationRecord) error {
 	model := Conversation{
 		Type:        conv.Type,
 		Name:        conv.Name,
@@ -45,7 +45,7 @@ func (s *gormConvStore) CreateConversation(conv *convdomain.ConversationRecord) 
 	return nil
 }
 
-func (s *gormConvStore) CreatePrivateConversation(input convdomain.CreatePrivateConversationInput) (*convdomain.ConversationRecord, error) {
+func (s *gormConvStore) CreatePrivateConversation(input store.CreatePrivateConversationInput) (*store.ConversationRecord, error) {
 	existing, err := s.FindPrivateConversation(input.UID1, input.UID2)
 	if err == nil && existing != nil {
 		return existing, nil
@@ -59,7 +59,7 @@ func (s *gormConvStore) CreatePrivateConversation(input convdomain.CreatePrivate
 		now = time.Now().Unix()
 	}
 	conv := &Conversation{
-		Type:        int8(convdomain.ConvTypePrivate),
+		Type:        int8(store.ConvTypePrivate),
 		OwnerID:     input.UID1,
 		MemberLimit: 2,
 		CreatedAt:   now,
@@ -71,8 +71,8 @@ func (s *gormConvStore) CreatePrivateConversation(input convdomain.CreatePrivate
 			return err
 		}
 		members := []Member{
-			{ConversationID: conv.ID, UserID: input.UID1, Role: int8(convdomain.MemberRoleRegular), JoinTime: now},
-			{ConversationID: conv.ID, UserID: input.UID2, Role: int8(convdomain.MemberRoleRegular), JoinTime: now},
+			{ConversationID: conv.ID, UserID: input.UID1, Role: int8(store.MemberRoleRegular), JoinTime: now},
+			{ConversationID: conv.ID, UserID: input.UID2, Role: int8(store.MemberRoleRegular), JoinTime: now},
 		}
 		return tx.Create(&members).Error
 	}); err != nil {
@@ -81,13 +81,13 @@ func (s *gormConvStore) CreatePrivateConversation(input convdomain.CreatePrivate
 	return toConversationRecord(*conv), nil
 }
 
-func (s *gormConvStore) CreateGroupConversation(input convdomain.CreateGroupConversationInput) (*convdomain.ConversationRecord, error) {
+func (s *gormConvStore) CreateGroupConversation(input store.CreateGroupConversationInput) (*store.ConversationRecord, error) {
 	now := input.CreatedAt
 	if now == 0 {
 		now = time.Now().Unix()
 	}
 	conv := &Conversation{
-		Type:        int8(convdomain.ConvTypeGroup),
+		Type:        int8(store.ConvTypeGroup),
 		Name:        input.Name,
 		Avatar:      input.Avatar,
 		OwnerID:     input.OwnerID,
@@ -121,11 +121,11 @@ func (s *gormConvStore) DissolveConversation(id uint64) error {
 	})
 }
 
-func (s *gormConvStore) FindPrivateConversation(uid1, uid2 uint64) (*convdomain.ConversationRecord, error) {
+func (s *gormConvStore) FindPrivateConversation(uid1, uid2 uint64) (*store.ConversationRecord, error) {
 	var conv Conversation
 	err := s.db.Joins("JOIN members m1 ON m1.conversation_id = conversations.id AND m1.user_id = ?", uid1).
 		Joins("JOIN members m2 ON m2.conversation_id = conversations.id AND m2.user_id = ?", uid2).
-		Where("conversations.type = ?", 1). // ConvTypePrivate
+		Where("conversations.type = ?", 1).
 		First(&conv).Error
 	if err != nil {
 		return nil, err
@@ -133,19 +133,19 @@ func (s *gormConvStore) FindPrivateConversation(uid1, uid2 uint64) (*convdomain.
 	return toConversationRecord(conv), nil
 }
 
-func (s *gormConvStore) GetMembers(convID uint64) ([]convdomain.MemberRecord, error) {
+func (s *gormConvStore) GetMembers(convID uint64) ([]store.MemberRecord, error) {
 	var members []Member
 	if err := s.db.Where("conversation_id = ?", convID).Find(&members).Error; err != nil {
 		return nil, err
 	}
-	records := make([]convdomain.MemberRecord, 0, len(members))
+	records := make([]store.MemberRecord, 0, len(members))
 	for _, m := range members {
 		records = append(records, toMemberRecord(m))
 	}
 	return records, nil
 }
 
-func (s *gormConvStore) CreateMember(member *convdomain.MemberRecord) error {
+func (s *gormConvStore) CreateMember(member *store.MemberRecord) error {
 	model := Member{
 		ConversationID: member.ConversationID,
 		UserID:         member.UserID,
@@ -156,7 +156,7 @@ func (s *gormConvStore) CreateMember(member *convdomain.MemberRecord) error {
 	return s.db.Create(&model).Error
 }
 
-func (s *gormConvStore) CreateMembers(members []convdomain.MemberRecord) error {
+func (s *gormConvStore) CreateMembers(members []store.MemberRecord) error {
 	models := make([]Member, 0, len(members))
 	for _, m := range members {
 		models = append(models, Member{
@@ -182,12 +182,12 @@ func (s *gormConvStore) TransferOwner(convID, oldOwnerUID, newOwnerUID uint64) e
 	now := time.Now().Unix()
 	tx := s.db.Begin()
 	if err := tx.Model(&Member{}).Where("conversation_id = ? AND user_id = ?", convID, oldOwnerUID).
-		Update("role", int8(0)).Error; err != nil { // MemberRoleRegular
+		Update("role", int8(store.MemberRoleRegular)).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
 	if err := tx.Model(&Member{}).Where("conversation_id = ? AND user_id = ?", convID, newOwnerUID).
-		Update("role", int8(2)).Error; err != nil { // MemberRoleOwner
+		Update("role", int8(store.MemberRoleOwner)).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
@@ -199,14 +199,14 @@ func (s *gormConvStore) TransferOwner(convID, oldOwnerUID, newOwnerUID uint64) e
 	return tx.Commit().Error
 }
 
-func (s *gormConvStore) GetUserConversations(uid uint64) ([]convdomain.UserConversationRecord, error) {
+func (s *gormConvStore) GetUserConversations(uid uint64) ([]store.UserConversationRecord, error) {
 	var ucs []UserConversation
 	if err := s.db.Where("user_id = ? AND is_deleted = ?", uid, false).Find(&ucs).Error; err != nil {
 		return nil, err
 	}
-	records := make([]convdomain.UserConversationRecord, 0, len(ucs))
+	records := make([]store.UserConversationRecord, 0, len(ucs))
 	for _, uc := range ucs {
-		records = append(records, convdomain.UserConversationRecord{
+		records = append(records, store.UserConversationRecord{
 			ConversationID: uc.ConversationID,
 			IsPinned:       uc.IsPinned,
 			IsMuted:        uc.IsMuted,
@@ -221,7 +221,23 @@ func (s *gormConvStore) UpdateUserConversation(uid, convID uint64, updates map[s
 	return s.db.Model(&UserConversation{}).Where("user_id = ? AND conversation_id = ?", uid, convID).Updates(updates).Error
 }
 
-func (s *gormConvStore) CommitMessage(input convdomain.MessageCommitInput) (*convdomain.MessageCommitResult, error) {
+func (s *gormConvStore) MarkConversationRead(uid, convID uint64, seq int64) error {
+	return s.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Model(&UserConversation{}).
+			Where("user_id = ? AND conversation_id = ?", uid, convID).
+			Update("unread_count", 0).Error; err != nil {
+			return err
+		}
+		if seq <= 0 {
+			return nil
+		}
+		return tx.Model(&Member{}).
+			Where("conversation_id = ? AND user_id = ?", convID, uid).
+			Update("last_read_seq", seq).Error
+	})
+}
+
+func (s *gormConvStore) CommitMessage(input store.MessageCommitInput) (*store.MessageCommitResult, error) {
 	if input.Message.ClientID != "" {
 		existing, err := s.findMessageByClientID(input.Message.ConversationID, input.Message.SenderID, input.Message.ClientID)
 		if err == nil {
@@ -267,12 +283,12 @@ func (s *gormConvStore) CommitMessage(input convdomain.MessageCommitInput) (*con
 	return toMessageCommitResult(msg, false), nil
 }
 
-func (s *gormConvStore) GetMessage(convID, messageID uint64) (*convdomain.MessageRecord, error) {
+func (s *gormConvStore) GetMessage(convID, messageID uint64) (*store.MessageRecord, error) {
 	var msg Message
 	if err := s.db.Where("conversation_id = ? AND id = ?", convID, messageID).First(&msg).Error; err != nil {
 		return nil, err
 	}
-	return &convdomain.MessageRecord{
+	return &store.MessageRecord{
 		ID:             msg.ID,
 		ConversationID: msg.ConversationID,
 		Seq:            msg.Seq,
@@ -282,9 +298,26 @@ func (s *gormConvStore) GetMessage(convID, messageID uint64) (*convdomain.Messag
 }
 
 func (s *gormConvStore) RevokeMessage(convID, messageID uint64) error {
-	return s.db.Model(&Message{}).
-		Where("conversation_id = ? AND id = ?", convID, messageID).
-		Update("revoked", true).Error
+	return s.db.Transaction(func(tx *gorm.DB) error {
+		var msg Message
+		if err := tx.Where("conversation_id = ? AND id = ?", convID, messageID).First(&msg).Error; err != nil {
+			return err
+		}
+		if msg.Revoked {
+			return nil
+		}
+		if err := tx.Model(&Message{}).
+			Where("conversation_id = ? AND id = ?", convID, messageID).
+			Update("revoked", true).Error; err != nil {
+			return err
+		}
+		return tx.Model(&UserConversation{}).
+			Where("conversation_id = ? AND user_id <> ? AND unread_count > 0", convID, msg.SenderID).
+			Where("user_id IN (?)", tx.Model(&Member{}).
+				Select("user_id").
+				Where("conversation_id = ? AND last_read_seq < ?", convID, msg.Seq)).
+			Update("unread_count", gorm.Expr("unread_count - 1")).Error
+	})
 }
 
 func (s *gormConvStore) findMessageByClientID(convID, senderID uint64, clientID string) (*Message, error) {
@@ -305,18 +338,22 @@ func (s *gormConvStore) appendMessage(tx *gorm.DB, msg *Message) error {
 	return tx.Create(msg).Error
 }
 
-func toMessageCommitResult(msg *Message, duplicated bool) *convdomain.MessageCommitResult {
-	return &convdomain.MessageCommitResult{
+func toMessageCommitResult(msg *Message, duplicated bool) *store.MessageCommitResult {
+	result := &store.MessageCommitResult{
 		MessageID:  msg.ID,
 		Seq:        msg.Seq,
 		SenderID:   msg.SenderID,
 		MsgType:    msg.MsgType,
-		Content:    msg.Content,
 		ReplyTo:    msg.ReplyTo,
 		ClientID:   msg.ClientID,
 		CreatedAt:  msg.CreatedAt,
 		Duplicated: duplicated,
+		Revoked:    msg.Revoked,
 	}
+	if !msg.Revoked {
+		result.Content = msg.Content
+	}
+	return result
 }
 
 func isUniqueConstraintError(err error) bool {
@@ -331,12 +368,12 @@ func isUniqueConstraintError(err error) bool {
 	return false
 }
 
-func (s *gormConvStore) updateConversationSeq(tx *gorm.DB, input convdomain.MessageAppendInput) error {
+func (s *gormConvStore) updateConversationSeq(tx *gorm.DB, input store.MessageAppendInput) error {
 	return tx.Model(&Conversation{}).Where("id = ?", input.ConversationID).
 		Updates(map[string]any{"max_seq": input.Seq, "updated_at": input.CreatedAt}).Error
 }
 
-func (s *gormConvStore) projectUnread(tx *gorm.DB, input convdomain.UnreadProjectionInput) error {
+func (s *gormConvStore) projectUnread(tx *gorm.DB, input store.UnreadProjectionInput) error {
 	for _, uid := range input.MemberUIDs {
 		unreadDelta := 1
 		if uid == input.SenderID {
@@ -365,8 +402,8 @@ func (s *gormConvStore) projectUnread(tx *gorm.DB, input convdomain.UnreadProjec
 	return nil
 }
 
-func toConversationRecord(conv Conversation) *convdomain.ConversationRecord {
-	return &convdomain.ConversationRecord{
+func toConversationRecord(conv Conversation) *store.ConversationRecord {
+	return &store.ConversationRecord{
 		ID:          conv.ID,
 		Type:        conv.Type,
 		Name:        conv.Name,
@@ -379,8 +416,8 @@ func toConversationRecord(conv Conversation) *convdomain.ConversationRecord {
 	}
 }
 
-func toMemberRecord(member Member) convdomain.MemberRecord {
-	return convdomain.MemberRecord{
+func toMemberRecord(member Member) store.MemberRecord {
+	return store.MemberRecord{
 		ConversationID: member.ConversationID,
 		UserID:         member.UserID,
 		Role:           member.Role,
@@ -391,7 +428,7 @@ func toMemberRecord(member Member) convdomain.MemberRecord {
 
 func groupMembers(convID, ownerID uint64, memberUIDs []uint64, joinTime int64) []Member {
 	members := []Member{
-		{ConversationID: convID, UserID: ownerID, Role: int8(convdomain.MemberRoleOwner), JoinTime: joinTime},
+		{ConversationID: convID, UserID: ownerID, Role: int8(store.MemberRoleOwner), JoinTime: joinTime},
 	}
 	seen := map[uint64]struct{}{ownerID: {}}
 	for _, uid := range memberUIDs {
@@ -405,7 +442,7 @@ func groupMembers(convID, ownerID uint64, memberUIDs []uint64, joinTime int64) [
 		members = append(members, Member{
 			ConversationID: convID,
 			UserID:         uid,
-			Role:           int8(convdomain.MemberRoleRegular),
+			Role:           int8(store.MemberRoleRegular),
 			JoinTime:       joinTime,
 		})
 	}

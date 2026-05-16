@@ -126,6 +126,9 @@ func TestManagerActor_BitsUT(t *testing.T) {
 		ListUserConversationsCmd{UID: 1},
 		CreatePrivateConvCmd{UID1: 1, UID2: 2},
 		CreateGroupConvCmd{OwnerID: 1, Name: "g"},
+		PinConvCmd{UID: 1, ConversationID: 1, Pinned: true},
+		MuteConvCmd{UID: 1, ConversationID: 1, Muted: true},
+		ReadConvCmd{UID: 1, ConversationID: 1, Seq: 5},
 	} {
 		raw, err := ref.Ask(cmd, time.Second)
 		if err != nil {
@@ -133,6 +136,36 @@ func TestManagerActor_BitsUT(t *testing.T) {
 		}
 		if raw.(Result).Err == nil {
 			t.Fatalf("%T should return store error", cmd)
+		}
+	}
+}
+
+func TestManagerActorPinMuteRead_BitsUT(t *testing.T) {
+	store := newConversationTestStore()
+	engine := actor.NewEngine()
+	ref, err := engine.Spawn("conv-manager-pmr-test", NewManagerActor(store, engine, nil))
+	if err != nil {
+		t.Fatalf("spawn manager: %v", err)
+	}
+
+	pinCases := []struct {
+		name string
+		cmd  any
+	}{
+		{"置顶会话", PinConvCmd{UID: 1, ConversationID: 1, Pinned: true}},
+		{"取消置顶", PinConvCmd{UID: 1, ConversationID: 1, Pinned: false}},
+		{"免打扰", MuteConvCmd{UID: 1, ConversationID: 1, Muted: true}},
+		{"取消免打扰", MuteConvCmd{UID: 1, ConversationID: 1, Muted: false}},
+		{"标记已读", ReadConvCmd{UID: 1, ConversationID: 1, Seq: 10}},
+		{"全部已读", ReadAllConvCmd{UID: 1}},
+	}
+	for _, tt := range pinCases {
+		raw, err := ref.Ask(tt.cmd, time.Second)
+		if err != nil {
+			t.Fatalf("%s ask error: %v", tt.name, err)
+		}
+		if result := raw.(Result); result.Err != nil {
+			t.Fatalf("%s result error: %v", tt.name, result.Err)
 		}
 	}
 }
@@ -157,7 +190,7 @@ func TestConversationActorSettingsAndPermissionErrors_BitsUT(t *testing.T) {
 		{"不能移除不存在成员", RemoveMemberCmd{OperatorID: 1, UID: 99}, ErrMemberNotFound},
 		{"非群主不能转让群主", TransferOwnerCmd{OperatorID: 2, NewOwnerID: 1}, ErrOwnerRequired},
 		{"非群主不能设置角色", SetRoleCmd{OperatorID: 2, UID: 1, Role: MemberRoleAdmin}, ErrOwnerRequired},
-		{"非成员不能标记已读", ReadConvCmd{UID: 99, Seq: 1}, ErrNotMember},
+		{"群主不能直接退群", LeaveConvCmd{UID: 1}, ErrOwnerRequired},
 	}
 
 	for _, tt := range cases {
@@ -175,11 +208,6 @@ func TestConversationActorSettingsAndPermissionErrors_BitsUT(t *testing.T) {
 		GetConvInfoQuery{},
 		ListMembersQuery{},
 		SetRoleCmd{OperatorID: 1, UID: 2, Role: MemberRoleRegular},
-		PinConvCmd{UID: 1, Pinned: true},
-		MuteConvCmd{UID: 1, Muted: true},
-		ReadConvCmd{UID: 1, Seq: 5},
-		ReadConvCmd{UID: 1, Seq: 4},
-		ReadAllConvCmd{UID: 1},
 	}
 	for _, cmd := range okCases {
 		raw, err := ref.Ask(cmd, time.Second)
@@ -189,6 +217,23 @@ func TestConversationActorSettingsAndPermissionErrors_BitsUT(t *testing.T) {
 		if result := raw.(Result); result.Err != nil {
 			t.Fatalf("%T result error: %v", cmd, result.Err)
 		}
+	}
+}
+
+func TestConversationActorMemberLimitZeroMeansUnlimited_BitsUT(t *testing.T) {
+	store := newConversationTestStore()
+	store.conv.MemberLimit = 0
+	engine := actor.NewEngine()
+	ref, err := engine.Spawn("conv-limit-zero-test", NewConversationActor(1, store, engine, nil))
+	if err != nil {
+		t.Fatalf("spawn conversation actor: %v", err)
+	}
+	raw, err := ref.Ask(AddMemberCmd{OperatorID: 1, UID: 3, Role: MemberRoleRegular}, time.Second)
+	if err != nil {
+		t.Fatalf("add member ask error: %v", err)
+	}
+	if result := raw.(Result); result.Err != nil {
+		t.Fatalf("add member with unlimited limit error: %v", result.Err)
 	}
 }
 
@@ -261,7 +306,7 @@ func TestConversationActorPublishNilEvents_BitsUT(t *testing.T) {
 	a := NewConversationActor(1, nil, nil, nil)
 	a.members[1] = &MemberState{UID: 1}
 	a.publishMessageSent(1, 1, SendMessageCmd{SenderID: 1}, []uint64{1}, 1)
-	a.publishMessageRevoked(1, 1)
+	a.publishMessageRevoked(&MessageRecord{ID: 1, Seq: 1, SenderID: 1}, 1)
 	a.publishConversationUpdated()
 	a.publishMemberJoined(2, MemberRoleRegular, 1)
 	a.publishMemberLeft(2)
@@ -390,6 +435,15 @@ func (s *conversationTestStore) GetUserConversations(uid uint64) ([]UserConversa
 	return []UserConversationRecord{{ConversationID: 1, IsPinned: true, UnreadCount: 2, LastMsgAt: 3}}, nil
 }
 func (s *conversationTestStore) UpdateUserConversation(uid, convID uint64, updates map[string]any) error {
+	if s.managerErr != nil {
+		return s.managerErr
+	}
+	return nil
+}
+func (s *conversationTestStore) MarkConversationRead(uid, convID uint64, seq int64) error {
+	if s.managerErr != nil {
+		return s.managerErr
+	}
 	return nil
 }
 func (s *conversationTestStore) CommitMessage(input MessageCommitInput) (*MessageCommitResult, error) {
