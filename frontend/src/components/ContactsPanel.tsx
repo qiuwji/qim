@@ -13,6 +13,7 @@ export function ContactsPanel({ currentUID, keyword, setKeyword, onSearch, resul
 }) {
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({ search: true, requests: true, outgoing: true, groups: true, friends: true, fg_0: true });
   const toggle = (k: string) => setOpenSections((p) => ({ ...p, [k]: !p[k] }));
+  const [friendCtx, setFriendCtx] = useState<{ x: number; y: number; friend: FriendDTO } | null>(null);
 
   const friendsByGroup = useMemo(() => {
     const map: Record<number, FriendDTO[]> = { 0: [] };
@@ -20,24 +21,47 @@ export function ContactsPanel({ currentUID, keyword, setKeyword, onSearch, resul
     return map;
   }, [friends]);
 
+  function renderFriendItem(item: FriendDTO) {
+    const fu = userCache[item.friend_uid];
+    const dn = item.remark || fu?.nickname || fu?.username || `用户 ${item.friend_uid}`;
+    return (
+      <div className="contact-item" key={item.id} onClick={() => onViewUser?.(item.friend_uid)} onContextMenu={(e) => { e.preventDefault(); setFriendCtx({ x: e.clientX, y: e.clientY, friend: item }); }}>
+        <Avatar user={fu} small />
+        <div className="contact-text">
+          <strong>{dn}</strong>
+          <span>{fu?.sign || `@${fu?.username}`}</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="contacts-panel">
+    <div className="contacts-panel" onClick={() => setFriendCtx(null)}>
       <div className="search-box"><input value={keyword} onChange={(e) => setKeyword(e.target.value)} placeholder="搜索用户名或昵称" onKeyDown={(e) => e.key === 'Enter' && onSearch()} /><button onClick={onSearch}>搜索</button></div>
-      {results.length > 0 && <CollapsibleSection title="搜索结果" count={results.length} open={openSections.search ?? true} onToggle={() => toggle('search')}>{results.map((item) => { const isFriend = !!friendMap?.[item.id]; const isSelf = item.id === currentUID; return (<UserLine key={item.id} user={item} actions={<>{!isSelf && isFriend && <button onClick={() => onStartPrivate(item.id)}>聊天</button>}{!isSelf && !isFriend && <button onClick={() => void onRequest(item)}>加好友</button>}</>} onViewUser={onViewUser} />); })}</CollapsibleSection>}
-      {requests.length > 0 && <CollapsibleSection title="新的朋友" count={requests.length} open={openSections.requests ?? true} onToggle={() => toggle('requests')}>{requests.map((item) => { const fu = userCache[item.from_uid]; return (<div className="contact-item" key={item.id}><div className="contact-info clickable" onClick={() => onViewUser?.(item.from_uid)}><div className="avatar fallback small">{shortName(fu?.nickname || fu?.username)}</div><div className="contact-text"><strong>{fu?.nickname || `用户 ${item.from_uid}`}</strong><span>{item.message || '请求添加你为好友'}</span></div></div><div className="line-actions"><button onClick={() => onHandleRequest(item.id, 'accept')}>同意</button><button onClick={() => onHandleRequest(item.id, 'reject')}>拒绝</button></div></div>); })}</CollapsibleSection>}
-      {outgoingReqs.length > 0 && <CollapsibleSection title="已发申请" count={outgoingReqs.length} open={openSections.outgoing ?? true} onToggle={() => toggle('outgoing')}>{outgoingReqs.map((item) => { const tu = userCache[item.to_uid]; return (<div className="contact-item" key={item.id}><div className="contact-info clickable" onClick={() => onViewUser?.(item.to_uid)}><div className="avatar fallback small">{shortName(tu?.nickname || tu?.username)}</div><div className="contact-text"><strong>{tu?.nickname || `用户 ${item.to_uid}`}</strong><span>等待对方同意</span></div></div></div>); })}</CollapsibleSection>}
+      {results.length > 0 && <CollapsibleSection title="搜索结果" count={results.length} open={openSections.search ?? true} onToggle={() => toggle('search')}>{results.map((item) => { const isFriend = !!friendMap?.[item.id]; const isSelf = item.id === currentUID; return (<UserLine key={item.id} user={item} actions={<>{!isSelf && isFriend && <button className="action-btn" onClick={() => onStartPrivate(item.id)}>聊天</button>}{!isSelf && !isFriend && <button className="action-btn primary" onClick={() => void onRequest(item)}>加好友</button>}</>} onViewUser={onViewUser} />); })}</CollapsibleSection>}
+      {requests.length > 0 && <CollapsibleSection title="新的朋友" count={requests.length} open={openSections.requests ?? true} onToggle={() => toggle('requests')}>{requests.map((item) => { const fu = userCache[item.from_uid]; return (<div className="contact-item" key={item.id}><div className="contact-info clickable" onClick={() => onViewUser?.(item.from_uid)}><Avatar user={fu} small /><div className="contact-text"><strong>{fu?.nickname || `用户 ${item.from_uid}`}</strong><span>{item.message || '请求添加你为好友'}</span></div></div><div className="line-actions"><button className="action-btn primary" onClick={() => onHandleRequest(item.id, 'accept')}>同意</button><button className="action-btn" onClick={() => onHandleRequest(item.id, 'reject')}>拒绝</button></div></div>); })}</CollapsibleSection>}
+      {outgoingReqs.length > 0 && <CollapsibleSection title="已发申请" count={outgoingReqs.length} open={openSections.outgoing ?? true} onToggle={() => toggle('outgoing')}>{outgoingReqs.map((item) => { const tu = userCache[item.to_uid]; return (<div className="contact-item" key={item.id}><div className="contact-info clickable" onClick={() => onViewUser?.(item.to_uid)}><Avatar user={tu} small /><div className="contact-text"><strong>{tu?.nickname || `用户 ${item.to_uid}`}</strong><span>等待对方同意</span></div></div></div>); })}</CollapsibleSection>}
       {groupConversations.length > 0 && <CollapsibleSection title="我的群聊" count={groupConversations.length} open={openSections.groups ?? true} onToggle={() => toggle('groups')}>{groupConversations.map((item) => (<button key={item.conversation_id} className="contact-item" onClick={() => onSelectChat(item.conversation_id)}><div className="avatar fallback small group-icon">群</div><div className="contact-text"><strong>{chatTitle(item, details[item.conversation_id])}</strong></div></button>))}</CollapsibleSection>}
       <CollapsibleSection title="好友" count={friends.length} open={openSections.friends ?? true} onToggle={() => toggle('friends')} extraActions={<button className="tiny-btn" onClick={onCreateGroup}>新建分组</button>}>
         {friendGroups.map((g) => (<CollapsibleSection key={g.id} title={g.name || '默认分组'} count={(friendsByGroup[g.id] ?? []).length} open={openSections[`fg_${g.id}`] ?? true} onToggle={() => toggle(`fg_${g.id}`)} small extraActions={<>{g.id > 0 && <><button className="tiny-btn" onClick={() => onRenameGroup(g.id, g.name)}>改名</button><button className="tiny-btn danger-text" onClick={() => onDeleteGroup(g.id)}>删除</button></>}</>}>
-          {(friendsByGroup[g.id] ?? []).map((item) => { const fu = userCache[item.friend_uid]; const dn = item.remark || fu?.nickname || fu?.username || `用户 ${item.friend_uid}`; return (<div className="contact-item" key={item.id}><div className="contact-info clickable" onClick={() => onViewUser?.(item.friend_uid)}><div className="avatar fallback small">{shortName(dn)}</div><div className="contact-text"><strong>{dn}</strong>{fu && <span>@{fu.username}</span>}</div></div><div className="line-actions"><button onClick={() => onStartPrivate(item.friend_uid)}>发消息</button><button onClick={() => onUpdateRemark(item.friend_uid, item.remark)}>备注</button><button className="danger-text" onClick={() => onDeleteFriend(item.friend_uid)}>删除</button></div></div>); })}
+          {(friendsByGroup[g.id] ?? []).map(renderFriendItem)}
         </CollapsibleSection>))}
-        {(friendsByGroup[0] ?? []).map((item) => { const fu = userCache[item.friend_uid]; const dn = item.remark || fu?.nickname || fu?.username || `用户 ${item.friend_uid}`; return (<div className="contact-item" key={item.id}><div className="contact-info clickable" onClick={() => onViewUser?.(item.friend_uid)}><div className="avatar fallback small">{shortName(dn)}</div><div className="contact-text"><strong>{dn}</strong>{fu && <span>@{fu.username}</span>}</div></div><div className="line-actions"><button onClick={() => onStartPrivate(item.friend_uid)}>发消息</button><button onClick={() => onUpdateRemark(item.friend_uid, item.remark)}>备注</button><button className="danger-text" onClick={() => onDeleteFriend(item.friend_uid)}>删除</button></div></div>); })}
+        {(friendsByGroup[0] ?? []).map(renderFriendItem)}
         {friends.length === 0 && <div className="empty-hint">暂无好友，搜索用户名添加</div>}
       </CollapsibleSection>
+      {friendCtx && (
+        <div className="ctx-overlay" onClick={() => setFriendCtx(null)}>
+          <ul className="ctx-menu" style={{ left: friendCtx.x, top: friendCtx.y }} onClick={(e) => e.stopPropagation()}>
+            <li onClick={() => { onStartPrivate(friendCtx.friend.friend_uid); setFriendCtx(null); }}>发消息</li>
+            <li onClick={() => { onUpdateRemark(friendCtx.friend.friend_uid, friendCtx.friend.remark); setFriendCtx(null); }}>修改备注</li>
+            <li className="danger" onClick={() => { onDeleteFriend(friendCtx.friend.friend_uid); setFriendCtx(null); }}>删除好友</li>
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
 
 function UserLine({ user, actions, onViewUser }: { user: UserDTO; actions: ReactNode; onViewUser?: (uid: number) => void }) {
-  return (<div className="user-line"><Avatar user={user} className="avatar-interactive" onClick={() => onViewUser?.(user.id)} /><div className="clickable" onClick={() => onViewUser?.(user.id)}><strong>{user.nickname || user.username}</strong><span>@{user.username}</span></div><div className="line-actions">{actions}</div></div>);
+  return (<div className="user-line" onClick={() => onViewUser?.(user.id)}><Avatar user={user} /><div className="contact-text"><strong>{user.nickname || user.username}</strong><span>{user.sign || `@${user.username}`}</span></div><div className="line-actions">{actions}</div></div>);
 }

@@ -945,6 +945,19 @@ input {
   font-size: 14px;
 }
 .line-actions { display: flex; gap: 6px; }
+.action-btn {
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #666;
+  background: #f0f0f0;
+  transition: all 0.12s;
+}
+.action-btn:hover { background: #e0e0e0; }
+.action-btn.primary { color: #07c160; background: rgba(7, 193, 96, 0.08); }
+.action-btn.primary:hover { background: rgba(7, 193, 96, 0.16); }
+.ctx-menu li.danger { color: #e04344; }
+.ctx-menu li.danger:hover { background: #fff1f0; }
 .empty-state {
   min-height: 180px;
   display: grid;
