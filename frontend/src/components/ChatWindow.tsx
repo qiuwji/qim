@@ -14,6 +14,7 @@ export function ChatWindow({ user, conversation, detail, title, subtitle, messag
   onAvatarClick?: (uid: number) => void;
 }) {
   const [draft, setDraft] = useState('');
+  const [showEmoji, setShowEmoji] = useState(false);
   const areaRef = useRef<HTMLDivElement | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const topRef = useRef<HTMLDivElement | null>(null);
@@ -159,7 +160,7 @@ export function ChatWindow({ user, conversation, detail, title, subtitle, messag
             <button type="button" onClick={() => imageRef.current?.click()} title="图片">
               <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg>
             </button>
-            <button type="button" title="表情">
+            <button type="button" title="表情" onClick={() => setShowEmoji((v) => !v)}>
               <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M8 14s1.5 2 4 2 4-2 4-2" /><line x1="9" y1="9" x2="9.01" y2="9" /><line x1="15" y1="9" x2="15.01" y2="9" /></svg>
             </button>
             <button type="button" title="文件">
@@ -169,7 +170,33 @@ export function ChatWindow({ user, conversation, detail, title, subtitle, messag
           </div>
           <button className="primary-btn" disabled={!conversation || !draft.trim()}>发送</button>
         </div>
+        {showEmoji && <EmojiPicker onSelect={(emoji: string) => { setDraft((d) => d + emoji); setShowEmoji(false); }} onClose={() => setShowEmoji(false)} />}
       </form>
+    </div>
+  );
+}
+
+const EMOJI_LIST = [
+  '😀','😁','😂','🤣','😃','😄','😅','😆','😉','😊',
+  '😋','😎','😍','🥰','😘','😗','😙','😚','🙂','🤗',
+  '🤔','😐','😑','😶','🙄','😏','😣','😥','😮','🤐',
+  '😯','😪','😫','😴','😌','😛','😜','😝','🤤','😒',
+  '😓','😔','😕','🙃','🤑','😲','🙁','😖','😞','😟',
+  '😤','😢','😭','😦','😧','😨','😩','🤯','😬','😰',
+  '😱','🥵','🥶','😳','🤪','😵','😡','😠','🤬','😈',
+  '👍','👎','👏','🙌','🤝','💪','✌️','🤞','🤟','🤘',
+  '❤️','🧡','💛','💚','💙','💜','🖤','💔','💕','💖',
+  '🔥','⭐','🎉','🎊','💯','✅','❌','⚡','💡','🎵',
+];
+
+function EmojiPicker({ onSelect, onClose }: { onSelect: (emoji: string) => void; onClose: () => void }) {
+  return (
+    <div className="emoji-overlay" onClick={onClose}>
+      <div className="emoji-picker" onClick={(e) => e.stopPropagation()}>
+        {EMOJI_LIST.map((emoji) => (
+          <button key={emoji} type="button" className="emoji-item" onClick={() => onSelect(emoji)}>{emoji}</button>
+        ))}
+      </div>
     </div>
   );
 }

@@ -372,6 +372,7 @@ input {
   padding: 0;
   background: #f9fafb;
   border-top: 1px solid #dfe3e8;
+  position: relative;
 }
 .composer textarea {
   width: 100%;
@@ -409,6 +410,39 @@ input {
   transition: all 0.12s;
 }
 .composer-toolbar button:hover { color: #07c160; background: rgba(7, 193, 96, 0.08); }
+
+.emoji-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+}
+.emoji-picker {
+  position: absolute;
+  bottom: 100%;
+  left: 12px;
+  right: 12px;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  padding: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+.emoji-item {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+  border-radius: 6px;
+  background: transparent;
+  transition: background 0.1s;
+}
+.emoji-item:hover { background: #f0f0f0; }
 
 .context-overlay {
   position: fixed;
