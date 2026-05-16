@@ -1,9 +1,9 @@
 import type { UserDTO } from '../api/types';
 import { avatarURL, shortName } from '../utils';
 
-export function Avatar({ user, large = false, online, badge, className, onClick, onMouseEnter, onMouseLeave }: { user: UserDTO; large?: boolean; online?: boolean; badge?: number; className?: string; onClick?: (e: React.MouseEvent) => void; onMouseEnter?: (e: React.MouseEvent) => void; onMouseLeave?: (e: React.MouseEvent) => void }) {
+export function Avatar({ user, large = false, small = false, online, badge, className, onClick, onMouseEnter, onMouseLeave }: { user: UserDTO; large?: boolean; small?: boolean; online?: boolean; badge?: number; className?: string; onClick?: (e: React.MouseEvent) => void; onMouseEnter?: (e: React.MouseEvent) => void; onMouseLeave?: (e: React.MouseEvent) => void }) {
   const url = avatarURL(user.avatar);
-  const cls = `avatar ${large ? 'large' : ''} ${className ?? ''}`.trim();
+  const cls = `avatar ${large ? 'large' : ''} ${small ? 'small' : ''} ${className ?? ''}`.trim();
   const inner = url
     ? <img className={cls} src={url} alt={user.nickname} onClick={onClick} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave} />
     : <div className={`${cls} fallback`} onClick={onClick} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>{shortName(user.nickname || user.username)}</div>;
