@@ -212,7 +212,7 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
       const uid = Number(d?.user_id ?? 0);
       if (cid && uid !== user.id) {
         const name = displayName(uid, userCache, friendMap);
-        setTyping((p) => ({ ...p, [cid]: `${name} 正在输入...` }));
+        setTyping((p) => ({ ...p, [cid]: '对方正在输入中' }));
         if (typingTimers.current[cid]) clearTimeout(typingTimers.current[cid]);
         typingTimers.current[cid] = setTimeout(() => setTyping((p) => ({ ...p, [cid]: '' })), 6000);
       }

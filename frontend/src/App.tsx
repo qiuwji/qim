@@ -47,9 +47,11 @@ function ChatPage({ user, onUserChange, onLogout }: { user: import('./api/types'
 
   const typingText = selectedID ? typing[selectedID] : '';
   const subtitle = selectedConv
-    ? selectedDetail?.type === 1
-      ? (() => { const peer = selectedMembers.find((m) => m.uid !== user.id); const base = peer ? `${displayName(peer.uid, userCache, friendMap)} · ${onlineMap[peer.uid] ? '在线' : '离线'}` : '私聊'; return typingText ? typingText : base; })()
-      : `${selectedMembers.length} 位成员${typingText ? ' · ' + typingText : ''}`
+    ? typingText
+      ? typingText
+      : selectedDetail?.type === 1
+        ? (() => { const peer = selectedMembers.find((m) => m.uid !== user.id); return peer ? `${displayName(peer.uid, userCache, friendMap)} · ${onlineMap[peer.uid] ? '在线' : '离线'}` : '私聊'; })()
+        : `${selectedMembers.length} 位成员`
     : '选择聊天后开始';
 
   function handleAvatarEnter(uid: number, e: React.MouseEvent) {
