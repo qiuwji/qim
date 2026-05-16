@@ -1,0 +1,99 @@
+.github/workflows/deploy.yml
+  6701d3a75c6aac18 23,29-31,33,39,42-47,49 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a089bb1d1921616a88afdc2","tool_type":"agent","tool_id":"Write","line_ranges":[{"Single":23},{"Range":[29,31]},{"Single":33},{"Single":39},{"Range":[42,47]},{"Single":49}]}]}
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "0c12d76b09c6246f2df9d60ccc09fc192efea49e",
+  "prompts": {
+    "6701d3a75c6aac18": {
+      "agent_id": {
+        "tool": "trae",
+        "id": "6a0766b2d1921616a88ad6aa",
+        "model": "glm-5.1__dev"
+      },
+      "human_author": "qiuji.322@BYTEDANCE.COM <qiuji.322@BYTEDANCE.COM@bytedance.com>",
+      "messages": [],
+      "total_additions": 13,
+      "total_deletions": 22,
+      "accepted_lines": 13,
+      "overriden_lines": 0
+    }
+  },
+  "attestation_metadata": {
+    ".github/workflows/deploy.yml": [
+      {
+        "hash": "6701d3a75c6aac18",
+        "line_ranges": [
+          {
+            "Single": 23
+          },
+          {
+            "Range": [
+              29,
+              31
+            ]
+          },
+          {
+            "Single": 33
+          },
+          {
+            "Single": 39
+          },
+          {
+            "Range": [
+              42,
+              47
+            ]
+          },
+          {
+            "Single": 49
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a089bb1d1921616a88afdc2",
+            "tool_type": "agent",
+            "tool_id": "Write",
+            "line_ranges": [
+              {
+                "Single": 23
+              },
+              {
+                "Range": [
+                  29,
+                  31
+                ]
+              },
+              {
+                "Single": 33
+              },
+              {
+                "Single": 39
+              },
+              {
+                "Range": [
+                  42,
+                  47
+                ]
+              },
+              {
+                "Single": 49
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "remote_transcripts": {
+    "6701d3a75c6aac18": {
+      "tool": "trae",
+      "conversation_id": "6a0766b2d1921616a88ad6aa",
+      "session_id": "6a0766b2d1921616a88ad6aa",
+      "status": "remote_only",
+      "message": "Remote transcript resolution is not implemented yet for TRAE prompts."
+    }
+  }
+}
