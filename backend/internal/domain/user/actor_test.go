@@ -19,7 +19,7 @@ func TestManagerAndSessionActor_BitsUT(t *testing.T) {
 		t.Fatalf("spawn manager: %v", err)
 	}
 
-	raw, err := managerRef.Ask(RegisterCmd{Username: "alice", Password: "secret", Nickname: "Alice"}, time.Second)
+	raw, err := managerRef.Ask(RegisterCmd{Username: "10001", Password: "secret", Nickname: "Alice"}, time.Second)
 	if err != nil {
 		t.Fatalf("register ask: %v", err)
 	}
@@ -28,11 +28,11 @@ func TestManagerAndSessionActor_BitsUT(t *testing.T) {
 		t.Fatalf("register result error: %v", result.Err)
 	}
 	dto := result.Data.(UserDTO)
-	if dto.ID == 0 || dto.Username != "alice" {
+	if dto.ID == 0 || dto.Username != "10001" {
 		t.Fatalf("register dto = %+v", dto)
 	}
 
-	raw, err = managerRef.Ask(LoginCmd{Username: "alice", Password: "secret"}, time.Second)
+	raw, err = managerRef.Ask(LoginCmd{Username: "10001", Password: "secret"}, time.Second)
 	if err != nil {
 		t.Fatalf("login ask: %v", err)
 	}
@@ -104,6 +104,23 @@ func TestManagerActorQueryErrors_BitsUT(t *testing.T) {
 	}
 	if raw.(Result).Data.(UserDTO).Username != "alice" {
 		t.Fatalf("get user = %+v", raw.(Result).Data)
+	}
+}
+
+func TestManagerActorRejectsNonNumericUsername_BitsUT(t *testing.T) {
+	store := newUserTestStore()
+	engine := actor.NewEngine()
+	managerRef, err := engine.Spawn("user-manager-username-test", NewManagerActor(store, engine))
+	if err != nil {
+		t.Fatalf("spawn manager: %v", err)
+	}
+
+	raw, err := managerRef.Ask(RegisterCmd{Username: "alice", Password: "secret", Nickname: "Alice"}, time.Second)
+	if err != nil {
+		t.Fatalf("register ask: %v", err)
+	}
+	if !errors.Is(raw.(Result).Err, ErrInvalidUsername) {
+		t.Fatalf("register err = %v", raw.(Result).Err)
 	}
 }
 

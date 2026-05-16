@@ -47,6 +47,10 @@ type GetUserCmd struct {
 	UID uint64
 }
 
+type GetUserByUsernameCmd struct {
+	Username string
+}
+
 type UpdateLastOnlineCmd struct {
 	UID uint64
 	At  int64

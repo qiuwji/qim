@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { UserDTO } from '../api/types';
 import type { Notice } from '../types';
-import { api, saveSession } from '../api/http';
+import { api } from '../api/http';
 
 export function AuthPage({ onLoggedIn, notice, setNotice }: {
   onLoggedIn: (token: string, user: UserDTO) => void; notice: Notice; setNotice: (n: Notice) => void;
@@ -15,6 +15,10 @@ export function AuthPage({ onLoggedIn, notice, setNotice }: {
   async function submit(e: { preventDefault: () => void }) {
     e.preventDefault(); setLoading(true); setNotice(null);
     try {
+      if (!/^\d+$/.test(username.trim())) {
+        setNotice({ kind: 'error', text: '账号只能使用纯数字' });
+        return;
+      }
       if (mode === 'register') await api.register({ username, password, nickname: nickname || username });
       const data = await api.login({ username, password });
       onLoggedIn(data.token, data.user);
@@ -30,7 +34,7 @@ export function AuthPage({ onLoggedIn, notice, setNotice }: {
         <p>像 QQ / 微信一样轻量的即时通讯 Demo</p>
         {notice && <div className={`notice ${notice.kind}`}>{notice.text}</div>}
         <form onSubmit={submit} className="auth-form">
-          <label>账号<input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="alice" required /></label>
+          <label>账号<input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="请输入纯数字账号" inputMode="numeric" pattern="[0-9]*" required /></label>
           {mode === 'register' && <label>昵称<input value={nickname} onChange={(e) => setNickname(e.target.value)} placeholder="Alice" /></label>}
           <label>密码<input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="至少输入一个密码" required /></label>
           <button className="primary-btn" disabled={loading}>{loading ? '处理中...' : mode === 'login' ? '登录' : '注册并登录'}</button>

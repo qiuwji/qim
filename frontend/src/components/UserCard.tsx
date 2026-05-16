@@ -42,7 +42,6 @@ export function UserCard({ data, isFriend, isSelf, onStartPrivate, onAddFriend, 
         <div className="user-card-info">
           <strong>{u.nickname || u.username}</strong>
           <span>@{u.username}</span>
-          <span className="user-card-id">ID: {u.id}</span>
         </div>
       </div>
       {u.sign && <p className="user-card-sign">{u.sign}</p>}

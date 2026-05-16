@@ -15,7 +15,6 @@ export function UserProfilePage({ user, isFriend, isSelf, onBack, onStartPrivate
           <Avatar user={user} large />
           <strong>{user.nickname || user.username}</strong>
           <span>@{user.username}</span>
-          <span className="user-card-id">ID: {user.id}</span>
         </div>
         <div className="user-profile-fields">
           <div className="profile-field">
@@ -23,12 +22,8 @@ export function UserProfilePage({ user, isFriend, isSelf, onBack, onStartPrivate
             <span>{user.nickname || '-'}</span>
           </div>
           <div className="profile-field">
-            <label>用户名</label>
+            <label>账号</label>
             <span>{user.username}</span>
-          </div>
-          <div className="profile-field">
-            <label>UID</label>
-            <span>{user.id}</span>
           </div>
           <div className="profile-field">
             <label>个性签名</label>

@@ -88,9 +88,13 @@ export const api = {
   conversations: () => request<UserConvDTO[]>('/api/conversations'),
   createPrivateChat: (uid: number) =>
     request<ConversationDTO>('/api/conversations/private', { method: 'POST', body: JSON.stringify({ uid }) }),
+  createPrivateChatByUsername: (username: string) =>
+    request<ConversationDTO>('/api/conversations/private', { method: 'POST', body: JSON.stringify({ username }) }),
   createPrivateConversation: (uid: number) =>
     request<ConversationDTO>('/api/conversations/private', { method: 'POST', body: JSON.stringify({ uid }) }),
   createGroupChat: (payload: { name: string; avatar?: string; members: number[] }) =>
+    request<ConversationDTO>('/api/conversations/group', { method: 'POST', body: JSON.stringify(payload) }),
+  createGroupChatByUsernames: (payload: { name: string; avatar?: string; usernames: string[] }) =>
     request<ConversationDTO>('/api/conversations/group', { method: 'POST', body: JSON.stringify(payload) }),
   createGroupConversation: (payload: { name: string; avatar?: string; members: number[] }) =>
     request<ConversationDTO>('/api/conversations/group', { method: 'POST', body: JSON.stringify(payload) }),
@@ -110,6 +114,8 @@ export const api = {
   members: (conversationID: number) => request<MemberDTO[]>(`/api/conversations/${conversationID}/members`),
   addMember: (conversationID: number, payload: { uid: number; role: number }) =>
     request<boolean>(`/api/conversations/${conversationID}/members`, { method: 'POST', body: JSON.stringify(payload) }),
+  addMemberByUsername: (conversationID: number, username: string, role: number) =>
+    request<boolean>(`/api/conversations/${conversationID}/members`, { method: 'POST', body: JSON.stringify({ username, role }) }),
   removeMember: (conversationID: number, uid: number) =>
     request<boolean>(`/api/conversations/${conversationID}/members/${uid}`, { method: 'DELETE' }),
   leaveGroup: (conversationID: number) => request<boolean>(`/api/conversations/${conversationID}/leave`, { method: 'DELETE' }),
@@ -127,6 +133,8 @@ export const api = {
   outgoingRequests: () => request<FriendRequestDTO[]>('/api/friends/requests/outgoing'),
   sendFriendRequest: (to_uid: number, message: string) =>
     request<FriendRequestDTO>('/api/friends/request', { method: 'POST', body: JSON.stringify({ to_uid, message }) }),
+  sendFriendRequestByUsername: (username: string, message: string) =>
+    request<FriendRequestDTO>('/api/friends/request', { method: 'POST', body: JSON.stringify({ username, message }) }),
   handleFriendRequest: (reqID: number, action: 'accept' | 'reject') =>
     request<boolean>(`/api/friends/requests/${reqID}`, { method: 'PUT', body: JSON.stringify({ action }) }),
   deleteFriend: (friendUID: number) => request<boolean>(`/api/friends/${friendUID}`, { method: 'DELETE' }),

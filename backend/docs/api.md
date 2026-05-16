@@ -55,6 +55,7 @@ ws://host/ws?token=<token>
 | `internal_error` | 服务端内部错误 |
 | `user.invalid_credentials` | 用户名或密码错误 |
 | `user.incorrect_password` | 旧密码错误 |
+| `user.invalid_username` | 账号格式非法，账号只能是纯数字字符串 |
 | `conversation.empty_message` | 消息内容为空 |
 | `conversation.not_member` | 不是会话成员 |
 | `conversation.member_exists` | 成员已存在 |
@@ -70,7 +71,7 @@ ws://host/ws?token=<token>
 
 | 方法 | 路径 | 说明 | 请求体 | 响应 data |
 | --- | --- | --- | --- | --- |
-| `POST` | `/api/auth/register` | 注册 | `{username, password, nickname}` | `UserDTO` |
+| `POST` | `/api/auth/register` | 注册，`username` 只能是纯数字字符串且不可重复 | `{username, password, nickname}` | `UserDTO` |
 | `POST` | `/api/auth/login` | 登录 | `{username, password}` | `{token, user}` |
 
 注册响应示例：
@@ -80,7 +81,7 @@ ws://host/ws?token=<token>
   "code": "ok",
   "data": {
     "id": 1,
-    "username": "alice",
+    "username": "10001",
     "nickname": "Alice",
     "avatar": "",
     "sign": "",
@@ -100,7 +101,7 @@ ws://host/ws?token=<token>
     "token": "<jwt>",
     "user": {
       "id": 1,
-      "username": "alice",
+      "username": "10001",
       "nickname": "Alice",
       "avatar": "",
       "sign": "",
@@ -127,7 +128,7 @@ ws://host/ws?token=<token>
 ```json
 {
   "id": 1,
-  "username": "alice",
+  "username": "10001",
   "nickname": "Alice",
   "avatar": "",
   "sign": "",
@@ -141,7 +142,7 @@ ws://host/ws?token=<token>
 
 | 方法 | 路径 | 说明 | 请求体 | 响应 data |
 | --- | --- | --- | --- | --- |
-| `POST` | `/api/friends/request` | 发送好友申请 | `{to_uid, message?}` | `FriendRequestDTO` |
+| `POST` | `/api/friends/request` | 发送好友申请 | `{username, message?}`，兼容旧 `{to_uid, message?}` | `FriendRequestDTO` |
 | `GET` | `/api/friends/requests/incoming` | 收到的好友申请 | - | `FriendRequestDTO[]` |
 | `GET` | `/api/friends/requests/outgoing` | 发出的好友申请 | - | `FriendRequestDTO[]` |
 | `PUT` | `/api/friends/requests/:req_id` | 同意或拒绝 | `{action: "accept"}` 或 `{action: "reject"}` | `true` |
@@ -210,8 +211,8 @@ ws://host/ws?token=<token>
 | 方法 | 路径 | 说明 | 请求体 | 响应 data |
 | --- | --- | --- | --- | --- |
 | `GET` | `/api/conversations` | 会话列表 | - | `UserConvDTO[]` |
-| `POST` | `/api/conversations/private` | 创建或获取单聊会话 | `{uid}` | `ConversationDTO` |
-| `POST` | `/api/conversations/group` | 创建群聊 | `{name, avatar?, members: []}` | `ConversationDTO` |
+| `POST` | `/api/conversations/private` | 创建或获取单聊会话 | `{username}`，兼容旧 `{uid}` | `ConversationDTO` |
+| `POST` | `/api/conversations/group` | 创建群聊 | `{name, avatar?, usernames: []}`，兼容旧 `{members: []}` | `ConversationDTO` |
 | `PUT` | `/api/conversations/:id/pin` | 置顶或取消置顶 | `{pinned: true}` | `true` |
 | `PUT` | `/api/conversations/:id/mute` | 免打扰或取消 | `{muted: true}` | `true` |
 | `PUT` | `/api/conversations/:id/read` | 标记已读 | `{seq}` | `true` |
@@ -291,7 +292,7 @@ ws://host/ws?token=<token>
 | 方法 | 路径 | 说明 | 请求体 | 响应 data |
 | --- | --- | --- | --- | --- |
 | `GET` | `/api/conversations/:id/members` | 群成员列表 | - | `MemberDTO[]` |
-| `POST` | `/api/conversations/:id/members` | 邀请单个成员入群 | `{uid, role}` | `true` |
+| `POST` | `/api/conversations/:id/members` | 邀请单个成员入群 | `{username, role}`，兼容旧 `{uid, role}` | `true` |
 | `DELETE` | `/api/conversations/:id/members/:uid` | 踢人 | - | `true` |
 | `DELETE` | `/api/conversations/:id/leave` | 退群 | - | `true` |
 | `PUT` | `/api/conversations/:id/members/:uid/role` | 设置成员角色 | `{role}` | `true` |
@@ -312,7 +313,7 @@ ws://host/ws?token=<token>
 
 说明：
 
-- 当前邀请入群一次只支持一个 `uid`，不是 `uids: []`。
+- 当前邀请入群一次只支持一个账号 `username`，不是 `usernames: []`。
 - 当前成员列表暂未 join 用户昵称、头像。
 - `role`: `0=普通成员`，`1=管理员`，`2=群主`。
 

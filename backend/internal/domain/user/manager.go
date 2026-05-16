@@ -2,12 +2,15 @@ package user
 
 import (
 	"fmt"
+	"regexp"
 	"time"
 
 	"qim/internal/actor"
 	"qim/internal/dal"
 	"qim/internal/eventbus"
 )
+
+var usernamePattern = regexp.MustCompile(`^\d+$`)
 
 type ManagerActor struct {
 	store  dal.UserStore
@@ -28,6 +31,8 @@ func (a *ManagerActor) Receive(ctx actor.Context) {
 		a.handleSearchUsers(ctx, msg)
 	case GetUserCmd:
 		a.handleGetUser(ctx, msg)
+	case GetUserByUsernameCmd:
+		a.handleGetUserByUsername(ctx, msg)
 	case UpdateLastOnlineCmd:
 		a.handleUpdateLastOnline(msg)
 	case eventbus.EventEnvelope:
@@ -36,6 +41,10 @@ func (a *ManagerActor) Receive(ctx actor.Context) {
 }
 
 func (a *ManagerActor) handleRegister(ctx actor.Context, msg RegisterCmd) {
+	if !usernamePattern.MatchString(msg.Username) {
+		ctx.Reply(Result{Err: ErrInvalidUsername})
+		return
+	}
 	now := time.Now().Unix()
 	passwordHash, err := hashPassword(msg.Password)
 	if err != nil {
@@ -110,6 +119,24 @@ func (a *ManagerActor) handleSearchUsers(ctx actor.Context, msg SearchUsersCmd) 
 
 func (a *ManagerActor) handleGetUser(ctx actor.Context, msg GetUserCmd) {
 	u, err := a.store.GetUser(msg.UID)
+	if err != nil {
+		ctx.Reply(Result{Err: err})
+		return
+	}
+	ctx.Reply(Result{Data: UserDTO{
+		ID:           u.ID,
+		Username:     u.Username,
+		Nickname:     u.Nickname,
+		Avatar:       u.Avatar,
+		Sign:         u.Sign,
+		Status:       UserStatus(u.Status),
+		CreatedAt:    u.CreatedAt,
+		LastOnlineAt: u.LastOnlineAt,
+	}})
+}
+
+func (a *ManagerActor) handleGetUserByUsername(ctx actor.Context, msg GetUserByUsernameCmd) {
+	u, err := a.store.GetUserByUsername(msg.Username)
 	if err != nil {
 		ctx.Reply(Result{Err: err})
 		return

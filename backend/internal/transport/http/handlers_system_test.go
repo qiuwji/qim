@@ -35,8 +35,8 @@ func TestHTTPHandlersSystemFlow_BitsUT(t *testing.T) {
 		c.Next()
 	})
 	userHandler := NewUserHandler(userSvc, jwtpkg.NewManager("secret", time.Hour))
-	convHandler := NewConversationHandler(convSvc)
-	friendHandler := NewFriendHandler(service.NewFriendService(engine))
+	convHandler := NewConversationHandler(convSvc, userSvc)
+	friendHandler := NewFriendHandler(service.NewFriendService(engine), userSvc)
 	msgHandler := NewMessageHandler(service.NewMsgService(engine))
 
 	router.POST("/api/auth/register", userHandler.Register)

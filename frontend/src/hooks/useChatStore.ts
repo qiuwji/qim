@@ -342,18 +342,46 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
   }
 
   function createGroup() {
+    if (!friends.length) {
+      setNotice({ kind: 'info', text: '暂无好友，先添加好友后再建群' });
+      return;
+    }
     setModal({
-      type: 'prompt', title: '创建群聊',
-      fields: [{ key: 'name', label: '群聊名称', placeholder: '输入群聊名称' }, { key: 'members', label: '成员 UID', placeholder: '多个用英文逗号分隔' }],
-      onConfirm: async (v) => {
-        const name = v.name?.trim(); if (!name) return;
-        const mids = (v.members ?? '').split(',').map((i) => Number(i.trim())).filter(Boolean);
+      type: 'friend-picker',
+      title: '创建群聊',
+      friends,
+      userCache,
+      requireGroupName: true,
+      onConfirm: async ({ name, usernames }) => {
+        if (!name) return;
         try {
-          const conv = await api.createGroupChat({ name, members: mids });
+          const conv = await api.createGroupChatByUsernames({ name, usernames });
           setDetails((p) => ({ ...p, [conv.id]: conv }));
           setConversations((p) => [{ conversation_id: conv.id, is_pinned: false, is_muted: false, unread_count: 0, last_msg_at: conv.created_at }, ...p]);
           setSelectedID(conv.id); setDetailOpen(false); setTab('chats'); setMobilePane('chat');
         } catch (err) { setNotice({ kind: 'error', text: err instanceof Error ? err.message : '建群失败' }); }
+      },
+    });
+  }
+
+  function addFriendByUsername() {
+    setModal({
+      type: 'prompt', title: '添加好友',
+      fields: [{ key: 'username', label: '账号', placeholder: '输入对方注册账号' }],
+      onConfirm: async (v) => {
+        const username = v.username?.trim();
+        if (!username) return;
+        if (username === user.username) {
+          setNotice({ kind: 'error', text: '不能添加自己为好友' });
+          return;
+        }
+        try {
+          await api.sendFriendRequestByUsername(username, '你好');
+          setNotice({ kind: 'ok', text: '好友申请已发送' });
+          await refreshBase();
+        } catch (err) {
+          setNotice({ kind: 'error', text: err instanceof Error ? err.message : '添加好友失败' });
+        }
       },
     });
   }
@@ -404,16 +432,26 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
 
   function inviteMember() {
     if (!selectedID) return;
-    setModal({ type: 'prompt', title: '邀请成员', fields: [{ key: 'uid', label: '用户 UID', placeholder: '输入要邀请的用户 UID' }], onConfirm: async (v) => {
-      const uid = Number(v.uid); if (!uid) return;
-      try { await api.addMember(selectedID, { uid, role: 0 }); await loadChatMembers(selectedID, true); setNotice({ kind: 'ok', text: '已发送入群操作' }); }
+    const existingUIDs = (members[selectedID] ?? []).map((item) => item.uid);
+    const availableFriends = friends.filter((friend) => !existingUIDs.includes(friend.friend_uid));
+    if (!availableFriends.length) {
+      setNotice({ kind: 'info', text: '暂无可邀请的好友' });
+      return;
+    }
+    setModal({ type: 'friend-picker', title: '邀请成员', friends: availableFriends, userCache, excludeUIDs: existingUIDs, onConfirm: async ({ usernames }) => {
+      try {
+        await Promise.all(usernames.map((username) => api.addMemberByUsername(selectedID, username, 0)));
+        await loadChatMembers(selectedID, true);
+        setNotice({ kind: 'ok', text: '已发送入群操作' });
+      }
       catch (err) { setNotice({ kind: 'error', text: err instanceof Error ? err.message : '邀请成员失败' }); }
     } });
   }
 
   function removeMember(uid: number) {
     if (!selectedID) return;
-    setModal({ type: 'confirm', title: '移除成员', text: `确认移除用户 ${uid}？`, danger: true, onConfirm: async () => {
+    const name = displayName(uid, userCache, friendMap);
+    setModal({ type: 'confirm', title: '移除成员', text: `确认移除 ${name}？`, danger: true, onConfirm: async () => {
       try { await api.removeMember(selectedID, uid); await loadChatMembers(selectedID, true); }
       catch (err) { setNotice({ kind: 'error', text: err instanceof Error ? err.message : '移除成员失败' }); }
     } });
@@ -437,7 +475,8 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
 
   function setMemberRole(uid: number, role: number) {
     if (!selectedID) return;
-    setModal({ type: 'confirm', title: '设置角色', text: `确认将用户 ${uid} 设为${role === 1 ? '管理员' : '普通成员'}？`, onConfirm: async () => {
+    const name = displayName(uid, userCache, friendMap);
+    setModal({ type: 'confirm', title: '设置角色', text: `确认将 ${name} 设为${role === 1 ? '管理员' : '普通成员'}？`, onConfirm: async () => {
       try { await api.setMemberRole(selectedID, uid, role); await loadChatMembers(selectedID, true); }
       catch (err) { setNotice({ kind: 'error', text: err instanceof Error ? err.message : '设置角色失败' }); }
     } });
@@ -445,7 +484,8 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
 
   function transferOwner(uid: number) {
     if (!selectedID) return;
-    setModal({ type: 'confirm', title: '转让群主', text: `确认将群主转让给用户 ${uid}？此操作不可撤销。`, danger: true, onConfirm: async () => {
+    const name = displayName(uid, userCache, friendMap);
+    setModal({ type: 'confirm', title: '转让群主', text: `确认将群主转让给 ${name}？此操作不可撤销。`, danger: true, onConfirm: async () => {
       try { await api.transferOwner(selectedID, uid); await loadChatMembers(selectedID, true); }
       catch (err) { setNotice({ kind: 'error', text: err instanceof Error ? err.message : '转让群主失败' }); }
     } });
@@ -592,7 +632,7 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
     showChatSearch, setShowChatSearch, notice, setNotice, unreadTotal,
     viewingUser, setViewingUser, hoverCard, setHoverCard, onlineMap,
     refreshBase, loadMessages, loadChatMembers, sendText, sendImage, searchUsers,
-    startPrivate, createGroup, handleRequest, uploadAvatar, togglePin, toggleMute,
+    startPrivate, createGroup, addFriendByUsername, handleRequest, uploadAvatar, togglePin, toggleMute,
     markAllRead, renameGroup, inviteMember, removeMember, leaveCurrentGroup,
     dissolveCurrentGroup, setMemberRole, transferOwner, uploadGroupAvatar,
     setMemberLimit, deleteFriend, updateFriendRemark, createFriendGroup,

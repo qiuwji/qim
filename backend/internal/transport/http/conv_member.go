@@ -23,16 +23,25 @@ func (h *ConversationHandler) AddMember(c *gin.Context) {
 	}
 	operatorID := c.GetUint64("uid")
 	var req struct {
-		UID  uint64 `json:"uid"`
-		Role int8   `json:"role"`
+		UID      uint64 `json:"uid"`
+		Username string `json:"username"`
+		Role     int8   `json:"role"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		resp.Fail(c, badRequest(err))
 		return
 	}
+	targetUID := req.UID
+	if req.Username != "" {
+		resolvedUID, ok := resolveUsername(c, h.userSvc, req.Username)
+		if !ok {
+			return
+		}
+		targetUID = resolvedUID
+	}
 	r, err := h.svc.AskConv(convID, conversation.AddMemberCmd{
 		OperatorID: operatorID,
-		UID:        req.UID,
+		UID:        targetUID,
 		Role:       conversation.MemberRole(req.Role),
 	})
 	handleResult(c, r, err)

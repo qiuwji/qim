@@ -9,11 +9,12 @@ import (
 )
 
 type FriendHandler struct {
-	svc *service.FriendService
+	svc     *service.FriendService
+	userSvc *service.UserService
 }
 
-func NewFriendHandler(svc *service.FriendService) *FriendHandler {
-	return &FriendHandler{svc: svc}
+func NewFriendHandler(svc *service.FriendService, userSvc *service.UserService) *FriendHandler {
+	return &FriendHandler{svc: svc, userSvc: userSvc}
 }
 
 func handleFriendResult(c *gin.Context, r friend.Result, err error) {
@@ -33,14 +34,23 @@ func handleFriendResult(c *gin.Context, r friend.Result, err error) {
 func (h *FriendHandler) SendRequest(c *gin.Context) {
 	uid := c.GetUint64("uid")
 	var req struct {
-		ToUID   uint64 `json:"to_uid"`
-		Message string `json:"message"`
+		ToUID    uint64 `json:"to_uid"`
+		Username string `json:"username"`
+		Message  string `json:"message"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		resp.Fail(c, badRequest(err))
 		return
 	}
-	r, err := h.svc.Ask(friend.SendRequestCmd{FromUID: uid, ToUID: req.ToUID, Message: req.Message})
+	toUID := req.ToUID
+	if req.Username != "" {
+		resolvedUID, ok := resolveUsername(c, h.userSvc, req.Username)
+		if !ok {
+			return
+		}
+		toUID = resolvedUID
+	}
+	r, err := h.svc.Ask(friend.SendRequestCmd{FromUID: uid, ToUID: toUID, Message: req.Message})
 	handleFriendResult(c, r, err)
 }
 

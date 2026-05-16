@@ -9,11 +9,12 @@ import (
 )
 
 type ConversationHandler struct {
-	svc *service.ConvService
+	svc     *service.ConvService
+	userSvc *service.UserService
 }
 
-func NewConversationHandler(svc *service.ConvService) *ConversationHandler {
-	return &ConversationHandler{svc: svc}
+func NewConversationHandler(svc *service.ConvService, userSvc *service.UserService) *ConversationHandler {
+	return &ConversationHandler{svc: svc, userSvc: userSvc}
 }
 
 func handleResult(c *gin.Context, r conversation.Result, err error) {

@@ -1,4 +1,4 @@
-import type { MessageDTO } from '../api/types';
+import type { FriendDTO, MessageDTO, UserDTO } from '../api/types';
 
 export type Notice = { kind: 'ok' | 'error' | 'info'; text: string } | null;
 
@@ -13,4 +13,18 @@ export type ModalState = null | {
   title: string;
   fields: { key: string; label: string; placeholder?: string; defaultValue?: string }[];
   onConfirm: (values: Record<string, string>) => void;
-} | { type: 'confirm'; title: string; text: string; danger?: boolean; onConfirm: () => void };
+} | {
+  type: 'confirm';
+  title: string;
+  text: string;
+  danger?: boolean;
+  onConfirm: () => void;
+} | {
+  type: 'friend-picker';
+  title: string;
+  friends: FriendDTO[];
+  userCache: Record<number, UserDTO>;
+  excludeUIDs?: number[];
+  requireGroupName?: boolean;
+  onConfirm: (values: { name?: string; usernames: string[] }) => void;
+};

@@ -15,33 +15,51 @@ func (h *ConversationHandler) List(c *gin.Context) {
 
 func (h *ConversationHandler) CreatePrivate(c *gin.Context) {
 	var req struct {
-		UID uint64 `json:"uid"`
+		UID      uint64 `json:"uid"`
+		Username string `json:"username"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		resp.Fail(c, badRequest(err))
 		return
 	}
 	uid := c.GetUint64("uid")
-	r, err := h.svc.AskManager(conversation.CreatePrivateConvCmd{UID1: uid, UID2: req.UID})
+	targetUID := req.UID
+	if req.Username != "" {
+		resolvedUID, ok := resolveUsername(c, h.userSvc, req.Username)
+		if !ok {
+			return
+		}
+		targetUID = resolvedUID
+	}
+	r, err := h.svc.AskManager(conversation.CreatePrivateConvCmd{UID1: uid, UID2: targetUID})
 	handleResult(c, r, err)
 }
 
 func (h *ConversationHandler) CreateGroup(c *gin.Context) {
 	var req struct {
-		Name    string   `json:"name"`
-		Avatar  string   `json:"avatar"`
-		Members []uint64 `json:"members"`
+		Name      string   `json:"name"`
+		Avatar    string   `json:"avatar"`
+		Members   []uint64 `json:"members"`
+		Usernames []string `json:"usernames"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		resp.Fail(c, badRequest(err))
 		return
 	}
 	uid := c.GetUint64("uid")
+	members := req.Members
+	for _, username := range req.Usernames {
+		resolvedUID, ok := resolveUsername(c, h.userSvc, username)
+		if !ok {
+			return
+		}
+		members = append(members, resolvedUID)
+	}
 	r, err := h.svc.AskManager(conversation.CreateGroupConvCmd{
 		OwnerID: uid,
 		Name:    req.Name,
 		Avatar:  req.Avatar,
-		Members: req.Members,
+		Members: members,
 	})
 	handleResult(c, r, err)
 }

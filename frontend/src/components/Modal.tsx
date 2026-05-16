@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import type { MessageDTO } from '../api/types';
+import type { FriendDTO, UserDTO } from '../api/types';
 import type { ContextMenu, ModalState } from '../types';
+import { shortName } from '../utils';
 
 export function AppModal({ modal, onClose }: { modal: ModalState; onClose: () => void }) {
   if (!modal) return null;
   if (modal.type === 'prompt') return <PromptModal fields={modal.fields} title={modal.title} onConfirm={modal.onConfirm} onClose={onClose} />;
   if (modal.type === 'confirm') return <ConfirmModal title={modal.title} text={modal.text} danger={modal.danger} onConfirm={modal.onConfirm} onClose={onClose} />;
+  if (modal.type === 'friend-picker') return <FriendPickerModal title={modal.title} friends={modal.friends} userCache={modal.userCache} excludeUIDs={modal.excludeUIDs} requireGroupName={modal.requireGroupName} onConfirm={modal.onConfirm} onClose={onClose} />;
   return null;
 }
 
@@ -22,6 +24,65 @@ function PromptModal({ title, fields, onConfirm, onClose }: {
       <div className="modal-header"><strong>{title}</strong><button className="modal-close" onClick={onClose}>✕</button></div>
       <div className="modal-body">{fields.map((f) => (<label key={f.key} className="modal-field"><span>{f.label}</span><input value={values[f.key] ?? ''} placeholder={f.placeholder} onChange={(e) => setValues((p) => ({ ...p, [f.key]: e.target.value }))} /></label>))}</div>
       <div className="modal-actions"><button className="modal-cancel" onClick={onClose}>取消</button><button className="primary-btn" onClick={() => { onConfirm(values); onClose(); }}>确认</button></div>
+    </div></div>
+  );
+}
+
+function FriendPickerModal({ title, friends, userCache, excludeUIDs, requireGroupName, onConfirm, onClose }: {
+  title: string;
+  friends: FriendDTO[];
+  userCache: Record<number, UserDTO>;
+  excludeUIDs?: number[];
+  requireGroupName?: boolean;
+  onConfirm: (values: { name?: string; usernames: string[] }) => void;
+  onClose: () => void;
+}) {
+  const excluded = new Set(excludeUIDs ?? []);
+  const candidates = friends
+    .map((friend) => ({ friend, user: userCache[friend.friend_uid] }))
+    .filter((item) => !excluded.has(item.friend.friend_uid) && !!item.user?.username);
+  const [name, setName] = useState('');
+  const [keyword, setKeyword] = useState('');
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const filtered = candidates.filter(({ friend, user }) => {
+    const display = `${friend.remark || ''} ${user?.nickname || ''} ${user?.username || ''}`.toLowerCase();
+    return display.includes(keyword.trim().toLowerCase());
+  });
+
+  function toggle(username: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(username)) next.delete(username);
+      else next.add(username);
+      return next;
+    });
+  }
+
+  const canConfirm = (!requireGroupName || !!name.trim()) && selected.size > 0;
+
+  return (
+    <div className="modal-overlay" onClick={onClose}><div className="modal-card friend-picker-modal" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-header"><strong>{title}</strong><button className="modal-close" onClick={onClose}>✕</button></div>
+      <div className="modal-body">
+        {requireGroupName && <label className="modal-field"><span>群聊名称</span><input value={name} placeholder="输入群聊名称" onChange={(e) => setName(e.target.value)} /></label>}
+        <label className="modal-field"><span>选择好友</span><input value={keyword} placeholder="搜索好友昵称或账号" onChange={(e) => setKeyword(e.target.value)} /></label>
+        <div className="friend-picker-list">
+          {filtered.map(({ friend, user }) => {
+            if (!user) return null;
+            const dn = friend.remark || user.nickname || user.username;
+            const checked = selected.has(user.username);
+            return (
+              <button key={friend.friend_uid} className={`friend-picker-item ${checked ? 'selected' : ''}`} onClick={() => toggle(user.username)}>
+                <span className="avatar fallback small">{shortName(dn)}</span>
+                <span className="friend-picker-text"><strong>{dn}</strong><small>@{user.username}</small></span>
+                <span className="friend-picker-check">{checked ? '✓' : ''}</span>
+              </button>
+            );
+          })}
+          {!filtered.length && <div className="empty-hint">没有可选择的好友</div>}
+        </div>
+      </div>
+      <div className="modal-actions"><button className="modal-cancel" onClick={onClose}>取消</button><button className="primary-btn" disabled={!canConfirm} onClick={() => { if (!canConfirm) return; onConfirm({ name: name.trim(), usernames: [...selected] }); onClose(); }}>确认</button></div>
     </div></div>
   );
 }

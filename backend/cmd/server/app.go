@@ -231,10 +231,10 @@ func mustSpawn(engine *actor.Engine, name string, a actor.Actor) *actor.ActorRef
 
 func initHandlers(s svcs, jwt *jwtpkg.Manager) *httphandler.Handlers {
 	return &httphandler.Handlers{
-		Conv:   httphandler.NewConversationHandler(s.conv),
+		Conv:   httphandler.NewConversationHandler(s.conv, s.user),
 		User:   httphandler.NewUserHandler(s.user, jwt),
 		Msg:    httphandler.NewMessageHandler(s.msg),
-		Friend: httphandler.NewFriendHandler(s.friend),
+		Friend: httphandler.NewFriendHandler(s.friend, s.user),
 		File:   httphandler.NewFileHandler(),
 	}
 }
