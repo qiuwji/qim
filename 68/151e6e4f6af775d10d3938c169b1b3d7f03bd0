@@ -1,0 +1,148 @@
+frontend/src/components/ChatWindow.tsx
+  6701d3a75c6aac18 157-171 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a08a5cdd1921616a88afff7","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[157,171]}]}]}
+frontend/src/styles/global.css
+  6701d3a75c6aac18 370-372,378-379,381,386,389-409,411,1112,1115 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a08a5cdd1921616a88afff7","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[370,372]},{"Range":[378,379]},{"Single":381},{"Single":386},{"Range":[389,409]},{"Single":411},{"Single":1112},{"Single":1115}]}]}
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "68151e6e4f6af775d10d3938c169b1b3d7f03bd0",
+  "prompts": {
+    "6701d3a75c6aac18": {
+      "agent_id": {
+        "tool": "trae",
+        "id": "6a0766b2d1921616a88ad6aa",
+        "model": "glm-5.1__dev"
+      },
+      "human_author": "qiuji.322@BYTEDANCE.COM <qiuji.322@BYTEDANCE.COM@bytedance.com>",
+      "messages": [],
+      "total_additions": 46,
+      "total_deletions": 27,
+      "accepted_lines": 46,
+      "overriden_lines": 0
+    }
+  },
+  "attestation_metadata": {
+    "frontend/src/components/ChatWindow.tsx": [
+      {
+        "hash": "6701d3a75c6aac18",
+        "line_ranges": [
+          {
+            "Range": [
+              157,
+              171
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a08a5cdd1921616a88afff7",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  157,
+                  171
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/styles/global.css": [
+      {
+        "hash": "6701d3a75c6aac18",
+        "line_ranges": [
+          {
+            "Range": [
+              370,
+              372
+            ]
+          },
+          {
+            "Range": [
+              378,
+              379
+            ]
+          },
+          {
+            "Single": 381
+          },
+          {
+            "Single": 386
+          },
+          {
+            "Range": [
+              389,
+              409
+            ]
+          },
+          {
+            "Single": 411
+          },
+          {
+            "Single": 1112
+          },
+          {
+            "Single": 1115
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a08a5cdd1921616a88afff7",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  370,
+                  372
+                ]
+              },
+              {
+                "Range": [
+                  378,
+                  379
+                ]
+              },
+              {
+                "Single": 381
+              },
+              {
+                "Single": 386
+              },
+              {
+                "Range": [
+                  389,
+                  409
+                ]
+              },
+              {
+                "Single": 411
+              },
+              {
+                "Single": 1112
+              },
+              {
+                "Single": 1115
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "remote_transcripts": {
+    "6701d3a75c6aac18": {
+      "tool": "trae",
+      "conversation_id": "6a0766b2d1921616a88ad6aa",
+      "session_id": "6a0766b2d1921616a88ad6aa",
+      "status": "remote_only",
+      "message": "Remote transcript resolution is not implemented yet for TRAE prompts."
+    }
+  }
+}
