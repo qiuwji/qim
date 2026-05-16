@@ -1,0 +1,63 @@
+.github/workflows/deploy.yml
+  6701d3a75c6aac18 16,20 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a089a37d1921616a88afd71","tool_type":"agent","tool_id":"Write","line_ranges":[{"Single":16},{"Single":20}]}]}
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "7be0bb091456664a1bf452a51414ad0bb6de9cb2",
+  "prompts": {
+    "6701d3a75c6aac18": {
+      "agent_id": {
+        "tool": "trae",
+        "id": "6a0766b2d1921616a88ad6aa",
+        "model": "glm-5.1__dev"
+      },
+      "human_author": "qiuji.322@BYTEDANCE.COM <qiuji.322@BYTEDANCE.COM@bytedance.com>",
+      "messages": [],
+      "total_additions": 2,
+      "total_deletions": 1,
+      "accepted_lines": 2,
+      "overriden_lines": 0
+    }
+  },
+  "attestation_metadata": {
+    ".github/workflows/deploy.yml": [
+      {
+        "hash": "6701d3a75c6aac18",
+        "line_ranges": [
+          {
+            "Single": 16
+          },
+          {
+            "Single": 20
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a089a37d1921616a88afd71",
+            "tool_type": "agent",
+            "tool_id": "Write",
+            "line_ranges": [
+              {
+                "Single": 16
+              },
+              {
+                "Single": 20
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "remote_transcripts": {
+    "6701d3a75c6aac18": {
+      "tool": "trae",
+      "conversation_id": "6a0766b2d1921616a88ad6aa",
+      "session_id": "6a0766b2d1921616a88ad6aa",
+      "status": "remote_only",
+      "message": "Remote transcript resolution is not implemented yet for TRAE prompts."
+    }
+  }
+}
