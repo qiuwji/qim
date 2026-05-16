@@ -41,10 +41,9 @@ export function UserCard({ data, isFriend, isSelf, onStartPrivate, onAddFriend, 
         <Avatar user={u} />
         <div className="user-card-info">
           <strong>{u.nickname || u.username}</strong>
-          <span>@{u.username}</span>
+          <span>{u.sign || '@' + u.username}</span>
         </div>
       </div>
-      {u.sign && <p className="user-card-sign">{u.sign}</p>}
       <div className="user-card-actions">
         {!isSelf && isFriend && <button className="primary-btn" onClick={() => onStartPrivate(u.id)}>发消息</button>}
         {!isSelf && !isFriend && onAddFriend && <button className="primary-btn" onClick={() => onAddFriend(u.id)}>加好友</button>}

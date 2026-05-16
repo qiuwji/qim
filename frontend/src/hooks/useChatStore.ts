@@ -403,15 +403,19 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
     } catch (err) { setNotice({ kind: 'error', text: err instanceof Error ? err.message : '上传失败' }); }
   }
 
-  async function togglePin() {
-    if (!selectedID || !selectedConv) return;
-    try { await api.pinChat(selectedID, !selectedConv.is_pinned); setConversations((p) => p.map((i) => (i.conversation_id === selectedID ? { ...i, is_pinned: !i.is_pinned } : i))); }
+  async function togglePin(convID?: number) {
+    const id = convID ?? selectedID;
+    const conv = convID ? conversations.find((c) => c.conversation_id === convID) : selectedConv;
+    if (!id || !conv) return;
+    try { await api.pinChat(id, !conv.is_pinned); setConversations((p) => p.map((i) => (i.conversation_id === id ? { ...i, is_pinned: !i.is_pinned } : i))); }
     catch (err) { setNotice({ kind: 'error', text: err instanceof Error ? err.message : '置顶失败' }); }
   }
 
-  async function toggleMute() {
-    if (!selectedID || !selectedConv) return;
-    try { await api.muteChat(selectedID, !selectedConv.is_muted); setConversations((p) => p.map((i) => (i.conversation_id === selectedID ? { ...i, is_muted: !i.is_muted } : i))); }
+  async function toggleMute(convID?: number) {
+    const id = convID ?? selectedID;
+    const conv = convID ? conversations.find((c) => c.conversation_id === convID) : selectedConv;
+    if (!id || !conv) return;
+    try { await api.muteChat(id, !conv.is_muted); setConversations((p) => p.map((i) => (i.conversation_id === id ? { ...i, is_muted: !i.is_muted } : i))); }
     catch (err) { setNotice({ kind: 'error', text: err instanceof Error ? err.message : '免打扰设置失败' }); }
   }
 

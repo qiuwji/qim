@@ -1,10 +1,10 @@
 import { ReactNode } from 'react';
 
-export function CollapsibleSection({ title, count, open, onToggle, extraActions, children }: {
-  title: string; count: number; open: boolean; onToggle: () => void; extraActions?: ReactNode; children: ReactNode;
+export function CollapsibleSection({ title, count, open, onToggle, extraActions, small, children }: {
+  title: string; count: number; open: boolean; onToggle: () => void; extraActions?: ReactNode; small?: boolean; children: ReactNode;
 }) {
   return (
-    <div className="collapsible-section">
+    <div className={`collapsible-section ${small ? 'section-small' : ''}`}>
       <button className="section-toggle" onClick={onToggle}>
         <span className={`chevron ${open ? 'open' : ''}`}>▸</span>
         <strong>{title}</strong>
