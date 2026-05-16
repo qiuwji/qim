@@ -30,7 +30,9 @@ jobs:
           script: |
             set -e
             cd /opt/qim/qim
+            git stash --include-untracked 2>/dev/null || true
             git pull origin main
+            git stash pop 2>/dev/null || true
             cd frontend
             npm ci
             npm run build
