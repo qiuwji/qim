@@ -1,0 +1,57 @@
+.github/workflows/ci.yml
+  cf1872c6ca43adca 55 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0973aad1921616a88b17c2","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Single":55}]}]}
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "28876470ef25923064536be9d67f3ea21422f6c2",
+  "prompts": {
+    "cf1872c6ca43adca": {
+      "agent_id": {
+        "tool": "trae",
+        "id": "6a08b677d1921616a88b080f",
+        "model": "DeepSeek-V4-Pro__dev"
+      },
+      "human_author": "qiuji.322@BYTEDANCE.COM <qiuji.322@BYTEDANCE.COM@bytedance.com>",
+      "messages": [],
+      "total_additions": 1,
+      "total_deletions": 1,
+      "accepted_lines": 1,
+      "overriden_lines": 0
+    }
+  },
+  "attestation_metadata": {
+    ".github/workflows/ci.yml": [
+      {
+        "hash": "cf1872c6ca43adca",
+        "line_ranges": [
+          {
+            "Single": 55
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0973aad1921616a88b17c2",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Single": 55
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "remote_transcripts": {
+    "cf1872c6ca43adca": {
+      "tool": "trae",
+      "conversation_id": "6a08b677d1921616a88b080f",
+      "session_id": "6a08b677d1921616a88b080f",
+      "status": "remote_only",
+      "message": "Remote transcript resolution is not implemented yet for TRAE prompts."
+    }
+  }
+}
