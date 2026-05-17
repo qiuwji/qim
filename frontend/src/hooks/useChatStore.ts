@@ -403,18 +403,30 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
 
   async function togglePin(convID?: number) {
     const id = convID ?? selectedID;
-    const conv = convID ? conversations.find((c) => c.conversation_id === convID) : selectedConv;
-    if (!id || !conv) return;
-    try { await api.pinChat(id, !conv.is_pinned); setConversations((p) => p.map((i) => (i.conversation_id === id ? { ...i, is_pinned: !i.is_pinned } : i))); }
-    catch (err) { setNotice({ kind: 'error', text: err instanceof Error ? err.message : '置顶失败' }); }
+    if (!id) return;
+    let nextPinned = false;
+    setConversations((prev) => {
+      const conv = prev.find((c) => c.conversation_id === id);
+      if (!conv) return prev;
+      nextPinned = !conv.is_pinned;
+      return prev.map((i) => (i.conversation_id === id ? { ...i, is_pinned: nextPinned } : i));
+    });
+    try { await api.pinChat(id, nextPinned); }
+    catch (err) { setConversations((p) => p.map((i) => (i.conversation_id === id ? { ...i, is_pinned: !nextPinned } : i))); setNotice({ kind: 'error', text: err instanceof Error ? err.message : '置顶失败' }); }
   }
 
   async function toggleMute(convID?: number) {
     const id = convID ?? selectedID;
-    const conv = convID ? conversations.find((c) => c.conversation_id === convID) : selectedConv;
-    if (!id || !conv) return;
-    try { await api.muteChat(id, !conv.is_muted); setConversations((p) => p.map((i) => (i.conversation_id === id ? { ...i, is_muted: !i.is_muted } : i))); }
-    catch (err) { setNotice({ kind: 'error', text: err instanceof Error ? err.message : '免打扰设置失败' }); }
+    if (!id) return;
+    let nextMuted = false;
+    setConversations((prev) => {
+      const conv = prev.find((c) => c.conversation_id === id);
+      if (!conv) return prev;
+      nextMuted = !conv.is_muted;
+      return prev.map((i) => (i.conversation_id === id ? { ...i, is_muted: nextMuted } : i));
+    });
+    try { await api.muteChat(id, nextMuted); }
+    catch (err) { setConversations((p) => p.map((i) => (i.conversation_id === id ? { ...i, is_muted: !nextMuted } : i))); setNotice({ kind: 'error', text: err instanceof Error ? err.message : '免打扰设置失败' }); }
   }
 
   async function markAllRead() {
