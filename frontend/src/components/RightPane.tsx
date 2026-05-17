@@ -38,6 +38,7 @@ interface RightPaneProps {
   viewUserProfile: (uid: number) => void;
   startPrivate: (uid: number) => void;
   addFriendByUser: (u: UserDTO) => void;
+  deleteFriend: (uid: number) => void;
   moveFriendGroup: (uid: number, gid: number) => void;
   renameFriendGroup: (id: number, cur: string) => void;
   deleteFriendGroup: (id: number) => void;
@@ -57,7 +58,7 @@ export function RightPane(props: RightPaneProps) {
     userCache, friendMap, onlineMap, detailOpen, replyTo,
     viewingUser, setViewingUser, setViewingFriendRequests, setViewingGroupManage,
     allIncomingReqs, allOutgoingReqs, friendGroups,
-    sendText, sendImage, handleRequest, viewUserProfile, startPrivate, addFriendByUser,
+    sendText, sendImage, handleRequest, viewUserProfile, startPrivate, addFriendByUser, deleteFriend,
     moveFriendGroup, renameFriendGroup, deleteFriendGroup,
     setDetailOpen, setReplyTo, setContextMenu, loadMessages, wsRef,
     onAvatarEnter, onAvatarLeave,
@@ -116,6 +117,7 @@ export function RightPane(props: RightPaneProps) {
         onStartPrivate={(uid) => { void startPrivate(uid); }}
         onAddFriend={() => { addFriendByUser(viewingUser); setViewingUser(null); }}
         onMoveGroup={moveFriendGroup}
+        onDeleteFriend={deleteFriend}
       />
     );
   }

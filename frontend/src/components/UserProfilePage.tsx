@@ -2,10 +2,11 @@ import { useState } from 'react';
 import type { FriendGroupDTO, UserDTO } from '@/api/types';
 import { Avatar } from '@/components/ui';
 
-export function UserProfilePage({ user, isFriend, isSelf, friendGroups, currentGroupId, onBack, onStartPrivate, onAddFriend, onMoveGroup }: {
+export function UserProfilePage({ user, isFriend, isSelf, friendGroups, currentGroupId, onBack, onStartPrivate, onAddFriend, onMoveGroup, onDeleteFriend }: {
   user: UserDTO; isFriend?: boolean; isSelf?: boolean; friendGroups?: FriendGroupDTO[]; currentGroupId?: number;
   onBack: () => void; onStartPrivate: (uid: number) => void; onAddFriend?: (uid: number) => void;
   onMoveGroup?: (friendUID: number, groupID: number) => void;
+  onDeleteFriend?: (uid: number) => void;
 }) {
   const [showGroupPicker, setShowGroupPicker] = useState(false);
   const currentGroup = friendGroups?.find((g) => g.id === currentGroupId);
@@ -58,6 +59,9 @@ export function UserProfilePage({ user, isFriend, isSelf, friendGroups, currentG
               <button className="flex-1 rounded-xl bg-[#07c160] py-3 text-sm font-semibold text-white hover:bg-[#06ad56] transition" onClick={() => onAddFriend(user.id)}>加好友</button>
             )}
           </div>
+          {!isSelf && isFriend && onDeleteFriend && (
+            <button className="w-full rounded-xl border border-[#e04344] py-3 text-sm font-semibold text-[#e04344] hover:bg-[#fff1f0] transition" onClick={() => onDeleteFriend(user.id)}>删除好友</button>
+          )}
         </div>
       </div>
 

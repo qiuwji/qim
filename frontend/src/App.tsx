@@ -118,6 +118,7 @@ function ChatPage({ user, onUserChange, onLogout }: { user: import('@/api/types'
           viewUserProfile={viewUserProfile}
           startPrivate={startPrivate}
           addFriendByUser={addFriendByUser}
+          deleteFriend={deleteFriend}
           moveFriendGroup={moveFriendGroup}
           renameFriendGroup={renameFriendGroup}
           deleteFriendGroup={deleteFriendGroup}
