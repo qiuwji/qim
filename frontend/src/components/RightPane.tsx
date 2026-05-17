@@ -22,6 +22,7 @@ interface RightPaneProps {
   typingText: string;
   userCache: Record<number, UserDTO>;
   friendMap: Record<number, FriendDTO>;
+  onlineMap: Record<number, boolean>;
   detailOpen: boolean;
   replyTo: MessageDTO | null;
   viewingUser: UserDTO | null;
@@ -53,7 +54,7 @@ export function RightPane(props: RightPaneProps) {
   const {
     view, user, tab, setMobilePane,
     selectedConv, selectedDetail, selectedMessages, selectedMembers, selectedID, hasMore, typingText,
-    userCache, friendMap, detailOpen, replyTo,
+    userCache, friendMap, onlineMap, detailOpen, replyTo,
     viewingUser, setViewingUser, setViewingFriendRequests, setViewingGroupManage,
     allIncomingReqs, allOutgoingReqs, friendGroups,
     sendText, sendImage, handleRequest, viewUserProfile, startPrivate, addFriendByUser,
@@ -66,7 +67,7 @@ export function RightPane(props: RightPaneProps) {
     ? selectedDetail?.type === 1
       ? (() => {
           const peer = selectedMembers.find((m) => m.uid !== user.id);
-          const base = peer ? `${displayName(peer.uid, userCache, friendMap)} · 在线` : '私聊';
+          const base = peer ? `${displayName(peer.uid, userCache, friendMap)} · ${onlineMap[peer.uid] ? '在线' : '离线'}` : '私聊';
           return typingText || base;
         })()
       : `${selectedMembers.length} 位成员`

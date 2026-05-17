@@ -102,6 +102,7 @@ function ChatPage({ user, onUserChange, onLogout }: { user: import('@/api/types'
           typingText={selectedID ? typing[selectedID] : ''}
           userCache={userCache}
           friendMap={friendMap}
+          onlineMap={onlineMap}
           detailOpen={detailOpen}
           replyTo={replyTo}
           viewingUser={viewingUser}
