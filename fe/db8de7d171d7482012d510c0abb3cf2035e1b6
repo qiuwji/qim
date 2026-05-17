@@ -1,0 +1,82 @@
+frontend/src/hooks/useChatStore.ts
+  cf1872c6ca43adca 289 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a096b42d1921616a88b15a2","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Single":289}]}]}
+frontend/src/components/ContactsPanel.tsx
+  cf1872c6ca43adca 81 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a096b42d1921616a88b15a2","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Single":81}]}]}
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "fedb8de7d171d7482012d510c0abb3cf2035e1b6",
+  "prompts": {
+    "cf1872c6ca43adca": {
+      "agent_id": {
+        "tool": "trae",
+        "id": "6a08b677d1921616a88b080f",
+        "model": "DeepSeek-V4-Pro__dev"
+      },
+      "human_author": "qiuji.322@BYTEDANCE.COM <qiuji.322@BYTEDANCE.COM@bytedance.com>",
+      "messages": [],
+      "total_additions": 2,
+      "total_deletions": 2,
+      "accepted_lines": 2,
+      "overriden_lines": 0
+    }
+  },
+  "attestation_metadata": {
+    "frontend/src/components/ContactsPanel.tsx": [
+      {
+        "hash": "cf1872c6ca43adca",
+        "line_ranges": [
+          {
+            "Single": 81
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a096b42d1921616a88b15a2",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Single": 81
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/hooks/useChatStore.ts": [
+      {
+        "hash": "cf1872c6ca43adca",
+        "line_ranges": [
+          {
+            "Single": 289
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a096b42d1921616a88b15a2",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Single": 289
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "remote_transcripts": {
+    "cf1872c6ca43adca": {
+      "tool": "trae",
+      "conversation_id": "6a08b677d1921616a88b080f",
+      "session_id": "6a08b677d1921616a88b080f",
+      "status": "remote_only",
+      "message": "Remote transcript resolution is not implemented yet for TRAE prompts."
+    }
+  }
+}
