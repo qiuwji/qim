@@ -12,13 +12,37 @@ export function validatePassword(pwd: string): string | null {
 
 export function timeText(value?: number) {
   if (!value) return '';
-  const d = new Date(value * 1000);
+  const target = new Date(value * 1000);
   const now = new Date();
-  const diffDays = Math.floor((now.getTime() - d.getTime()) / 86400000);
-  if (diffDays === 0) return d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-  if (diffDays === 1) return '昨天 ' + d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-  if (diffDays < 7) return ['周日', '周一', '周二', '周三', '周四', '周五', '周六'][d.getDay()] + ' ' + d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-  return d.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' }) + ' ' + d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+  const diffDays = calendarDayDiff(now, target);
+  const hm = hourMinuteText(target);
+  if (diffDays === 0) return hm;
+  if (diffDays === 1) return `昨天 ${hm}`;
+  if (diffDays === 2) return `前天 ${hm}`;
+  if (diffDays > 2 && diffDays < 7) return `${weekdayText(target)} ${hm}`;
+  return `${dateText(target)} ${hm}`;
+}
+
+function calendarDayDiff(now: Date, target: Date) {
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const targetDay = new Date(target.getFullYear(), target.getMonth(), target.getDate()).getTime();
+  return Math.floor((today - targetDay) / 86400000);
+}
+
+function hourMinuteText(date: Date) {
+  return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false });
+}
+
+function weekdayText(date: Date) {
+  return ['周日', '周一', '周二', '周三', '周四', '周五', '周六'][date.getDay()];
+}
+
+function dateText(date: Date) {
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, '0'),
+    String(date.getDate()).padStart(2, '0'),
+  ].join('/');
 }
 
 export function shortName(name?: string) {
