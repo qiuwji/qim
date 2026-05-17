@@ -54,6 +54,20 @@ func (a *ManagerActor) handleSendRequest(ctx actor.Context, msg SendRequestCmd) 
 		ctx.Reply(Result{Err: ErrCannotAddSelf})
 		return
 	}
+	if isFriend, err := a.store.HasActiveFriend(msg.FromUID, msg.ToUID); err != nil {
+		ctx.Reply(Result{Err: err})
+		return
+	} else if isFriend {
+		ctx.Reply(Result{Err: ErrAlreadyFriends})
+		return
+	}
+	if hasPending, err := a.store.HasPendingRequest(msg.FromUID, msg.ToUID); err != nil {
+		ctx.Reply(Result{Err: err})
+		return
+	} else if hasPending {
+		ctx.Reply(Result{Err: ErrPendingRequest})
+		return
+	}
 	now := time.Now().Unix()
 	req := &dal.FriendRequest{
 		FromUID:   msg.FromUID,

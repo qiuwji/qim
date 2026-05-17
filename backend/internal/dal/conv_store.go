@@ -21,7 +21,7 @@ func NewConvStore(db *gorm.DB) store.Store {
 
 func (s *gormConvStore) GetConversation(id uint64) (*store.ConversationRecord, error) {
 	var conv Conversation
-	if err := s.db.First(&conv, id).Error; err != nil {
+	if err := s.db.Where("id = ? AND status = 0", id).First(&conv).Error; err != nil {
 		return nil, err
 	}
 	return toConversationRecord(conv), nil
@@ -137,18 +137,18 @@ func (s *gormConvStore) UpdateConversation(id uint64, updates map[string]any) er
 
 func (s *gormConvStore) DissolveConversation(id uint64) error {
 	return s.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Where("conversation_id = ?", id).Delete(&Member{}).Error; err != nil {
+		if err := tx.Model(&Member{}).Where("conversation_id = ?", id).Update("status", int8(1)).Error; err != nil {
 			return err
 		}
-		return tx.Delete(&Conversation{}, id).Error
+		return tx.Model(&Conversation{}).Where("id = ?", id).Update("status", int8(1)).Error
 	})
 }
 
 func (s *gormConvStore) FindPrivateConversation(uid1, uid2 uint64) (*store.ConversationRecord, error) {
 	var conv Conversation
-	err := s.db.Joins("JOIN members m1 ON m1.conversation_id = conversations.id AND m1.user_id = ?", uid1).
-		Joins("JOIN members m2 ON m2.conversation_id = conversations.id AND m2.user_id = ?", uid2).
-		Where("conversations.type = ?", 1).
+	err := s.db.Joins("JOIN members m1 ON m1.conversation_id = conversations.id AND m1.user_id = ? AND m1.status = 0", uid1).
+		Joins("JOIN members m2 ON m2.conversation_id = conversations.id AND m2.user_id = ? AND m2.status = 0", uid2).
+		Where("conversations.type = ? AND conversations.status = 0", 1).
 		First(&conv).Error
 	if err != nil {
 		return nil, err
@@ -158,7 +158,7 @@ func (s *gormConvStore) FindPrivateConversation(uid1, uid2 uint64) (*store.Conve
 
 func (s *gormConvStore) GetMembers(convID uint64) ([]store.MemberRecord, error) {
 	var members []Member
-	if err := s.db.Where("conversation_id = ?", convID).Find(&members).Error; err != nil {
+	if err := s.db.Where("conversation_id = ? AND status = 0", convID).Find(&members).Error; err != nil {
 		return nil, err
 	}
 	records := make([]store.MemberRecord, 0, len(members))
@@ -194,7 +194,7 @@ func (s *gormConvStore) CreateMembers(members []store.MemberRecord) error {
 }
 
 func (s *gormConvStore) DeleteMember(convID, uid uint64) error {
-	return s.db.Where("conversation_id = ? AND user_id = ?", convID, uid).Delete(&Member{}).Error
+	return s.db.Model(&Member{}).Where("conversation_id = ? AND user_id = ?", convID, uid).Update("status", int8(1)).Error
 }
 
 func (s *gormConvStore) UpdateMember(convID, uid uint64, updates map[string]any) error {
@@ -338,7 +338,7 @@ func (s *gormConvStore) RevokeMessage(convID, messageID uint64) error {
 			Where("conversation_id = ? AND user_id <> ? AND unread_count > 0", convID, msg.SenderID).
 			Where("user_id IN (?)", tx.Model(&Member{}).
 				Select("user_id").
-				Where("conversation_id = ? AND last_read_seq < ?", convID, msg.Seq)).
+				Where("conversation_id = ? AND status = 0 AND last_read_seq < ?", convID, msg.Seq)).
 			Update("unread_count", gorm.Expr("unread_count - 1")).Error
 	})
 }

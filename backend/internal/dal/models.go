@@ -8,6 +8,7 @@ type Conversation struct {
 	OwnerID     uint64
 	MaxSeq      int64 `gorm:"default:0"`
 	MemberLimit int   `gorm:"default:500"`
+	Status      int8  `gorm:"default:0"`
 	CreatedAt   int64 `gorm:"not null"`
 	UpdatedAt   int64 `gorm:"not null"`
 }
@@ -18,6 +19,7 @@ type Member struct {
 	UserID         uint64 `gorm:"uniqueIndex:idx_conv_user;not null"`
 	Role           int8   `gorm:"default:0"`
 	LastReadSeq    int64  `gorm:"default:0"`
+	Status         int8   `gorm:"default:0"`
 	JoinTime       int64  `gorm:"not null"`
 }
 
@@ -75,6 +77,7 @@ type FriendGroup struct {
 	UserID    uint64 `gorm:"uniqueIndex:idx_user_name;not null"`
 	Name      string `gorm:"uniqueIndex:idx_user_name;size:32;not null"`
 	SortOrder int    `gorm:"default:0"`
+	Status    int8   `gorm:"default:0"`
 }
 
 type Friend struct {
@@ -83,5 +86,6 @@ type Friend struct {
 	FriendUID uint64 `gorm:"uniqueIndex:idx_user_friend;not null"`
 	Remark    string `gorm:"size:64"`
 	GroupID   uint64
+	Status    int8  `gorm:"default:0"`
 	CreatedAt int64 `gorm:"not null"`
 }

@@ -184,6 +184,97 @@ func TestManagerActorStoreErrors_BitsUT(t *testing.T) {
 	}
 }
 
+func TestManagerActorAlreadyFriendsRejectRequest_BitsUT(t *testing.T) {
+	store := newFriendTestStore()
+	store.friends[1] = []dal.Friend{{ID: 1, UserID: 1, FriendUID: 2, Status: 0, CreatedAt: 1}}
+	store.friends[2] = []dal.Friend{{ID: 2, UserID: 2, FriendUID: 1, Status: 0, CreatedAt: 1}}
+	engine := actor.NewEngine()
+	ref, err := engine.Spawn("friend-already-test", NewManagerActor(store, engine, nil))
+	if err != nil {
+		t.Fatalf("spawn friend manager: %v", err)
+	}
+
+	raw, err := ref.Ask(SendRequestCmd{FromUID: 1, ToUID: 2, Message: "hi"}, time.Second)
+	if err != nil {
+		t.Fatalf("send request ask: %v", err)
+	}
+	if !errors.Is(raw.(Result).Err, ErrAlreadyFriends) {
+		t.Fatalf("err = %v, want ErrAlreadyFriends", raw.(Result).Err)
+	}
+}
+
+func TestManagerActorPendingRequestRejectDuplicate_BitsUT(t *testing.T) {
+	store := newFriendTestStore()
+	store.requests[1] = dal.FriendRequest{
+		ID: 1, FromUID: 1, ToUID: 2, Status: 0, CreatedAt: 1, UpdatedAt: 1,
+	}
+	engine := actor.NewEngine()
+	ref, err := engine.Spawn("friend-pending-test", NewManagerActor(store, engine, nil))
+	if err != nil {
+		t.Fatalf("spawn friend manager: %v", err)
+	}
+
+	raw, err := ref.Ask(SendRequestCmd{FromUID: 1, ToUID: 2, Message: "again"}, time.Second)
+	if err != nil {
+		t.Fatalf("send request ask: %v", err)
+	}
+	if !errors.Is(raw.(Result).Err, ErrPendingRequest) {
+		t.Fatalf("err = %v, want ErrPendingRequest", raw.(Result).Err)
+	}
+
+	raw, err = ref.Ask(SendRequestCmd{FromUID: 2, ToUID: 1, Message: "reverse"}, time.Second)
+	if err != nil {
+		t.Fatalf("send reverse request ask: %v", err)
+	}
+	if !errors.Is(raw.(Result).Err, ErrPendingRequest) {
+		t.Fatalf("err = %v, want ErrPendingRequest for reverse direction", raw.(Result).Err)
+	}
+}
+
+func TestManagerActorReAddFriendAfterSoftDelete_BitsUT(t *testing.T) {
+	store := newFriendTestStore()
+	store.friends[1] = []dal.Friend{{ID: 1, UserID: 1, FriendUID: 2, Status: 1, CreatedAt: 1}}
+	store.friends[2] = []dal.Friend{{ID: 2, UserID: 2, FriendUID: 1, Status: 1, CreatedAt: 1}}
+	bus := &friendTestBus{}
+	engine := actor.NewEngine()
+	ref, err := engine.Spawn("friend-readd-test", NewManagerActor(store, engine, bus))
+	if err != nil {
+		t.Fatalf("spawn friend manager: %v", err)
+	}
+
+	raw, err := ref.Ask(SendRequestCmd{FromUID: 1, ToUID: 2, Message: "re-add"}, time.Second)
+	if err != nil {
+		t.Fatalf("send request ask: %v", err)
+	}
+	result := raw.(Result)
+	if result.Err != nil {
+		t.Fatalf("send request should succeed after soft delete, got: %v", result.Err)
+	}
+	dto := result.Data.(FriendRequestDTO)
+	if dto.ID == 0 {
+		t.Fatalf("request dto id is zero")
+	}
+
+	raw, err = ref.Ask(HandleRequestCmd{UID: 2, ReqID: dto.ID, Accept: true}, time.Second)
+	if err != nil {
+		t.Fatalf("handle request ask: %v", err)
+	}
+	if raw.(Result).Err != nil {
+		t.Fatalf("accept should succeed: %v", raw.(Result).Err)
+	}
+
+	for _, f := range store.friends[1] {
+		if f.FriendUID == 2 && f.Status != 0 {
+			t.Fatalf("friend 1->2 status = %d, want 0 (restored)", f.Status)
+		}
+	}
+	for _, f := range store.friends[2] {
+		if f.FriendUID == 1 && f.Status != 0 {
+			t.Fatalf("friend 2->1 status = %d, want 0 (restored)", f.Status)
+		}
+	}
+}
+
 type friendTestStore struct {
 	mu       sync.Mutex
 	nextID   uint64
@@ -254,9 +345,21 @@ func (s *friendTestStore) AcceptFriendRequest(reqID uint64, fromUID, toUID uint6
 	if s.err != nil {
 		return s.err
 	}
-	s.friends[fromUID] = append(s.friends[fromUID], dal.Friend{UserID: fromUID, FriendUID: toUID})
-	s.friends[toUID] = append(s.friends[toUID], dal.Friend{UserID: toUID, FriendUID: fromUID})
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.upsertFriend(fromUID, toUID)
+	s.upsertFriend(toUID, fromUID)
 	return nil
+}
+
+func (s *friendTestStore) upsertFriend(uid, friendUID uint64) {
+	for i, f := range s.friends[uid] {
+		if f.FriendUID == friendUID {
+			s.friends[uid][i].Status = 0
+			return
+		}
+	}
+	s.friends[uid] = append(s.friends[uid], dal.Friend{UserID: uid, FriendUID: friendUID, Status: 0})
 }
 func (s *friendTestStore) RejectFriendRequest(reqID uint64) error { return s.err }
 func (s *friendTestStore) CreateFriend(friend *dal.Friend) error  { return s.err }
@@ -264,8 +367,18 @@ func (s *friendTestStore) DeleteFriendBidirectional(uid, friendUID uint64) error
 	if s.err != nil {
 		return s.err
 	}
-	s.friends[uid] = nil
-	s.friends[friendUID] = nil
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for i, f := range s.friends[uid] {
+		if f.FriendUID == friendUID {
+			s.friends[uid][i].Status = 1
+		}
+	}
+	for i, f := range s.friends[friendUID] {
+		if f.FriendUID == uid {
+			s.friends[friendUID][i].Status = 1
+		}
+	}
 	return nil
 }
 func (s *friendTestStore) ListFriends(uid uint64) ([]dal.Friend, error) {
@@ -296,6 +409,35 @@ func (s *friendTestStore) UpdateGroup(id, uid uint64, updates map[string]any) er
 	return s.err
 }
 func (s *friendTestStore) DeleteGroup(id, uid uint64) error { return s.err }
+
+func (s *friendTestStore) HasActiveFriend(uid, friendUID uint64) (bool, error) {
+	if s.err != nil {
+		return false, s.err
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for _, f := range s.friends[uid] {
+		if f.FriendUID == friendUID && f.Status == 0 {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+func (s *friendTestStore) HasPendingRequest(uid, friendUID uint64) (bool, error) {
+	if s.err != nil {
+		return false, s.err
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for _, req := range s.requests {
+		if req.Status == 0 &&
+			((req.FromUID == uid && req.ToUID == friendUID) || (req.FromUID == friendUID && req.ToUID == uid)) {
+			return true, nil
+		}
+	}
+	return false, nil
+}
 
 type friendTestBus struct {
 	mu     sync.Mutex

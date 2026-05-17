@@ -19,6 +19,8 @@ type FriendStore interface {
 	DeleteFriendBidirectional(uid, friendUID uint64) error
 	ListFriends(uid uint64) ([]Friend, error)
 	UpdateFriend(uid, friendUID uint64, updates map[string]any) error
+	HasActiveFriend(uid, friendUID uint64) (bool, error)
+	HasPendingRequest(uid, friendUID uint64) (bool, error)
 
 	CreateGroup(group *FriendGroup) error
 	ListGroups(uid uint64) ([]FriendGroup, error)
@@ -66,23 +68,26 @@ func (s *gormFriendStore) AcceptFriendRequest(reqID uint64, fromUID, toUID uint6
 	now := time.Now().Unix()
 	tx := s.db.Begin()
 	if err := tx.Model(&FriendRequest{}).Where("id = ?", reqID).
-		Updates(map[string]any{"status": int8(1), "updated_at": now}).Error; err != nil { // FriendRequestAccepted
+		Updates(map[string]any{"status": int8(1), "updated_at": now}).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
-	if err := createFriendEdges(tx, fromUID, toUID, now).Error; err != nil {
+	if err := upsertFriendEdges(tx, fromUID, toUID, now).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
 	return tx.Commit().Error
 }
 
-func createFriendEdges(tx *gorm.DB, fromUID, toUID uint64, createdAt int64) *gorm.DB {
+func upsertFriendEdges(tx *gorm.DB, fromUID, toUID uint64, createdAt int64) *gorm.DB {
 	friends := []Friend{
-		{UserID: fromUID, FriendUID: toUID, CreatedAt: createdAt},
-		{UserID: toUID, FriendUID: fromUID, CreatedAt: createdAt},
+		{UserID: fromUID, FriendUID: toUID, Status: 0, CreatedAt: createdAt},
+		{UserID: toUID, FriendUID: fromUID, Status: 0, CreatedAt: createdAt},
 	}
-	return tx.Clauses(clause.OnConflict{DoNothing: true}).Create(&friends)
+	return tx.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "user_id"}, {Name: "friend_uid"}},
+		DoUpdates: clause.AssignmentColumns([]string{"status", "created_at"}),
+	}).Create(&friends)
 }
 
 func (s *gormFriendStore) RejectFriendRequest(reqID uint64) error {
@@ -97,11 +102,13 @@ func (s *gormFriendStore) CreateFriend(friend *Friend) error {
 
 func (s *gormFriendStore) DeleteFriendBidirectional(uid, friendUID uint64) error {
 	tx := s.db.Begin()
-	if err := tx.Where("user_id = ? AND friend_uid = ?", uid, friendUID).Delete(&Friend{}).Error; err != nil {
+	if err := tx.Model(&Friend{}).Where("user_id = ? AND friend_uid = ?", uid, friendUID).
+		Update("status", int8(1)).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
-	if err := tx.Where("user_id = ? AND friend_uid = ?", friendUID, uid).Delete(&Friend{}).Error; err != nil {
+	if err := tx.Model(&Friend{}).Where("user_id = ? AND friend_uid = ?", friendUID, uid).
+		Update("status", int8(1)).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
@@ -110,7 +117,7 @@ func (s *gormFriendStore) DeleteFriendBidirectional(uid, friendUID uint64) error
 
 func (s *gormFriendStore) ListFriends(uid uint64) ([]Friend, error) {
 	var friends []Friend
-	if err := s.db.Where("user_id = ?", uid).Find(&friends).Error; err != nil {
+	if err := s.db.Where("user_id = ? AND status = 0", uid).Find(&friends).Error; err != nil {
 		return nil, err
 	}
 	return friends, nil
@@ -126,7 +133,7 @@ func (s *gormFriendStore) CreateGroup(group *FriendGroup) error {
 
 func (s *gormFriendStore) ListGroups(uid uint64) ([]FriendGroup, error) {
 	var groups []FriendGroup
-	if err := s.db.Where("user_id = ?", uid).Order("sort_order ASC").Find(&groups).Error; err != nil {
+	if err := s.db.Where("user_id = ? AND status = 0", uid).Order("sort_order ASC").Find(&groups).Error; err != nil {
 		return nil, err
 	}
 	return groups, nil
@@ -137,5 +144,24 @@ func (s *gormFriendStore) UpdateGroup(id, uid uint64, updates map[string]any) er
 }
 
 func (s *gormFriendStore) DeleteGroup(id, uid uint64) error {
-	return s.db.Where("id = ? AND user_id = ?", id, uid).Delete(&FriendGroup{}).Error
+	return s.db.Model(&FriendGroup{}).Where("id = ? AND user_id = ?", id, uid).Update("status", int8(1)).Error
+}
+
+func (s *gormFriendStore) HasActiveFriend(uid, friendUID uint64) (bool, error) {
+	var count int64
+	if err := s.db.Model(&Friend{}).Where("user_id = ? AND friend_uid = ? AND status = 0", uid, friendUID).Count(&count).Error; err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
+
+func (s *gormFriendStore) HasPendingRequest(uid, friendUID uint64) (bool, error) {
+	var count int64
+	if err := s.db.Model(&FriendRequest{}).Where(
+		"((from_uid = ? AND to_uid = ?) OR (from_uid = ? AND to_uid = ?)) AND status = 0",
+		uid, friendUID, friendUID, uid,
+	).Count(&count).Error; err != nil {
+		return false, err
+	}
+	return count > 0, nil
 }

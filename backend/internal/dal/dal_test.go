@@ -292,6 +292,40 @@ func TestFriendAndMsgStore_BitsUT(t *testing.T) {
 		t.Fatalf("DeleteFriendBidirectional error: %v", err)
 	}
 
+	isFriend, err := friendStore.HasActiveFriend(1, 2)
+	if err != nil {
+		t.Fatalf("HasActiveFriend error: %v", err)
+	}
+	if isFriend {
+		t.Fatalf("HasActiveFriend should be false after soft delete")
+	}
+	isFriend, err = friendStore.HasActiveFriend(1, 5)
+	if err != nil {
+		t.Fatalf("HasActiveFriend(1,5) error: %v", err)
+	}
+	if !isFriend {
+		t.Fatalf("HasActiveFriend(1,5) should be true")
+	}
+
+	hasPending, err := friendStore.HasPendingRequest(1, 2)
+	if err != nil {
+		t.Fatalf("HasPendingRequest error: %v", err)
+	}
+	if hasPending {
+		t.Fatalf("HasPendingRequest should be false after request accepted")
+	}
+
+	if err := friendStore.AcceptFriendRequest(req.ID, 1, 2); err != nil {
+		t.Fatalf("AcceptFriendRequest re-add error: %v", err)
+	}
+	isFriend, err = friendStore.HasActiveFriend(1, 2)
+	if err != nil {
+		t.Fatalf("HasActiveFriend after re-add error: %v", err)
+	}
+	if !isFriend {
+		t.Fatalf("HasActiveFriend should be true after re-add (status restored)")
+	}
+
 	pending := &FriendRequest{FromUID: 3, ToUID: 4, Message: "reject", Status: 0, CreatedAt: 1, UpdatedAt: 1}
 	if err := friendStore.CreateRequest(pending); err != nil {
 		t.Fatalf("CreateRequest pending error: %v", err)

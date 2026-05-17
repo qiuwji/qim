@@ -68,6 +68,8 @@ ws://host/ws?token=<token>
 | `conversation.invalid_role` | 成员角色非法 |
 | `conversation.group_required` | 仅群聊支持该操作 |
 | `friend.not_your_request` | 不能处理不属于自己的好友申请 |
+| `friend.already_friends` | 已经是好友，不能重复发送申请 |
+| `friend.pending_request` | 已存在待处理的好友申请 |
 
 ## 一、认证
 
@@ -148,7 +150,7 @@ ws://host/ws?token=<token>
 | `GET` | `/api/friends/requests/incoming` | 收到的好友申请 | - | `FriendRequestDTO[]` |
 | `GET` | `/api/friends/requests/outgoing` | 发出的好友申请 | - | `FriendRequestDTO[]` |
 | `PUT` | `/api/friends/requests/:req_id` | 同意或拒绝 | `{action: "accept"}` 或 `{action: "reject"}` | `true` |
-| `DELETE` | `/api/friends/:friend_uid` | 删除好友 | - | `true` |
+| `DELETE` | `/api/friends/:friend_uid` | 删除好友（逻辑删除，重新加好友可恢复） | - | `true` |
 | `GET` | `/api/friends` | 好友列表 | - | `FriendDTO[]` |
 | `PUT` | `/api/friends/:friend_uid/remark` | 修改备注 | `{remark}` | `true` |
 | `PUT` | `/api/friends/:friend_uid/group` | 移动分组 | `{group_id}` | `true` |
@@ -174,6 +176,7 @@ ws://host/ws?token=<token>
   "friend_uid": 2,
   "remark": "Bob",
   "group_id": 0,
+  "status": 0,
   "created_at": 1710000000
 }
 ```
@@ -181,7 +184,8 @@ ws://host/ws?token=<token>
 说明：
 
 - 当前好友列表和申请列表暂未 join 用户昵称、头像。
-- `status`: `0=pending`，`1=accepted`，`2=rejected`。
+- `status`: `0=active`，`1=deleted`（逻辑删除，重新加好友时恢复为 0）。
+- 好友申请 `status`: `0=pending`，`1=accepted`，`2=rejected`。
 
 ## 四、好友分组
 
@@ -190,7 +194,7 @@ ws://host/ws?token=<token>
 | `GET` | `/api/friend/groups` | 分组列表 | - | `FriendGroupDTO[]` |
 | `POST` | `/api/friend/groups` | 创建分组 | `{name}` | `FriendGroupDTO` |
 | `PUT` | `/api/friend/groups/:group_id` | 重命名 | `{name}` | `true` |
-| `DELETE` | `/api/friend/groups/:group_id` | 删除分组 | - | `true` |
+| `DELETE` | `/api/friend/groups/:group_id` | 删除分组（逻辑删除） | - | `true` |
 | `PUT` | `/api/friend/groups/sort` | 排序 | `{groups: [{group_id, sort_order}]}` | `true` |
 
 `FriendGroupDTO` 字段：
@@ -206,7 +210,7 @@ ws://host/ws?token=<token>
 说明：
 
 - 当前分组列表暂未返回 `count`。
-- 删除分组时，当前实现会尝试将好友移至默认组，但这块仍属于 MVP 逻辑，后续需要补更严格的数据处理。
+- 删除分组为逻辑删除，分组内好友不受影响。
 
 ## 五、会话
 
@@ -295,11 +299,11 @@ ws://host/ws?token=<token>
 | --- | --- | --- | --- | --- |
 | `GET` | `/api/conversations/:id/members` | 群成员列表 | - | `MemberDTO[]` |
 | `POST` | `/api/conversations/:id/members` | 邀请单个成员入群 | `{username, role}`，兼容旧 `{uid, role}` | `true` |
-| `DELETE` | `/api/conversations/:id/members/:uid` | 踢人 | - | `true` |
-| `DELETE` | `/api/conversations/:id/leave` | 退群 | - | `true` |
+| `DELETE` | `/api/conversations/:id/members/:uid` | 踢人（逻辑删除） | - | `true` |
+| `DELETE` | `/api/conversations/:id/leave` | 退群（逻辑删除） | - | `true` |
 | `PUT` | `/api/conversations/:id/members/:uid/role` | 设置成员角色 | `{role}` | `true` |
 | `PUT` | `/api/conversations/:id/owner` | 转让群主 | `{new_owner_id}` | `true` |
-| `DELETE` | `/api/conversations/:id/dissolve` | 解散群聊 | - | `true` |
+| `DELETE` | `/api/conversations/:id/dissolve` | 解散群聊（逻辑删除） | - | `true` |
 | `PUT` | `/api/conversations/:id/info` | 修改群信息 | `{name?, avatar?, member_limit?}` | `true` |
 
 `MemberDTO` 字段：
