@@ -127,7 +127,17 @@ export function ChatWindow({ user, conversation, detail, title, subtitle, messag
         </div>}
       </header>
       <div className="message-area" ref={areaRef} onScroll={handleAreaScroll}>
-        {!conversation && <EmptyState title="欢迎使用 QIM" text="左侧选择聊天，或从通讯录里发起新的聊天。" />}
+        {!conversation && (
+          <div className="flex flex-1 flex-col items-center justify-center gap-4 text-[#c9ced6]">
+            <svg viewBox="0 0 24 24" width="72" height="72" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+            <div className="text-center">
+              <div className="text-lg font-semibold text-[#b0b5be]">QIM</div>
+              <div className="mt-1 text-sm text-[#c9ced6]">选择聊天开始对话</div>
+            </div>
+          </div>
+        )}
         {conversation && !messages.length && <EmptyState title="还没有消息" text="发送第一条消息，开始这段对话。" />}
         {conversation && <div ref={topRef} className="load-more-sentinel">{hasMore ? '↑ 加载更多' : ''}</div>}
         {messages.map((message, idx) => {

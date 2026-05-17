@@ -1,42 +1,87 @@
-import type { UserDTO } from '@/api/types';
+import { useState } from 'react';
+import type { FriendGroupDTO, UserDTO } from '@/api/types';
 import { Avatar } from '@/components/ui';
 
-export function UserProfilePage({ user, isFriend, isSelf, onBack, onStartPrivate, onAddFriend }: {
-  user: UserDTO; isFriend?: boolean; isSelf?: boolean; onBack: () => void; onStartPrivate: (uid: number) => void; onAddFriend?: (uid: number) => void;
+export function UserProfilePage({ user, isFriend, isSelf, friendGroups, currentGroupId, onBack, onStartPrivate, onAddFriend, onMoveGroup }: {
+  user: UserDTO; isFriend?: boolean; isSelf?: boolean; friendGroups?: FriendGroupDTO[]; currentGroupId?: number;
+  onBack: () => void; onStartPrivate: (uid: number) => void; onAddFriend?: (uid: number) => void;
+  onMoveGroup?: (friendUID: number, groupID: number) => void;
 }) {
+  const [showGroupPicker, setShowGroupPicker] = useState(false);
+  const currentGroup = friendGroups?.find((g) => g.id === currentGroupId);
+
   return (
-    <div className="user-profile-page">
-      <header className="chat-header">
-        <button className="back-btn" onClick={onBack}>返回</button>
-        <div className="chat-title"><strong>个人信息</strong></div>
+    <div className="flex h-full flex-col bg-[#f3f4f6]">
+      <header className="flex shrink-0 items-center gap-3 border-b border-[#dfe3e8] bg-[#f9fafb] px-4 py-3">
+        <button className="rounded-lg px-3 py-1.5 text-sm text-[#1677c7] hover:bg-[#eceff3]" onClick={onBack}>返回</button>
+        <strong className="text-base font-semibold text-[#1a1a1a]">个人信息</strong>
       </header>
-      <div className="user-profile-content">
-        <div className="user-profile-hero">
-          <Avatar user={user} large />
-          <strong>{user.nickname || user.username}</strong>
-          <span>@{user.username}</span>
-        </div>
-        <div className="user-profile-fields">
-          <div className="profile-field">
-            <label>昵称</label>
-            <span>{user.nickname || '-'}</span>
+      <div className="flex-1 overflow-auto">
+        <div className="mx-auto flex max-w-lg flex-col items-center gap-5 px-6 py-8">
+          <div className="flex w-full flex-col items-center gap-4 rounded-2xl bg-white p-8 shadow-sm">
+            <Avatar user={user} large />
+            <div className="text-center">
+              <div className="text-lg font-semibold text-[#1a1a1a]">{user.nickname || user.username}</div>
+              <div className="mt-1 text-sm text-[#999]">账号：{user.username}</div>
+            </div>
+            {user.sign && <p className="max-w-xs text-center text-sm leading-relaxed text-[#707987]">{user.sign}</p>}
+            {!user.sign && <p className="text-sm text-[#b0b5be]">这个人还没有写个性签名</p>}
           </div>
-          <div className="profile-field">
-            <label>账号</label>
-            <span>{user.username}</span>
+
+          <div className="w-full overflow-hidden rounded-2xl bg-white shadow-sm">
+            <div className="flex items-center justify-between border-b border-[#f0f1f3] px-5 py-3.5">
+              <span className="text-sm text-[#858c98]">注册时间</span>
+              <span className="text-sm text-[#1a1a1a]">{user.created_at ? new Date(user.created_at * 1000).toLocaleString('zh-CN') : '-'}</span>
+            </div>
+            <div className="flex items-center justify-between px-5 py-3.5">
+              <span className="text-sm text-[#858c98]">用户 ID</span>
+              <span className="font-mono text-sm text-[#b0b5be]">{user.id}</span>
+            </div>
           </div>
-          <div className="profile-field">
-            <label>个性签名</label>
-            <span>{user.sign || '这个人还没有写个性签名'}</span>
+
+          {isFriend && friendGroups && friendGroups.length > 0 && onMoveGroup && (
+            <div className="w-full overflow-hidden rounded-2xl bg-white shadow-sm">
+              <div className="flex items-center justify-between border-b border-[#f0f1f3] px-5 py-3.5">
+                <span className="text-sm text-[#858c98]">好友分组</span>
+                <button
+                  className="flex items-center gap-1 text-sm text-[#1677c7] hover:opacity-80"
+                  onClick={() => setShowGroupPicker(!showGroupPicker)}
+                >
+                  <span>{currentGroup?.name || '默认分组'}</span>
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </button>
+              </div>
+              {showGroupPicker && (
+                <div className="divide-y divide-[#f0f1f3]">
+                  {friendGroups.map((g) => (
+                    <button
+                      key={g.id}
+                      className={`flex w-full items-center justify-between px-5 py-3 text-left text-sm transition hover:bg-[#f6f8fa] ${g.id === currentGroupId ? 'text-[#07c160]' : 'text-[#1a1a1a]'}`}
+                      onClick={() => { onMoveGroup(user.id, g.id); setShowGroupPicker(false); }}
+                    >
+                      <span>{g.name || '默认分组'}</span>
+                      {g.id === currentGroupId && (
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="flex w-full gap-3">
+            {!isSelf && isFriend && (
+              <button className="flex-1 rounded-xl bg-[#07c160] py-3 text-sm font-semibold text-white hover:bg-[#06ad56] transition" onClick={() => onStartPrivate(user.id)}>发消息</button>
+            )}
+            {!isSelf && !isFriend && onAddFriend && (
+              <button className="flex-1 rounded-xl bg-[#07c160] py-3 text-sm font-semibold text-white hover:bg-[#06ad56] transition" onClick={() => onAddFriend(user.id)}>加好友</button>
+            )}
           </div>
-          <div className="profile-field">
-            <label>注册时间</label>
-            <span>{user.created_at ? new Date(user.created_at * 1000).toLocaleString('zh-CN') : '-'}</span>
-          </div>
-        </div>
-        <div style={{ marginTop: 16, display: 'flex', gap: 8 }}>
-          {!isSelf && isFriend && <button className="primary-btn" onClick={() => onStartPrivate(user.id)}>聊天记录</button>}
-          {!isSelf && !isFriend && onAddFriend && <button className="primary-btn" onClick={() => onAddFriend(user.id)}>加好友</button>}
         </div>
       </div>
     </div>

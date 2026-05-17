@@ -88,5 +88,10 @@ export function createFriendActions(d: ChatStoreDeps) {
     catch (err) { d.setNotice({ kind: 'error', text: err instanceof Error ? err.message : '添加好友失败' }); }
   }
 
-  return { addFriendByUsername, addFriendByUser, handleRequest, deleteFriend, updateFriendRemark, createFriendGroup, renameFriendGroup, deleteFriendGroup };
+  async function moveFriendGroup(friendUID: number, groupID: number) {
+    try { await api.moveFriendGroup(friendUID, groupID); await d.refreshBase(); d.setNotice({ kind: 'ok', text: '已移动好友分组' }); }
+    catch (err) { d.setNotice({ kind: 'error', text: err instanceof Error ? err.message : '移动分组失败' }); }
+  }
+
+  return { addFriendByUsername, addFriendByUser, handleRequest, deleteFriend, updateFriendRemark, createFriendGroup, renameFriendGroup, deleteFriendGroup, moveFriendGroup };
 }

@@ -68,8 +68,11 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
   const [chatSearchResult, setChatSearchResult] = useState<MessageDTO[]>([]);
   const [notice, setNotice] = useState<Notice>(null);
   const [viewingUser, setViewingUser] = useState<UserDTO | null>(null);
+  const [viewingFriendRequests, setViewingFriendRequests] = useState(false);
   const [hoverCard, setHoverCard] = useState<{ user: UserDTO; rect: DOMRect } | null>(null);
   const [onlineMap, setOnlineMap] = useState<Record<number, boolean>>({});
+  const [allIncomingReqs, setAllIncomingReqs] = useState<FriendRequestDTO[]>([]);
+  const [allOutgoingReqs, setAllOutgoingReqs] = useState<FriendRequestDTO[]>([]);
 
   const selectedConv = conversations.find((item) => item.conversation_id === selectedID) ?? null;
   const sortedConversations = useMemo(() => sortConversations(conversations), [conversations]);
@@ -161,6 +164,8 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
       setOnlineMap((prev) => ensureFriendOnlineEntries(friendList, prev));
       setRequests(incoming.filter((i) => i.status === 0));
       setOutgoingReqs(outgoing.filter((i) => i.status === 0));
+      setAllIncomingReqs(incoming);
+      setAllOutgoingReqs(outgoing);
       setFriendGroups(groups);
       await hydrateChatMeta(convList, friendList);
       await hydrateFriendUsers(friendList, incoming, outgoing);
@@ -257,9 +262,10 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
   useEffect(() => { if (!selectedID) return; const t = window.setInterval(() => void loadChatMembers(selectedID, true), 5000); return () => window.clearInterval(t); }, [selectedID]);
   useEffect(() => { if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission(); }, []);
 
-  async function searchUsers() {
-    if (!searchKeyword.trim()) return;
-    try { setSearchResult(await api.searchUsers(searchKeyword.trim())); }
+  async function searchUsers(kw?: string) {
+    const q = (kw ?? searchKeyword).trim();
+    if (!q) { setSearchResult([]); return; }
+    try { setSearchResult(await api.searchUsers(q)); }
     catch (err) { setNotice({ kind: 'error', text: err instanceof Error ? err.message : '搜索失败' }); }
   }
 
@@ -274,6 +280,12 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
       const u = userCache[uid] ?? (await api.getUser(uid));
       if (u) { setUserCache((p) => ({ ...p, [uid]: u })); setViewingUser(u); setMobilePane('chat'); }
     } catch { setNotice({ kind: 'error', text: '获取用户信息失败' }); }
+  }
+
+  function viewFriendRequests() {
+    setViewingFriendRequests(true);
+    setViewingUser(null);
+    setMobilePane('chat');
   }
 
   function showHoverCard(uid: number, rect: DOMRect) {
@@ -305,13 +317,13 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
     tab, setTab, mobilePane, setMobilePane,
     conversations, sortedConversations, groupConversations, details, userCache,
     selectedID, selectedConv, messages, lastMsgMap, hasMore, friends, friendGroups, friendMap,
-    requests, outgoingReqs, members, searchKeyword, setSearchKeyword, searchResult,
+    requests, outgoingReqs, allIncomingReqs, allOutgoingReqs, members, searchKeyword, setSearchKeyword, searchResult,
     typing, loading, detailOpen, setDetailOpen, modal, setModal, contextMenu,
     setContextMenu, replyTo, setReplyTo, chatSearch, setChatSearch, chatSearchResult, setChatSearchResult,
     notice, setNotice, unreadTotal,
-    viewingUser, setViewingUser, hoverCard, setHoverCard, onlineMap,
+    viewingUser, setViewingUser, viewingFriendRequests, setViewingFriendRequests, hoverCard, setHoverCard, onlineMap,
     refreshBase, loadMessages, loadChatMembers,
-    searchUsers, startPrivate, viewUserProfile, showHoverCard,
+    searchUsers, startPrivate, viewUserProfile, viewFriendRequests, showHoverCard,
     ...msgActions, ...convActions, ...friendActions, ...groupActions, ...profileActions,
     wsRef,
   };

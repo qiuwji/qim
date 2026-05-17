@@ -2,12 +2,12 @@ import type { UserDTO } from '@/api/types';
 import type { MainTab } from '@/types';
 import { Avatar, Badge } from '@/components/ui';
 
-export function NavRail({ user, tab, onTab, onLogout, unreadTotal, onMarkAllRead }: {
-  user: UserDTO; tab: MainTab; onTab: (t: MainTab) => void; onLogout: () => void; unreadTotal: number; onMarkAllRead: () => void;
+export function NavRail({ user, tab, onTab, onLogout, unreadTotal, onMarkAllRead, className }: {
+  user: UserDTO; tab: MainTab; onTab: (t: MainTab) => void; onLogout: () => void; unreadTotal: number; onMarkAllRead: () => void; className?: string;
 }) {
   const tabButton = (active: boolean) => `relative grid h-11 w-11 place-items-center rounded-[10px] bg-transparent transition ${active ? 'bg-[rgba(7,193,96,0.1)] text-[#07c160]' : 'text-[#8c8c8c] hover:bg-white/[0.06] hover:text-[#b0b0b0]'}`;
   return (
-    <aside className="nav-rail flex flex-col items-center bg-[#262626] px-0 pt-4 pb-3 text-[#8c8c8c] [-webkit-app-region:drag]">
+    <aside className={`nav-rail flex flex-col items-center bg-[#262626] px-0 pt-4 pb-3 text-[#8c8c8c] [-webkit-app-region:drag] ${className ?? ''}`}>
       <div className="nav-avatar mb-5 [-webkit-app-region:no-drag]">
         <Avatar user={user} />
       </div>

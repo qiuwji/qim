@@ -12,6 +12,7 @@ import { ChatDetailPanel } from '@/components/ChatDetailPanel';
 import { AppModal, ContextMenuPopup } from '@/components/Modal';
 import { UserCard } from '@/components/UserCard';
 import { UserProfilePage } from '@/components/UserProfilePage';
+import { FriendRequestsView } from '@/components/FriendRequestsView';
 
 function App() {
   const { user, setUser, notice, setNotice, handleLoggedIn, logout } = useAuth();
@@ -31,14 +32,14 @@ function ChatPage({ user, onUserChange, onLogout }: { user: import('@/api/types'
     typing, loading, detailOpen, setDetailOpen, modal, setModal, contextMenu,
     setContextMenu, replyTo, setReplyTo, chatSearch, setChatSearch, chatSearchResult, setChatSearchResult,
     notice, setNotice, unreadTotal,
-    viewingUser, setViewingUser, hoverCard, setHoverCard, onlineMap,
+    viewingUser, setViewingUser, viewingFriendRequests, setViewingFriendRequests, allIncomingReqs, allOutgoingReqs, viewFriendRequests, hoverCard, setHoverCard, onlineMap,
     sendText, sendImage, searchUsers, startPrivate, createGroup, addFriendByUsername, addFriendByUser, handleRequest,
     uploadAvatar, togglePin, toggleMute, markAllRead, renameGroup, inviteMember,
     removeMember, leaveCurrentGroup, dissolveCurrentGroup, setMemberRole, transferOwner,
     uploadGroupAvatar, setMemberLimit, deleteFriend, updateFriendRemark, createFriendGroup,
     renameFriendGroup, deleteFriendGroup, updateProfile, changePassword,
     doRevoke, doDelete, doForward, doChatSearch, selectChat,
-    viewUserProfile, showHoverCard,
+    viewUserProfile, showHoverCard, moveFriendGroup,
   } = store;
 
   const selectedMessages = selectedID ? messages[selectedID] ?? [] : [];
@@ -74,8 +75,8 @@ function ChatPage({ user, onUserChange, onLogout }: { user: import('@/api/types'
   }
 
   return (
-    <main className={`im-shell ${detailOpen ? 'show-detail' : ''}`} onClick={() => { setContextMenu(null); setHoverCard(null); setQuickActionOpen(false); }}>
-      <NavRail user={user} tab={tab} onTab={setTab} onLogout={onLogout} unreadTotal={unreadTotal} onMarkAllRead={markAllRead} />
+    <main className={`im-shell ${detailOpen ? 'show-detail' : ''} ${mobilePane === 'chat' ? 'nav-hidden' : ''}`} onClick={() => { setContextMenu(null); setHoverCard(null); setQuickActionOpen(false); }}>
+      <NavRail user={user} tab={tab} onTab={setTab} onLogout={onLogout} unreadTotal={unreadTotal} onMarkAllRead={markAllRead} className={mobilePane === 'chat' ? 'nav-hidden' : ''} />
       <section className={`pane-list ${mobilePane === 'list' || mobilePane === 'contacts' ? 'mobile-show' : ''}`}>
         <div className="list-header">
           <div><strong>{tab === 'chats' ? '消息' : tab === 'contacts' ? '通讯录' : '我'}</strong><span>{loading ? '同步中...' : '在线'}</span></div>
@@ -88,12 +89,14 @@ function ChatPage({ user, onUserChange, onLogout }: { user: import('@/api/types'
             </div>}
         </div>
         {tab === 'chats' && <ConversationList conversations={sortedConversations} details={details} lastMsgMap={lastMsgMap} selectedID={selectedID} onSelect={selectChat} members={members} userCache={userCache} onlineMap={onlineMap} friendMap={friendMap} currentUID={user.id} onTogglePin={togglePin} onToggleMute={toggleMute} />}
-        {tab === 'contacts' && <ContactsPanel currentUID={user.id} keyword={searchKeyword} setKeyword={setSearchKeyword} onSearch={searchUsers} results={searchResult} friends={friends} friendGroups={friendGroups} requests={requests} outgoingReqs={outgoingReqs} groupConversations={groupConversations} details={details} userCache={userCache} onlineMap={onlineMap} friendMap={friendMap} onStartPrivate={startPrivate} onRequest={addFriendByUser} onHandleRequest={handleRequest} onSelectChat={selectChat} onDeleteFriend={deleteFriend} onUpdateRemark={updateFriendRemark} onCreateGroup={createFriendGroup} onRenameGroup={renameFriendGroup} onDeleteGroup={deleteFriendGroup} onViewUser={viewUserProfile} />}
+        {tab === 'contacts' && <ContactsPanel currentUID={user.id} keyword={searchKeyword} setKeyword={setSearchKeyword} onSearch={searchUsers} results={searchResult} friends={friends} friendGroups={friendGroups} requests={requests} outgoingReqs={outgoingReqs} groupConversations={groupConversations} details={details} userCache={userCache} onlineMap={onlineMap} friendMap={friendMap} onStartPrivate={startPrivate} onRequest={addFriendByUser} onHandleRequest={handleRequest} onSelectChat={selectChat} onDeleteFriend={deleteFriend} onUpdateRemark={updateFriendRemark} onCreateGroup={createFriendGroup} onRenameGroup={renameFriendGroup} onDeleteGroup={deleteFriendGroup} onViewUser={viewUserProfile} onViewFriendRequests={viewFriendRequests} />}
         {tab === 'profile' && <ProfilePanel user={user} onUploadAvatar={uploadAvatar} onUpdateProfile={updateProfile} onChangePassword={changePassword} />}
       </section>
       <section className={`pane-chat ${mobilePane === 'chat' ? 'mobile-show' : ''}`}>
-        {viewingUser
-          ? <UserProfilePage user={viewingUser} isFriend={!!friendMap[viewingUser.id]} isSelf={viewingUser.id === user.id} onBack={() => setViewingUser(null)} onStartPrivate={(uid) => { void startPrivate(uid); }} onAddFriend={() => { addFriendByUser(viewingUser); setViewingUser(null); }} />
+        {viewingFriendRequests
+          ? <FriendRequestsView currentUID={user.id} incoming={allIncomingReqs} outgoing={allOutgoingReqs} userCache={userCache} onBack={() => setViewingFriendRequests(false)} onHandleRequest={handleRequest} onViewUser={viewUserProfile} />
+          : viewingUser
+          ? <UserProfilePage user={viewingUser} isFriend={!!friendMap[viewingUser.id]} isSelf={viewingUser.id === user.id} friendGroups={friendGroups} currentGroupId={friendMap[viewingUser.id]?.group_id} onBack={() => setViewingUser(null)} onStartPrivate={(uid) => { void startPrivate(uid); }} onAddFriend={() => { addFriendByUser(viewingUser); setViewingUser(null); }} onMoveGroup={moveFriendGroup} />
           : <ChatWindow user={user} conversation={selectedConv} detail={selectedDetail} title={selectedConv ? chatTitle(selectedConv, selectedDetail) : '请选择聊天'} subtitle={subtitle} messages={selectedMessages} hasMore={selectedID ? hasMore[selectedID] ?? false : false} typingText={selectedID ? typing[selectedID] : ''} userCache={userCache} friendMap={friendMap} detailOpen={detailOpen} replyTo={replyTo} onBack={() => setMobilePane(tab === 'contacts' ? 'contacts' : 'list')} onSend={sendText} onSendImage={sendImage} onTyping={() => selectedID && store.wsRef.current.typing(selectedID)} onToggleDetail={() => setDetailOpen(!detailOpen)} onContextMenu={(e, m) => { e.preventDefault(); setContextMenu({ x: e.clientX, y: e.clientY, message: m }); }} onReply={setReplyTo} onLoadMore={() => { if (!selectedID) return undefined; const first = messages[selectedID]?.[0]; return first ? store.loadMessages(selectedID, first.seq) : undefined; }} onAvatarEnter={handleAvatarEnter} onAvatarLeave={scheduleCloseHoverCard} onAvatarClick={(uid) => viewUserProfile(uid)} />
         }
       </section>
