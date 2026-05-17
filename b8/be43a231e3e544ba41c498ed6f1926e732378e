@@ -1,0 +1,532 @@
+backend/internal/domain/friend/actor_test.go
+  cf1872c6ca43adca 187-277,348-351,354-363,370-381,413-441 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a097255d1921616a88b176a","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[187,277]},{"Range":[348,351]},{"Range":[354,363]},{"Range":[370,381]},{"Range":[413,441]}]}]}
+backend/internal/dal/dal_test.go
+  cf1872c6ca43adca 295-328 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a097255d1921616a88b176a","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[295,328]}]}]}
+backend/internal/dal/friend_store.go
+  cf1872c6ca43adca 22-23,71,75,82,84-85,87-90,105-106,110-111,120,136,147-166 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a097255d1921616a88b176a","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[22,23]},{"Single":71},{"Single":75},{"Single":82},{"Range":[84,85]},{"Range":[87,90]},{"Range":[105,106]},{"Range":[110,111]},{"Single":120},{"Single":136},{"Range":[147,166]}]}]}
+backend/internal/dal/conv_store.go
+  cf1872c6ca43adca 24,140,143,149-151,161,197,341 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a097255d1921616a88b176a","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Single":24},{"Single":140},{"Single":143},{"Range":[149,151]},{"Single":161},{"Single":197},{"Single":341}]}]}
+backend/internal/dal/models.go
+  cf1872c6ca43adca 11,22,80,89 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a097255d1921616a88b176a","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Single":11},{"Single":22},{"Single":80},{"Single":89}]}]}
+backend/internal/domain/friend/errors.go
+  cf1872c6ca43adca 8-11,17-18 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a097255d1921616a88b176a","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[8,11]},{"Range":[17,18]}]}]}
+backend/internal/domain/friend/actor.go
+  cf1872c6ca43adca 57-70 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a097255d1921616a88b176a","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[57,70]}]}]}
+backend/docs/api.md
+  cf1872c6ca43adca 71-72,153,179,187-188,197,213,302-303,306 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a097255d1921616a88b176a","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[71,72]},{"Single":153},{"Single":179},{"Range":[187,188]},{"Single":197},{"Single":213},{"Range":[302,303]},{"Single":306}]}]}
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "b8be43a231e3e544ba41c498ed6f1926e732378e",
+  "prompts": {
+    "cf1872c6ca43adca": {
+      "agent_id": {
+        "tool": "trae",
+        "id": "6a08b677d1921616a88b080f",
+        "model": "DeepSeek-V4-Pro__dev"
+      },
+      "human_author": "qiuji.322@BYTEDANCE.COM <qiuji.322@BYTEDANCE.COM@bytedance.com>",
+      "messages": [],
+      "total_additions": 270,
+      "total_deletions": 35,
+      "accepted_lines": 270,
+      "overriden_lines": 0
+    }
+  },
+  "attestation_metadata": {
+    "backend/docs/api.md": [
+      {
+        "hash": "cf1872c6ca43adca",
+        "line_ranges": [
+          {
+            "Range": [
+              71,
+              72
+            ]
+          },
+          {
+            "Single": 153
+          },
+          {
+            "Single": 179
+          },
+          {
+            "Range": [
+              187,
+              188
+            ]
+          },
+          {
+            "Single": 197
+          },
+          {
+            "Single": 213
+          },
+          {
+            "Range": [
+              302,
+              303
+            ]
+          },
+          {
+            "Single": 306
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a097255d1921616a88b176a",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  71,
+                  72
+                ]
+              },
+              {
+                "Single": 153
+              },
+              {
+                "Single": 179
+              },
+              {
+                "Range": [
+                  187,
+                  188
+                ]
+              },
+              {
+                "Single": 197
+              },
+              {
+                "Single": 213
+              },
+              {
+                "Range": [
+                  302,
+                  303
+                ]
+              },
+              {
+                "Single": 306
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "backend/internal/dal/conv_store.go": [
+      {
+        "hash": "cf1872c6ca43adca",
+        "line_ranges": [
+          {
+            "Single": 24
+          },
+          {
+            "Single": 140
+          },
+          {
+            "Single": 143
+          },
+          {
+            "Range": [
+              149,
+              151
+            ]
+          },
+          {
+            "Single": 161
+          },
+          {
+            "Single": 197
+          },
+          {
+            "Single": 341
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a097255d1921616a88b176a",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Single": 24
+              },
+              {
+                "Single": 140
+              },
+              {
+                "Single": 143
+              },
+              {
+                "Range": [
+                  149,
+                  151
+                ]
+              },
+              {
+                "Single": 161
+              },
+              {
+                "Single": 197
+              },
+              {
+                "Single": 341
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "backend/internal/dal/dal_test.go": [
+      {
+        "hash": "cf1872c6ca43adca",
+        "line_ranges": [
+          {
+            "Range": [
+              295,
+              328
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a097255d1921616a88b176a",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  295,
+                  328
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "backend/internal/dal/friend_store.go": [
+      {
+        "hash": "cf1872c6ca43adca",
+        "line_ranges": [
+          {
+            "Range": [
+              22,
+              23
+            ]
+          },
+          {
+            "Single": 71
+          },
+          {
+            "Single": 75
+          },
+          {
+            "Single": 82
+          },
+          {
+            "Range": [
+              84,
+              85
+            ]
+          },
+          {
+            "Range": [
+              87,
+              90
+            ]
+          },
+          {
+            "Range": [
+              105,
+              106
+            ]
+          },
+          {
+            "Range": [
+              110,
+              111
+            ]
+          },
+          {
+            "Single": 120
+          },
+          {
+            "Single": 136
+          },
+          {
+            "Range": [
+              147,
+              166
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a097255d1921616a88b176a",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  22,
+                  23
+                ]
+              },
+              {
+                "Single": 71
+              },
+              {
+                "Single": 75
+              },
+              {
+                "Single": 82
+              },
+              {
+                "Range": [
+                  84,
+                  85
+                ]
+              },
+              {
+                "Range": [
+                  87,
+                  90
+                ]
+              },
+              {
+                "Range": [
+                  105,
+                  106
+                ]
+              },
+              {
+                "Range": [
+                  110,
+                  111
+                ]
+              },
+              {
+                "Single": 120
+              },
+              {
+                "Single": 136
+              },
+              {
+                "Range": [
+                  147,
+                  166
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "backend/internal/dal/models.go": [
+      {
+        "hash": "cf1872c6ca43adca",
+        "line_ranges": [
+          {
+            "Single": 11
+          },
+          {
+            "Single": 22
+          },
+          {
+            "Single": 80
+          },
+          {
+            "Single": 89
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a097255d1921616a88b176a",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Single": 11
+              },
+              {
+                "Single": 22
+              },
+              {
+                "Single": 80
+              },
+              {
+                "Single": 89
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "backend/internal/domain/friend/actor.go": [
+      {
+        "hash": "cf1872c6ca43adca",
+        "line_ranges": [
+          {
+            "Range": [
+              57,
+              70
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a097255d1921616a88b176a",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  57,
+                  70
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "backend/internal/domain/friend/actor_test.go": [
+      {
+        "hash": "cf1872c6ca43adca",
+        "line_ranges": [
+          {
+            "Range": [
+              187,
+              277
+            ]
+          },
+          {
+            "Range": [
+              348,
+              351
+            ]
+          },
+          {
+            "Range": [
+              354,
+              363
+            ]
+          },
+          {
+            "Range": [
+              370,
+              381
+            ]
+          },
+          {
+            "Range": [
+              413,
+              441
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a097255d1921616a88b176a",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  187,
+                  277
+                ]
+              },
+              {
+                "Range": [
+                  348,
+                  351
+                ]
+              },
+              {
+                "Range": [
+                  354,
+                  363
+                ]
+              },
+              {
+                "Range": [
+                  370,
+                  381
+                ]
+              },
+              {
+                "Range": [
+                  413,
+                  441
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "backend/internal/domain/friend/errors.go": [
+      {
+        "hash": "cf1872c6ca43adca",
+        "line_ranges": [
+          {
+            "Range": [
+              8,
+              11
+            ]
+          },
+          {
+            "Range": [
+              17,
+              18
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a097255d1921616a88b176a",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  8,
+                  11
+                ]
+              },
+              {
+                "Range": [
+                  17,
+                  18
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "remote_transcripts": {
+    "cf1872c6ca43adca": {
+      "tool": "trae",
+      "conversation_id": "6a08b677d1921616a88b080f",
+      "session_id": "6a08b677d1921616a88b080f",
+      "status": "remote_only",
+      "message": "Remote transcript resolution is not implemented yet for TRAE prompts."
+    }
+  }
+}
