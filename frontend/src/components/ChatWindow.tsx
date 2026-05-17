@@ -1,9 +1,8 @@
 import React, { useLayoutEffect, useRef, useState, useCallback } from 'react';
-import type { ConversationDTO, FriendDTO, MessageDTO, UserConvDTO, UserDTO } from '../api/types';
-import { displayName, timeText } from '../utils';
-import { EmptyState } from './EmptyState';
-import { EmojiPicker } from './EmojiPicker';
-import { MessageBubble } from './MessageBubble';
+import type { ConversationDTO, FriendDTO, MessageDTO, UserConvDTO, UserDTO } from '@/api/types';
+import { displayName, timeText } from '@/utils';
+import { EmptyState, EmojiPicker } from '@/components/ui';
+import { MessageBubble } from '@/components/MessageBubble';
 
 const TYPING_THROTTLE = 5000;
 

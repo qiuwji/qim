@@ -1,5 +1,5 @@
-import { api } from '../../api/http';
-import { displayName } from '../../utils';
+import { api } from '@/api/http';
+import { displayName } from '@/utils';
 import type { ChatStoreDeps } from './types';
 
 const FRIEND_ACCEPTED_SYSTEM_TEXT = '我们的好友申请已经通过了，可以继续聊天了';

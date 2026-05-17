@@ -74,7 +74,14 @@ func (s *gormConvStore) CreatePrivateConversation(input store.CreatePrivateConve
 			{ConversationID: conv.ID, UserID: input.UID1, Role: int8(store.MemberRoleRegular), JoinTime: now},
 			{ConversationID: conv.ID, UserID: input.UID2, Role: int8(store.MemberRoleRegular), JoinTime: now},
 		}
-		return tx.Create(&members).Error
+		if err := tx.Create(&members).Error; err != nil {
+			return err
+		}
+		ucs := []UserConversation{
+			{UserID: input.UID1, ConversationID: conv.ID, LastMsgAt: now},
+			{UserID: input.UID2, ConversationID: conv.ID, LastMsgAt: now},
+		}
+		return tx.Create(&ucs).Error
 	}); err != nil {
 		return nil, err
 	}
@@ -101,7 +108,23 @@ func (s *gormConvStore) CreateGroupConversation(input store.CreateGroupConversat
 			return err
 		}
 		members := groupMembers(conv.ID, input.OwnerID, input.MemberUIDs, now)
-		return tx.Create(&members).Error
+		if err := tx.Create(&members).Error; err != nil {
+			return err
+		}
+		allUIDs := append([]uint64{input.OwnerID}, input.MemberUIDs...)
+		ucs := make([]UserConversation, 0, len(allUIDs))
+		seen := map[uint64]struct{}{}
+		for _, uid := range allUIDs {
+			if uid == 0 {
+				continue
+			}
+			if _, ok := seen[uid]; ok {
+				continue
+			}
+			seen[uid] = struct{}{}
+			ucs = append(ucs, UserConversation{UserID: uid, ConversationID: conv.ID, LastMsgAt: now})
+		}
+		return tx.Create(&ucs).Error
 	}); err != nil {
 		return nil, err
 	}

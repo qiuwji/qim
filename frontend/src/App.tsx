@@ -1,17 +1,17 @@
 import { useRef, useState } from 'react';
-import { getToken } from './api/http';
-import { useAuth, useChatStore } from './hooks/useChatStore';
-import { chatTitle, displayName } from './utils';
-import { AuthPage } from './components/AuthPage';
-import { NavRail } from './components/NavRail';
-import { ConversationList } from './components/ConversationList';
-import { ChatWindow } from './components/ChatWindow';
-import { ContactsPanel } from './components/ContactsPanel';
-import { ProfilePanel } from './components/ProfilePanel';
-import { ChatDetailPanel } from './components/ChatDetailPanel';
-import { AppModal, ContextMenuPopup } from './components/Modal';
-import { UserCard } from './components/UserCard';
-import { UserProfilePage } from './components/UserProfilePage';
+import { getToken } from '@/api/http';
+import { useAuth, useChatStore } from '@/hooks/useChatStore';
+import { chatTitle, displayName } from '@/utils';
+import { AuthPage } from '@/components/AuthPage';
+import { NavRail } from '@/components/NavRail';
+import { ConversationList } from '@/components/ConversationList';
+import { ChatWindow } from '@/components/ChatWindow';
+import { ContactsPanel } from '@/components/ContactsPanel';
+import { ProfilePanel } from '@/components/ProfilePanel';
+import { ChatDetailPanel } from '@/components/ChatDetailPanel';
+import { AppModal, ContextMenuPopup } from '@/components/Modal';
+import { UserCard } from '@/components/UserCard';
+import { UserProfilePage } from '@/components/UserProfilePage';
 
 function App() {
   const { user, setUser, notice, setNotice, handleLoggedIn, logout } = useAuth();
@@ -19,7 +19,7 @@ function App() {
   return <ChatPage user={user} onUserChange={setUser} onLogout={logout} />;
 }
 
-function ChatPage({ user, onUserChange, onLogout }: { user: import('./api/types').UserDTO; onUserChange: (u: import('./api/types').UserDTO) => void; onLogout: () => void }) {
+function ChatPage({ user, onUserChange, onLogout }: { user: import('@/api/types').UserDTO; onUserChange: (u: import('@/api/types').UserDTO) => void; onLogout: () => void }) {
   const store = useChatStore(user, onUserChange);
   const hoverCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [quickActionOpen, setQuickActionOpen] = useState(false);

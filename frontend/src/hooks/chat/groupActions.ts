@@ -1,5 +1,5 @@
-import { api } from '../../api/http';
-import { displayName } from '../../utils';
+import { api } from '@/api/http';
+import { displayName } from '@/utils';
 import type { ChatStoreDeps } from './types';
 
 export function createGroupActions(d: ChatStoreDeps) {

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import type { UserDTO } from '../api/types';
-import { Avatar } from './Avatar';
+import type { UserDTO } from '@/api/types';
+import { Avatar } from '@/components/ui';
 
 export type HoverCardData = { user: UserDTO; rect: DOMRect } | null;
 

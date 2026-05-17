@@ -1,4 +1,4 @@
-import { api } from '../../api/http';
+import { api } from '@/api/http';
 import type { ChatStoreDeps } from './types';
 
 export function createConversationActions(d: ChatStoreDeps) {

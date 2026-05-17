@@ -1,4 +1,4 @@
-import type { ConversationDTO, MessageDTO, UserConvDTO } from '../../api/types';
+import type { ConversationDTO, MessageDTO, UserConvDTO } from '@/api/types';
 
 export function sortConversations(list: UserConvDTO[]): UserConvDTO[] {
   return [...list].sort((a, b) => Number(b.is_pinned) - Number(a.is_pinned) || b.last_msg_at - a.last_msg_at);

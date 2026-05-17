@@ -1,5 +1,5 @@
-import { api, getToken, saveSession } from '../../api/http';
-import { validatePassword } from '../../utils';
+import { api, getToken, saveSession } from '@/api/http';
+import { validatePassword } from '@/utils';
 import type { ChatStoreDeps } from './types';
 
 export function createProfileActions(d: ChatStoreDeps) {

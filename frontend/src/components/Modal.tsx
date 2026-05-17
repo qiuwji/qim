@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import type { FriendDTO, UserDTO } from '../api/types';
-import type { ContextMenu, ModalState } from '../types';
-import { shortName } from '../utils';
+import type { FriendDTO, UserDTO } from '@/api/types';
+import type { ContextMenu as ContextMenuType, ModalState } from '@/types';
+import { shortName } from '@/utils';
+import { ContextMenu } from '@/components/ui';
 
 export function AppModal({ modal, onClose }: { modal: ModalState; onClose: () => void }) {
   if (!modal) return null;
@@ -100,22 +101,17 @@ function ConfirmModal({ title, text, danger, onConfirm, onClose }: {
 }
 
 export function ContextMenuPopup({ menu, mine, onRevoke, onReply, onCopy, onDelete, onForward, onClose }: {
-  menu: ContextMenu; mine: boolean; onRevoke: () => void; onReply: () => void; onCopy: () => void; onDelete: () => void; onForward: () => void; onClose: () => void;
+  menu: ContextMenuType; mine: boolean; onRevoke: () => void; onReply: () => void; onCopy: () => void; onDelete: () => void; onForward: () => void; onClose: () => void;
 }) {
   if (!menu) return null;
   const canRevoke = mine && (Date.now() / 1000 - menu.message.created_at < 120);
-  const items = [
-    { label: '回复', action: onReply },
-    { label: '复制', action: onCopy },
-    { label: '转发', action: onForward },
-    ...(canRevoke ? [{ label: '撤回', action: onRevoke }] : []),
-    { label: '删除', action: onDelete },
-  ];
   return (
-    <div className="context-overlay" onClick={onClose}>
-      <div className="context-menu" style={{ left: menu.x, top: menu.y }} onClick={(e) => e.stopPropagation()}>
-        {items.map((item, i) => (<button key={i} className={`ctx-item ${item.label === '删除' || item.label === '撤回' ? 'danger' : ''}`} onClick={() => { item.action(); onClose(); }}>{item.label}</button>))}
-      </div>
-    </div>
+    <ContextMenu x={menu.x} y={menu.y} onClose={onClose} items={[
+      { label: '回复', action: onReply },
+      { label: '复制', action: onCopy },
+      { label: '转发', action: onForward },
+      ...(canRevoke ? [{ label: '撤回', action: onRevoke, danger: true }] : []),
+      { label: '删除', action: onDelete, danger: true },
+    ]} />
   );
 }

@@ -1,4 +1,4 @@
-import type { FriendDTO, MessageDTO, UserDTO } from '../api/types';
+import type { FriendDTO, MessageDTO, UserDTO } from '@/api/types';
 
 export type Notice = { kind: 'ok' | 'error' | 'info'; text: string } | null;
 

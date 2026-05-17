@@ -1,7 +1,7 @@
 import type { Dispatch, MutableRefObject, RefObject, SetStateAction } from 'react';
-import type { ConversationDTO, FriendDTO, FriendGroupDTO, FriendRequestDTO, MemberDTO, MessageDTO, UserConvDTO, UserDTO, WsResponse } from '../../api/types';
-import type { RealtimeClient } from '../../api/ws';
-import type { ContextMenu, MainTab, ModalState, MobilePane, Notice } from '../../types';
+import type { ConversationDTO, FriendDTO, FriendGroupDTO, FriendRequestDTO, MemberDTO, MessageDTO, UserConvDTO, UserDTO, WsResponse } from '@/api/types';
+import type { RealtimeClient } from '@/api/ws';
+import type { ContextMenu, MainTab, ModalState, MobilePane, Notice } from '@/types';
 
 export interface ChatStoreDeps {
   user: UserDTO;

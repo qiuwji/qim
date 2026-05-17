@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { api, clearSession, getSavedUser, getToken, saveSession } from '../api/http';
-import { RealtimeClient } from '../api/ws';
-import type { ConversationDTO, FriendDTO, FriendGroupDTO, FriendRequestDTO, MemberDTO, MessageDTO, UserConvDTO, UserDTO, WsResponse } from '../api/types';
-import { currentSecond, displayName, upsertMessage } from '../utils';
-import type { ContextMenu, MainTab, MobilePane, ModalState, Notice } from '../types';
+import { api, clearSession, getSavedUser, getToken, saveSession } from '@/api/http';
+import { RealtimeClient } from '@/api/ws';
+import type { ConversationDTO, FriendDTO, FriendGroupDTO, FriendRequestDTO, MemberDTO, MessageDTO, UserConvDTO, UserDTO, WsResponse } from '@/api/types';
+import { currentSecond, displayName, upsertMessage } from '@/utils';
+import type { ContextMenu, MainTab, MobilePane, ModalState, Notice } from '@/types';
 import {
   applyIncomingConversation,
   groupConversations as filterGroupConversations,

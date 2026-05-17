@@ -1,5 +1,5 @@
-import type { UserDTO } from '../api/types';
-import { Avatar } from './Avatar';
+import type { UserDTO } from '@/api/types';
+import { Avatar } from '@/components/ui';
 
 export function UserProfilePage({ user, isFriend, isSelf, onBack, onStartPrivate, onAddFriend }: {
   user: UserDTO; isFriend?: boolean; isSelf?: boolean; onBack: () => void; onStartPrivate: (uid: number) => void; onAddFriend?: (uid: number) => void;

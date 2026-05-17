@@ -1,5 +1,5 @@
-import type { UserDTO } from '../api/types';
-import { avatarURL, shortName } from '../utils';
+import type { UserDTO } from '@/api/types';
+import { avatarURL, shortName } from '@/utils';
 
 export function Avatar({ user, large = false, small = false, online, badge, className, onClick, onMouseEnter, onMouseLeave }: { user: UserDTO; large?: boolean; small?: boolean; online?: boolean; badge?: number; className?: string; onClick?: (e: React.MouseEvent) => void; onMouseEnter?: (e: React.MouseEvent) => void; onMouseLeave?: (e: React.MouseEvent) => void }) {
   const url = avatarURL(user.avatar);

@@ -1,7 +1,7 @@
-import type { MessageDTO, UserDTO } from '../api/types';
-import { MSG_TYPE_SYSTEM } from '../hooks/chat/messageModel';
-import { Avatar } from './Avatar';
-import { timeText } from '../utils';
+import type { MessageDTO, UserDTO } from '@/api/types';
+import { MSG_TYPE_SYSTEM } from '@/hooks/chat/messageModel';
+import { Avatar } from '@/components/ui';
+import { timeText } from '@/utils';
 
 export function MessageBubble({ message, mine, senderName, senderUser, replySource, onContextMenu, onAvatarEnter, onAvatarLeave, onAvatarClick }: {
   message: MessageDTO; mine: boolean; senderName: string; senderUser?: UserDTO; replySource: MessageDTO | undefined;

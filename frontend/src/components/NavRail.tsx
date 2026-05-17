@@ -1,6 +1,6 @@
-import type { UserDTO } from '../api/types';
-import type { MainTab } from '../types';
-import { Avatar } from './Avatar';
+import type { UserDTO } from '@/api/types';
+import type { MainTab } from '@/types';
+import { Avatar, Badge } from '@/components/ui';
 
 export function NavRail({ user, tab, onTab, onLogout, unreadTotal, onMarkAllRead }: {
   user: UserDTO; tab: MainTab; onTab: (t: MainTab) => void; onLogout: () => void; unreadTotal: number; onMarkAllRead: () => void;
@@ -14,7 +14,7 @@ export function NavRail({ user, tab, onTab, onLogout, unreadTotal, onMarkAllRead
       <div className="nav-tabs flex flex-1 flex-col items-center gap-1">
         <button className={tabButton(tab === 'chats')} onClick={() => onTab('chats')} title="消息">
           <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
-          {unreadTotal > 0 && <b className="absolute top-1 right-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-[#f04b45] px-1 text-[10px] font-semibold leading-none text-white">{unreadTotal > 99 ? '99+' : unreadTotal}</b>}
+          {unreadTotal > 0 && <span className="absolute top-1 right-0.5"><Badge count={unreadTotal} /></span>}
         </button>
         <button className={tabButton(tab === 'contacts')} onClick={() => onTab('contacts')} title="通讯录">
           <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>

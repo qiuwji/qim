@@ -567,6 +567,10 @@ input {
   position: relative;
   transition: background 0.2s;
   padding: 0;
+  border: none;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
 }
 .switch-btn::after {
   content: '';
@@ -579,6 +583,7 @@ input {
   background: white;
   transition: transform 0.2s;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  pointer-events: none;
 }
 .switch-btn.on { background: #12b35f; }
 .switch-btn.on::after { transform: translateX(16px); }

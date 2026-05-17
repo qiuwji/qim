@@ -1,5 +1,5 @@
-import type { UserDTO } from '../api/types';
-import { Avatar } from './Avatar';
+import type { UserDTO } from '@/api/types';
+import { Avatar } from '@/components/ui';
 
 export function ProfilePanel({ user, onUploadAvatar, onUpdateProfile, onChangePassword }: {
   user: UserDTO; onUploadAvatar: (f: File) => void; onUpdateProfile: () => void; onChangePassword: () => void;

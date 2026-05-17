@@ -1,8 +1,7 @@
 import { useState } from 'react';
-import type { ConversationDTO, FriendDTO, MemberDTO, UserConvDTO, UserDTO } from '../api/types';
-import { chatTitle, shortName, timeText } from '../utils';
-import { Avatar } from './Avatar';
-import { EmptyState } from './EmptyState';
+import type { ConversationDTO, FriendDTO, MemberDTO, UserConvDTO, UserDTO } from '@/api/types';
+import { chatTitle, shortName, timeText } from '@/utils';
+import { Avatar, Badge, ContextMenu } from '@/components/ui';
 
 export function ConversationList({ conversations, details, lastMsgMap, selectedID, onSelect, members, userCache, onlineMap, friendMap, currentUID, onTogglePin, onToggleMute }: {
   conversations: UserConvDTO[]; details: Record<number, ConversationDTO>; lastMsgMap: Record<number, string>; selectedID: number | null; onSelect: (id: number) => void;
@@ -11,7 +10,13 @@ export function ConversationList({ conversations, details, lastMsgMap, selectedI
 }) {
   const [ctx, setCtx] = useState<{ x: number; y: number; item: UserConvDTO } | null>(null);
 
-  if (!conversations.length) return <EmptyState title="暂无聊天" text="可以从通讯录搜索用户并创建单聊，或点击 + 创建群聊。" />;
+  if (!conversations.length) return (
+    <div className="m-auto grid place-items-center gap-2 p-8 text-center text-[#858c98]">
+      <strong className="text-base font-semibold text-[#555f6d]">暂无聊天</strong>
+      <span className="text-sm">可以从通讯录搜索用户并创建单聊，或点击 + 创建群聊。</span>
+    </div>
+  );
+
   return (
     <div className="overflow-auto px-2 py-1" onClick={() => setCtx(null)}>
       {conversations.map((item) => {
@@ -28,7 +33,7 @@ export function ConversationList({ conversations, details, lastMsgMap, selectedI
           <button key={item.conversation_id} className={`flex w-full items-center gap-3 rounded-lg px-2.5 py-3 text-left text-inherit transition hover:bg-[#e8e8e8] max-[760px]:px-2 max-[760px]:py-[9px] ${selectedID === item.conversation_id ? 'bg-[#d4edda]' : 'bg-transparent'}`} onClick={() => onSelect(item.conversation_id)} onContextMenu={(e) => { e.preventDefault(); setCtx({ x: e.clientX, y: e.clientY, item }); }}>
             {peerUser
               ? <Avatar user={peerUser} online={peerOnline} badge={item.unread_count > 0 ? item.unread_count : undefined} />
-              : <div className="relative inline-flex shrink-0"><div className="grid h-[42px] w-[42px] place-items-center rounded-[10px] bg-gradient-to-br from-[#43a047] to-[#07c160] font-bold text-white">{shortName(title)}</div>{item.unread_count > 0 && <b className="absolute -top-1 -right-1 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-[#f04b45] px-1 text-[10px] font-semibold leading-none text-white">{item.unread_count > 99 ? '99+' : item.unread_count}</b>}</div>
+              : <div className="relative inline-flex shrink-0"><div className="grid h-[42px] w-[42px] place-items-center rounded-[10px] bg-gradient-to-br from-[#43a047] to-[#07c160] font-bold text-white">{shortName(title)}</div><Badge count={item.unread_count} /></div>
             }
             <div className="grid min-w-0 flex-1 gap-1">
               <div className="flex min-w-0 items-center justify-between gap-2">
@@ -37,24 +42,16 @@ export function ConversationList({ conversations, details, lastMsgMap, selectedI
               </div>
               <div className="flex min-w-0 items-center justify-between gap-2">
                 <span className="min-w-0 flex-1 truncate text-[13px] text-[#858c98]">{lastMsg || '暂无消息'}</span>
-                {item.unread_count > 0 && <b className={`grid h-5 min-w-5 place-items-center rounded-full px-1.5 text-[11px] font-semibold text-white ${item.is_muted ? 'bg-[#c9ced6]' : 'bg-[#f04b45]'}`}>{item.unread_count}</b>}
+                <Badge count={item.unread_count} muted={item.is_muted} />
               </div>
             </div>
           </button>
         );
       })}
-      {ctx && <ConvContextMenu x={ctx.x} y={ctx.y} item={ctx.item} onClose={() => setCtx(null)} onTogglePin={onTogglePin} onToggleMute={onToggleMute} />}
-    </div>
-  );
-}
-
-function ConvContextMenu({ x, y, item, onClose, onTogglePin, onToggleMute }: { x: number; y: number; item: UserConvDTO; onClose: () => void; onTogglePin: (id?: number) => void; onToggleMute: (id?: number) => void }) {
-  return (
-    <div className="ctx-overlay" onClick={onClose}>
-      <ul className="ctx-menu" style={{ left: x, top: y }} onClick={(e) => e.stopPropagation()}>
-        <li onClick={() => { onTogglePin(item.conversation_id); onClose(); }}>{item.is_pinned ? '取消置顶' : '置顶会话'}</li>
-        <li onClick={() => { onToggleMute(item.conversation_id); onClose(); }}>{item.is_muted ? '取消免打扰' : '消息免打扰'}</li>
-      </ul>
+      {ctx && <ContextMenu x={ctx.x} y={ctx.y} onClose={() => setCtx(null)} items={[
+        { label: ctx.item.is_pinned ? '取消置顶' : '置顶会话', action: () => onTogglePin(ctx.item.conversation_id) },
+        { label: ctx.item.is_muted ? '取消免打扰' : '消息免打扰', action: () => onToggleMute(ctx.item.conversation_id) },
+      ]} />}
     </div>
   );
 }

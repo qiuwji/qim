@@ -1,8 +1,8 @@
-import type { MessageDTO, UserConvDTO, WsResponse } from '../../api/types';
-import type { RealtimeClient } from '../../api/ws';
-import { normalizePushMessage } from '../../api/ws';
-import type { Notice } from '../../types';
-import { pushText } from '../../utils';
+import type { MessageDTO, UserConvDTO, WsResponse } from '@/api/types';
+import type { RealtimeClient } from '@/api/ws';
+import { normalizePushMessage } from '@/api/ws';
+import type { Notice } from '@/types';
+import { pushText } from '@/utils';
 import { decrementConversationUnread } from './conversationModel';
 import { revokedPreviewUpdate } from './messageModel';
 

@@ -203,17 +203,20 @@ func TestConvStoreCRUD_BitsUT(t *testing.T) {
 	if err := store.DeleteMember(groupConv.ID, 4); err != nil {
 		t.Fatalf("DeleteMember error: %v", err)
 	}
-	if err := db.Create(&UserConversation{UserID: 2, ConversationID: groupConv.ID, UnreadCount: 3}).Error; err != nil {
-		t.Fatalf("create user conversation error: %v", err)
-	}
-	if err := store.UpdateUserConversation(2, groupConv.ID, map[string]any{"is_pinned": true, "is_muted": true}); err != nil {
+	if err := store.UpdateUserConversation(2, groupConv.ID, map[string]any{"is_pinned": true, "is_muted": true, "unread_count": 3}); err != nil {
 		t.Fatalf("UpdateUserConversation error: %v", err)
 	}
 	userConvs, err := store.GetUserConversations(2)
 	if err != nil {
 		t.Fatalf("GetUserConversations error: %v", err)
 	}
-	if len(userConvs) == 0 || !userConvs[0].IsPinned || !userConvs[0].IsMuted {
+	var foundPinned *convdomain.UserConversationRecord
+	for i := range userConvs {
+		if userConvs[i].ConversationID == groupConv.ID {
+			foundPinned = &userConvs[i]
+		}
+	}
+	if foundPinned == nil || !foundPinned.IsPinned || !foundPinned.IsMuted {
 		t.Fatalf("user conversations = %+v", userConvs)
 	}
 	if err := store.MarkConversationRead(2, groupConv.ID, 5); err != nil {

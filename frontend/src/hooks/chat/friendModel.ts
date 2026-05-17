@@ -1,4 +1,4 @@
-import type { FriendDTO, FriendRequestDTO, UserDTO } from '../../api/types';
+import type { FriendDTO, FriendRequestDTO, UserDTO } from '@/api/types';
 
 export function buildFriendMap(friends: FriendDTO[]): Record<number, FriendDTO> {
   const map: Record<number, FriendDTO> = {};

@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import type { UserDTO } from '../api/types';
-import type { Notice } from '../types';
-import { api } from '../api/http';
-import { validatePassword } from '../utils';
+import type { UserDTO } from '@/api/types';
+import type { Notice } from '@/types';
+import { api } from '@/api/http';
+import { validatePassword } from '@/utils';
 
 export function AuthPage({ onLoggedIn, notice, setNotice }: {
   onLoggedIn: (token: string, user: UserDTO) => void; notice: Notice; setNotice: (n: Notice) => void;

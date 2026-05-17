@@ -1,6 +1,6 @@
-import { api } from '../../api/http';
-import { currentSecond } from '../../utils';
-import type { MessageDTO } from '../../api/types';
+import { api } from '@/api/http';
+import { currentSecond } from '@/utils';
+import type { MessageDTO } from '@/api/types';
 import type { ChatStoreDeps } from './types';
 import { MSG_TYPE_TEXT, removeMessageByID, visibleMessages } from './messageModel';
 
