@@ -1,0 +1,63 @@
+import type { Dispatch, MutableRefObject, RefObject, SetStateAction } from 'react';
+import type { ConversationDTO, FriendDTO, FriendGroupDTO, FriendRequestDTO, MemberDTO, MessageDTO, UserConvDTO, UserDTO, WsResponse } from '../../api/types';
+import type { RealtimeClient } from '../../api/ws';
+import type { ContextMenu, MainTab, ModalState, MobilePane, Notice } from '../../types';
+
+export interface ChatStoreDeps {
+  user: UserDTO;
+  onUserChange: (u: UserDTO) => void;
+  selectedID: number | null;
+  selectedIDRef: MutableRefObject<number | null>;
+  conversations: UserConvDTO[];
+  details: Record<number, ConversationDTO>;
+  userCache: Record<number, UserDTO>;
+  friendMap: Record<number, FriendDTO>;
+  friends: FriendDTO[];
+  friendGroups: FriendGroupDTO[];
+  members: Record<number, MemberDTO[]>;
+  messages: Record<number, MessageDTO[]>;
+  replyTo: MessageDTO | null;
+  chatSearch: string;
+  deletedMessageIDs: MutableRefObject<Set<number>>;
+  deletedStorageKey: string;
+  messagesRef: MutableRefObject<Record<number, MessageDTO[]>>;
+  typingTimers: MutableRefObject<Record<number, ReturnType<typeof setTimeout>>>;
+  wsRef: MutableRefObject<RealtimeClient>;
+  realtimeHandlerRef: MutableRefObject<(msg: WsResponse) => void>;
+
+  setConversations: Dispatch<SetStateAction<UserConvDTO[]>>;
+  setDetails: Dispatch<SetStateAction<Record<number, ConversationDTO>>>;
+  setUserCache: Dispatch<SetStateAction<Record<number, UserDTO>>>;
+  setSelectedID: Dispatch<SetStateAction<number | null>>;
+  setMessages: Dispatch<SetStateAction<Record<number, MessageDTO[]>>>;
+  setLastMsgMap: Dispatch<SetStateAction<Record<number, string>>>;
+  setHasMore: Dispatch<SetStateAction<Record<number, boolean>>>;
+  setFriends: Dispatch<SetStateAction<FriendDTO[]>>;
+  setFriendGroups: Dispatch<SetStateAction<FriendGroupDTO[]>>;
+  setRequests: Dispatch<SetStateAction<FriendRequestDTO[]>>;
+  setOutgoingReqs: Dispatch<SetStateAction<FriendRequestDTO[]>>;
+  setMembers: Dispatch<SetStateAction<Record<number, MemberDTO[]>>>;
+  setTyping: Dispatch<SetStateAction<Record<number, string>>>;
+  setDetailOpen: Dispatch<SetStateAction<boolean>>;
+  setModal: Dispatch<SetStateAction<ModalState>>;
+  setContextMenu: Dispatch<SetStateAction<ContextMenu>>;
+  setReplyTo: Dispatch<SetStateAction<MessageDTO | null>>;
+  setChatSearch: Dispatch<SetStateAction<string>>;
+  setChatSearchResult: Dispatch<SetStateAction<MessageDTO[]>>;
+  setNotice: Dispatch<SetStateAction<Notice>>;
+  setViewingUser: Dispatch<SetStateAction<UserDTO | null>>;
+  setOnlineMap: Dispatch<SetStateAction<Record<number, boolean>>>;
+  setTab: (tab: MainTab) => void;
+  setMobilePane: (pane: MobilePane) => void;
+
+  refreshBase: () => Promise<void>;
+  loadMessages: (cid: number, beforeSeq?: number) => Promise<void>;
+  loadChatMembers: (cid: number, force?: boolean) => Promise<void>;
+  markConversationRead: (cid: number, seq?: number) => void;
+  applyIncomingMessage: (msg: MessageDTO) => void;
+  setLastMessagePreview: (cid: number, msg: MessageDTO | undefined) => void;
+  rememberDeletedMessage: (msg: MessageDTO) => void;
+  openConversation: (cid: number) => void;
+  sendConversationMessage: (conversationID: number, text: string, msgType?: number, replyToID?: number) => void;
+  ensurePrivateConversation: (uid: number) => Promise<number>;
+}

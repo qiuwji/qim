@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { api, getToken } from './api/http';
+import { getToken } from './api/http';
 import { useAuth, useChatStore } from './hooks/useChatStore';
 import { chatTitle, displayName } from './utils';
 import { AuthPage } from './components/AuthPage';
@@ -32,7 +32,7 @@ function ChatPage({ user, onUserChange, onLogout }: { user: import('./api/types'
     setContextMenu, replyTo, setReplyTo, chatSearch, setChatSearch, chatSearchResult, setChatSearchResult,
     notice, setNotice, unreadTotal,
     viewingUser, setViewingUser, hoverCard, setHoverCard, onlineMap,
-    sendText, sendImage, searchUsers, startPrivate, createGroup, addFriendByUsername, handleRequest,
+    sendText, sendImage, searchUsers, startPrivate, createGroup, addFriendByUsername, addFriendByUser, handleRequest,
     uploadAvatar, togglePin, toggleMute, markAllRead, renameGroup, inviteMember,
     removeMember, leaveCurrentGroup, dissolveCurrentGroup, setMemberRole, transferOwner,
     uploadGroupAvatar, setMemberLimit, deleteFriend, updateFriendRemark, createFriendGroup,
@@ -88,12 +88,12 @@ function ChatPage({ user, onUserChange, onLogout }: { user: import('./api/types'
             </div>}
         </div>
         {tab === 'chats' && <ConversationList conversations={sortedConversations} details={details} lastMsgMap={lastMsgMap} selectedID={selectedID} onSelect={selectChat} members={members} userCache={userCache} onlineMap={onlineMap} friendMap={friendMap} currentUID={user.id} onTogglePin={togglePin} onToggleMute={toggleMute} />}
-        {tab === 'contacts' && <ContactsPanel currentUID={user.id} keyword={searchKeyword} setKeyword={setSearchKeyword} onSearch={searchUsers} results={searchResult} friends={friends} friendGroups={friendGroups} requests={requests} outgoingReqs={outgoingReqs} groupConversations={groupConversations} details={details} userCache={userCache} onlineMap={onlineMap} friendMap={friendMap} onStartPrivate={startPrivate} onRequest={async (target) => { if (target.id === user.id) return; await api.sendFriendRequestByUsername(target.username, '你好'); setNotice({ kind: 'ok', text: '好友申请已发送' }); }} onHandleRequest={handleRequest} onSelectChat={selectChat} onDeleteFriend={deleteFriend} onUpdateRemark={updateFriendRemark} onCreateGroup={createFriendGroup} onRenameGroup={renameFriendGroup} onDeleteGroup={deleteFriendGroup} onViewUser={viewUserProfile} />}
+        {tab === 'contacts' && <ContactsPanel currentUID={user.id} keyword={searchKeyword} setKeyword={setSearchKeyword} onSearch={searchUsers} results={searchResult} friends={friends} friendGroups={friendGroups} requests={requests} outgoingReqs={outgoingReqs} groupConversations={groupConversations} details={details} userCache={userCache} onlineMap={onlineMap} friendMap={friendMap} onStartPrivate={startPrivate} onRequest={addFriendByUser} onHandleRequest={handleRequest} onSelectChat={selectChat} onDeleteFriend={deleteFriend} onUpdateRemark={updateFriendRemark} onCreateGroup={createFriendGroup} onRenameGroup={renameFriendGroup} onDeleteGroup={deleteFriendGroup} onViewUser={viewUserProfile} />}
         {tab === 'profile' && <ProfilePanel user={user} onUploadAvatar={uploadAvatar} onUpdateProfile={updateProfile} onChangePassword={changePassword} />}
       </section>
       <section className={`pane-chat ${mobilePane === 'chat' ? 'mobile-show' : ''}`}>
         {viewingUser
-          ? <UserProfilePage user={viewingUser} isFriend={!!friendMap[viewingUser.id]} isSelf={viewingUser.id === user.id} onBack={() => setViewingUser(null)} onStartPrivate={(uid) => { void startPrivate(uid); }} onAddFriend={async () => { if (viewingUser.id === user.id) return; await api.sendFriendRequestByUsername(viewingUser.username, '你好'); setNotice({ kind: 'ok', text: '好友申请已发送' }); setViewingUser(null); }} />
+          ? <UserProfilePage user={viewingUser} isFriend={!!friendMap[viewingUser.id]} isSelf={viewingUser.id === user.id} onBack={() => setViewingUser(null)} onStartPrivate={(uid) => { void startPrivate(uid); }} onAddFriend={() => { addFriendByUser(viewingUser); setViewingUser(null); }} />
           : <ChatWindow user={user} conversation={selectedConv} detail={selectedDetail} title={selectedConv ? chatTitle(selectedConv, selectedDetail) : '请选择聊天'} subtitle={subtitle} messages={selectedMessages} hasMore={selectedID ? hasMore[selectedID] ?? false : false} typingText={selectedID ? typing[selectedID] : ''} userCache={userCache} friendMap={friendMap} detailOpen={detailOpen} replyTo={replyTo} onBack={() => setMobilePane(tab === 'contacts' ? 'contacts' : 'list')} onSend={sendText} onSendImage={sendImage} onTyping={() => selectedID && store.wsRef.current.typing(selectedID)} onToggleDetail={() => setDetailOpen(!detailOpen)} onContextMenu={(e, m) => { e.preventDefault(); setContextMenu({ x: e.clientX, y: e.clientY, message: m }); }} onReply={setReplyTo} onLoadMore={() => { if (!selectedID) return undefined; const first = messages[selectedID]?.[0]; return first ? store.loadMessages(selectedID, first.seq) : undefined; }} onAvatarEnter={handleAvatarEnter} onAvatarLeave={scheduleCloseHoverCard} onAvatarClick={(uid) => viewUserProfile(uid)} />
         }
       </section>
@@ -103,7 +103,7 @@ function ChatPage({ user, onUserChange, onLogout }: { user: import('./api/types'
       {notice && <div className={`notice floating ${notice.kind}`} onClick={() => setNotice(null)}>{notice.text}</div>}
       <AppModal modal={modal} onClose={() => setModal(null)} />
       {contextMenu && <ContextMenuPopup menu={contextMenu} mine={contextMenu.message.sender_id === user.id} onRevoke={() => doRevoke(contextMenu.message)} onReply={() => setReplyTo(contextMenu.message)} onCopy={() => navigator.clipboard.writeText(contextMenu.message.content)} onDelete={() => doDelete(contextMenu.message)} onForward={() => doForward(contextMenu.message)} onClose={() => setContextMenu(null)} />}
-      {hoverCard && <UserCard data={hoverCard} isFriend={!!friendMap[hoverCard.user.id]} isSelf={hoverCard.user.id === user.id} onMouseEnter={keepHoverCard} onMouseLeave={scheduleCloseHoverCard} onStartPrivate={(uid) => { setHoverCard(null); startPrivate(uid); }} onAddFriend={async () => { if (hoverCard.user.id === user.id) return; await api.sendFriendRequestByUsername(hoverCard.user.username, '你好'); setNotice({ kind: 'ok', text: '好友申请已发送' }); setHoverCard(null); }} onViewProfile={(uid) => { setHoverCard(null); viewUserProfile(uid); }} />}
+      {hoverCard && <UserCard data={hoverCard} isFriend={!!friendMap[hoverCard.user.id]} isSelf={hoverCard.user.id === user.id} onMouseEnter={keepHoverCard} onMouseLeave={scheduleCloseHoverCard} onStartPrivate={(uid) => { setHoverCard(null); startPrivate(uid); }} onAddFriend={() => { addFriendByUser(hoverCard.user); setHoverCard(null); }} onViewProfile={(uid) => { setHoverCard(null); viewUserProfile(uid); }} />}
     </main>
   );
 }

@@ -2,6 +2,7 @@ import React, { useLayoutEffect, useRef, useState, useCallback } from 'react';
 import type { ConversationDTO, FriendDTO, MessageDTO, UserConvDTO, UserDTO } from '../api/types';
 import { displayName, timeText } from '../utils';
 import { EmptyState } from './EmptyState';
+import { EmojiPicker } from './EmojiPicker';
 import { MessageBubble } from './MessageBubble';
 
 const TYPING_THROTTLE = 5000;
@@ -169,31 +170,6 @@ export function ChatWindow({ user, conversation, detail, title, subtitle, messag
         </div>
         {showEmoji && <EmojiPicker onSelect={(emoji: string) => { setDraft((d) => d + emoji); setShowEmoji(false); }} onClose={() => setShowEmoji(false)} />}
       </form>
-    </div>
-  );
-}
-
-const EMOJI_LIST = [
-  '😀','😁','😂','🤣','😃','😄','😅','😆','😉','😊',
-  '😋','😎','😍','🥰','😘','😗','😙','😚','🙂','🤗',
-  '🤔','😐','😑','😶','🙄','😏','😣','😥','😮','🤐',
-  '😯','😪','😫','😴','😌','😛','😜','😝','🤤','😒',
-  '😓','😔','😕','🙃','🤑','😲','🙁','😖','😞','😟',
-  '😤','😢','😭','😦','😧','😨','😩','🤯','😬','😰',
-  '😱','🥵','🥶','😳','🤪','😵','😡','😠','🤬','😈',
-  '👍','👎','👏','🙌','🤝','💪','✌️','🤞','🤟','🤘',
-  '❤️','🧡','💛','💚','💙','💜','🖤','💔','💕','💖',
-  '🔥','⭐','🎉','🎊','💯','✅','❌','⚡','💡','🎵',
-];
-
-function EmojiPicker({ onSelect, onClose }: { onSelect: (emoji: string) => void; onClose: () => void }) {
-  return (
-    <div className="emoji-overlay" onClick={onClose}>
-      <div className="emoji-picker" onClick={(e) => e.stopPropagation()}>
-        {EMOJI_LIST.map((emoji) => (
-          <button key={emoji} type="button" className="emoji-item" onClick={() => onSelect(emoji)}>{emoji}</button>
-        ))}
-      </div>
     </div>
   );
 }
