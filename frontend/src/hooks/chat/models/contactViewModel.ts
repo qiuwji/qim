@@ -65,3 +65,7 @@ export function friendRequestTimeline(incoming: FriendRequestDTO[], outgoing: Fr
   ];
   return items.sort((a, b) => b.req.created_at - a.req.created_at);
 }
+
+export function pendingIncomingRequestCount(requests: FriendRequestDTO[]): number {
+  return requests.filter((request) => request.status === 0).length;
+}

@@ -2,13 +2,13 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { MouseEvent } from 'react';
 import type { ConversationDTO, FriendDTO, FriendGroupDTO, FriendRequestDTO, UserConvDTO, UserDTO } from '@/api/types';
 import { chatTitle } from '@/utils';
-import { filterFriendsByKeyword, groupFriendsByGroup, sortFriendGroups } from '@/hooks/chat/models/contactViewModel';
+import { filterFriendsByKeyword, groupFriendsByGroup, pendingIncomingRequestCount, sortFriendGroups } from '@/hooks/chat/models/contactViewModel';
 import { Badge, ContextMenu } from '@/components/ui';
 import { ContactSearchResults } from './ContactSearchResults';
 import { FriendListSection } from './FriendListSection';
 import { GroupListSection } from './GroupListSection';
 
-export function ContactsPanel({ currentUID: _currentUID, keyword, setKeyword, onSearch, results: _results, friends, friendGroups, requests, outgoingReqs, groupConversations, details, userCache, onlineMap, friendMap: _friendMap, onStartPrivate, onRequest: _onRequest, onHandleRequest: _onHandleRequest, onSelectChat, onDeleteFriend, onUpdateRemark, onCreateGroup, onViewUser, onViewFriendRequests, onViewGroupManage }: {
+export function ContactsPanel({ currentUID: _currentUID, keyword, setKeyword, onSearch, results: _results, friends, friendGroups, requests, outgoingReqs: _outgoingReqs, groupConversations, details, userCache, onlineMap, friendMap: _friendMap, onStartPrivate, onRequest: _onRequest, onHandleRequest: _onHandleRequest, onSelectChat, onDeleteFriend, onUpdateRemark, onCreateGroup, onViewUser, onViewFriendRequests, onViewGroupManage }: {
   currentUID: number; keyword: string; setKeyword: (v: string) => void; onSearch: (v: string) => void; results: UserDTO[]; friends: FriendDTO[]; friendGroups: FriendGroupDTO[]; requests: FriendRequestDTO[]; outgoingReqs: FriendRequestDTO[]; groupConversations: UserConvDTO[]; details: Record<number, ConversationDTO>; userCache: Record<number, UserDTO>; onlineMap: Record<number, boolean>; friendMap?: Record<number, FriendDTO>;
   onStartPrivate: (uid: number) => void; onRequest: (user: UserDTO) => Promise<void>; onHandleRequest: (id: number, a: 'accept' | 'reject') => void; onSelectChat: (id: number) => void;
   onDeleteFriend: (uid: number) => void; onUpdateRemark: (uid: number, cur: string) => void; onCreateGroup: () => void;
@@ -21,7 +21,7 @@ export function ContactsPanel({ currentUID: _currentUID, keyword, setKeyword, on
   const toggle = (k: string) => setOpenSections((p) => ({ ...p, [k]: !p[k] }));
   const [friendCtx, setFriendCtx] = useState<{ x: number; y: number; friend: FriendDTO } | null>(null);
   const [moreOpen, setMoreOpen] = useState(false);
-  const noticeCount = requests.length + outgoingReqs.length;
+  const noticeCount = pendingIncomingRequestCount(requests);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {

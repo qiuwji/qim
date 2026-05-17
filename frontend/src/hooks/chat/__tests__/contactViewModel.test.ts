@@ -6,6 +6,7 @@ import {
   friendRequestTimeline,
   groupFriendsByGroup,
   matchFriendKeyword,
+  pendingIncomingRequestCount,
   sortFriendGroups,
   userFromCache,
 } from '../models/contactViewModel';
@@ -57,5 +58,14 @@ describe('contactViewModel', () => {
       { type: 'outgoing', req: outgoing[0], uid: 3 },
       { type: 'incoming', req: incoming[0], uid: 2 },
     ]);
+  });
+
+  it('好友申请红点只统计别人发来的待处理申请', () => {
+    const requests: FriendRequestDTO[] = [
+      { id: 1, from_uid: 2, to_uid: 1, message: '', status: 0, created_at: 10 },
+      { id: 2, from_uid: 3, to_uid: 1, message: '', status: 1, created_at: 20 },
+    ];
+
+    expect(pendingIncomingRequestCount(requests)).toBe(1);
   });
 });
