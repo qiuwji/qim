@@ -1,13 +1,15 @@
 import { useState } from 'react';
-import type { FriendDTO, UserDTO } from '@/api/types';
+import type { ConversationDTO, FriendDTO, MemberDTO, UserConvDTO, UserDTO } from '@/api/types';
 import type { ContextMenu as ContextMenuType, ModalState } from '@/types';
 import { ContextMenu, Avatar } from '@/components/ui';
+import { ConversationSummaryRow } from '@/components/ConversationSummaryRow';
 
 export function AppModal({ modal, onClose }: { modal: ModalState; onClose: () => void }) {
   if (!modal) return null;
   if (modal.type === 'prompt') return <PromptModal fields={modal.fields} title={modal.title} onConfirm={modal.onConfirm} onClose={onClose} />;
   if (modal.type === 'confirm') return <ConfirmModal title={modal.title} text={modal.text} danger={modal.danger} onConfirm={modal.onConfirm} onClose={onClose} />;
   if (modal.type === 'friend-picker') return <FriendPickerModal title={modal.title} friends={modal.friends} userCache={modal.userCache} excludeUIDs={modal.excludeUIDs} requireGroupName={modal.requireGroupName} onConfirm={modal.onConfirm} onClose={onClose} />;
+  if (modal.type === 'conversation-picker') return <ConversationPickerModal title={modal.title} conversations={modal.conversations} details={modal.details} members={modal.members} userCache={modal.userCache} onlineMap={modal.onlineMap} currentUID={modal.currentUID} lastMsgMap={modal.lastMsgMap} onConfirm={modal.onConfirm} onClose={onClose} />;
   return null;
 }
 
@@ -83,6 +85,57 @@ function FriendPickerModal({ title, friends, userCache, excludeUIDs, requireGrou
         </div>
       </div>
       <div className="modal-actions"><button className="modal-cancel" onClick={onClose}>取消</button><button className="primary-btn" disabled={!canConfirm} onClick={() => { if (!canConfirm) return; onConfirm({ name: name.trim(), usernames: [...selected] }); onClose(); }}>确认</button></div>
+    </div></div>
+  );
+}
+
+function ConversationPickerModal({ title, conversations, details, members, userCache, onlineMap, currentUID, lastMsgMap, onConfirm, onClose }: {
+  title: string;
+  conversations: UserConvDTO[];
+  details: Record<number, ConversationDTO>;
+  members: Record<number, MemberDTO[]>;
+  userCache: Record<number, UserDTO>;
+  onlineMap: Record<number, boolean>;
+  currentUID: number;
+  lastMsgMap: Record<number, string>;
+  onConfirm: (conversationID: number) => void;
+  onClose: () => void;
+}) {
+  const [keyword, setKeyword] = useState('');
+  const [selectedID, setSelectedID] = useState<number | null>(null);
+  const trimmedKeyword = keyword.trim().toLowerCase();
+  const filtered = conversations.filter((conversation) => {
+    if (!trimmedKeyword) return true;
+    const detail = details[conversation.conversation_id];
+    const titleText = detail?.name || `聊天 ${conversation.conversation_id}`;
+    const lastMsg = lastMsgMap[conversation.conversation_id] || '';
+    return `${titleText} ${lastMsg}`.toLowerCase().includes(trimmedKeyword);
+  });
+
+  return (
+    <div className="modal-overlay" onClick={onClose}><div className="modal-card friend-picker-modal" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-header"><strong>{title}</strong><button className="modal-close" onClick={onClose}>✕</button></div>
+      <div className="modal-body">
+        <label className="modal-field"><span>选择聊天</span><input value={keyword} placeholder="搜索聊天名称或消息内容" onChange={(e) => setKeyword(e.target.value)} /></label>
+        <div className="friend-picker-list">
+          {filtered.map((conversation) => (
+            <ConversationSummaryRow
+              key={conversation.conversation_id}
+              conversation={conversation}
+              detail={details[conversation.conversation_id]}
+              members={members[conversation.conversation_id] ?? []}
+              currentUID={currentUID}
+              userCache={userCache}
+              onlineMap={onlineMap}
+              subtitle={lastMsgMap[conversation.conversation_id] || '暂无消息'}
+              selected={selectedID === conversation.conversation_id}
+              onClick={setSelectedID}
+            />
+          ))}
+          {!filtered.length && <div className="empty-hint">没有可选择的聊天</div>}
+        </div>
+      </div>
+      <div className="modal-actions"><button className="modal-cancel" onClick={onClose}>取消</button><button className="primary-btn" disabled={!selectedID} onClick={() => { if (!selectedID) return; onConfirm(selectedID); onClose(); }}>确认</button></div>
     </div></div>
   );
 }

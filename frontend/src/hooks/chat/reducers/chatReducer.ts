@@ -136,7 +136,7 @@ export function chatReducer(state: ChatState, action: ChatAction): ChatState {
         },
         lastMsgMap: preview ? { ...state.lastMsgMap, [action.message.conversation_id]: preview } : state.lastMsgMap,
         typing: action.message.sender_id !== action.currentUID ? { ...state.typing, [action.message.conversation_id]: '' } : state.typing,
-        conversations: applyIncomingConversation(state.conversations, action.message, action.selectedID),
+        conversations: applyIncomingConversation(state.conversations, action.message, action.selectedID, action.currentUID),
       };
     }
 

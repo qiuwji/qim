@@ -1,4 +1,4 @@
-import type { FriendDTO, MessageDTO, UserDTO } from '@/api/types';
+import type { ConversationDTO, FriendDTO, MemberDTO, MessageDTO, UserConvDTO, UserDTO } from '@/api/types';
 
 export type Notice = { kind: 'ok' | 'error' | 'info'; text: string } | null;
 
@@ -27,4 +27,15 @@ export type ModalState = null | {
   excludeUIDs?: number[];
   requireGroupName?: boolean;
   onConfirm: (values: { name?: string; usernames: string[] }) => void;
+} | {
+  type: 'conversation-picker';
+  title: string;
+  conversations: UserConvDTO[];
+  details: Record<number, ConversationDTO>;
+  members: Record<number, MemberDTO[]>;
+  userCache: Record<number, UserDTO>;
+  onlineMap: Record<number, boolean>;
+  currentUID: number;
+  lastMsgMap: Record<number, string>;
+  onConfirm: (conversationID: number) => void;
 };

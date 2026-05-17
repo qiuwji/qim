@@ -43,8 +43,7 @@ export function createMessageActions(d: ChatStoreDeps) {
   }
 
   function doForward(msg: MessageDTO) {
-    d.setModal({ type: 'prompt', title: '转发消息', fields: [{ key: 'cid', label: '目标聊天 ID', placeholder: '输入聊天 ID' }], onConfirm: async (v) => {
-      const cid = Number(v.cid); if (!cid) return;
+    d.setModal({ type: 'conversation-picker', title: '转发消息', conversations: d.conversations, details: d.details, members: d.members, userCache: d.userCache, onlineMap: d.onlineMap, currentUID: d.user.id, lastMsgMap: d.lastMsgMap, onConfirm: (cid) => {
       try { d.wsRef.current.sendMessage({ conversation_id: cid, content: `[转发] ${msg.content}`, msg_type: msg.msg_type }); d.setNotice({ kind: 'ok', text: '已转发' }); }
       catch { d.setNotice({ kind: 'error', text: '转发失败' }); }
     } });

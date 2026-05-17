@@ -47,15 +47,16 @@ export function decrementConversationUnread(list: UserConvDTO[], cid: number): U
   ));
 }
 
-export function applyIncomingConversation(list: UserConvDTO[], msg: MessageDTO, selectedID: number | null): UserConvDTO[] {
-  const unreadCount = selectedID === msg.conversation_id ? 0 : 1;
+export function applyIncomingConversation(list: UserConvDTO[], msg: MessageDTO, selectedID: number | null, currentUID: number): UserConvDTO[] {
+  const shouldCountUnread = selectedID !== msg.conversation_id && msg.sender_id !== currentUID;
+  const unreadCount = shouldCountUnread ? 1 : 0;
   const found = list.some((item) => item.conversation_id === msg.conversation_id);
   const mapped = list.map((item) => (
     item.conversation_id === msg.conversation_id
       ? {
           ...item,
           last_msg_at: msg.created_at,
-          unread_count: selectedID === msg.conversation_id ? 0 : item.unread_count + 1,
+          unread_count: selectedID === msg.conversation_id ? 0 : (shouldCountUnread ? item.unread_count + 1 : item.unread_count),
         }
       : item
   ));

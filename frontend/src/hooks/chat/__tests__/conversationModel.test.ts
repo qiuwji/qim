@@ -127,7 +127,7 @@ describe('conversationModel', () => {
   it('收到当前打开会话消息时更新预览时间但不增加未读', () => {
     const list = [conv(1, { unread_count: 5, last_msg_at: 10 })];
 
-    expect(applyIncomingConversation(list, msg(1, { created_at: 20 }), 1)).toEqual([
+    expect(applyIncomingConversation(list, msg(1, { created_at: 20 }), 1, 1)).toEqual([
       { ...list[0], unread_count: 0, last_msg_at: 20 },
     ]);
   });
@@ -135,14 +135,29 @@ describe('conversationModel', () => {
   it('收到非当前会话消息时增加未读，未知会话会插入列表', () => {
     const list = [conv(1, { unread_count: 5, last_msg_at: 10 })];
 
-    expect(applyIncomingConversation(list, msg(1, { created_at: 20 }), 2)[0]).toMatchObject({
+    expect(applyIncomingConversation(list, msg(1, { created_at: 20 }), 2, 1)[0]).toMatchObject({
       conversation_id: 1,
       unread_count: 6,
       last_msg_at: 20,
     });
-    expect(applyIncomingConversation(list, msg(9, { created_at: 30 }), null)[0]).toMatchObject({
+    expect(applyIncomingConversation(list, msg(9, { created_at: 30 }), null, 1)[0]).toMatchObject({
       conversation_id: 9,
       unread_count: 1,
+      last_msg_at: 30,
+    });
+  });
+
+  it('同账号其他设备发出的消息不增加未读', () => {
+    const list = [conv(1, { unread_count: 5, last_msg_at: 10 })];
+
+    expect(applyIncomingConversation(list, msg(1, { sender_id: 1, created_at: 20 }), null, 1)[0]).toMatchObject({
+      conversation_id: 1,
+      unread_count: 5,
+      last_msg_at: 20,
+    });
+    expect(applyIncomingConversation(list, msg(9, { sender_id: 1, created_at: 30 }), null, 1)[0]).toMatchObject({
+      conversation_id: 9,
+      unread_count: 0,
       last_msg_at: 30,
     });
   });

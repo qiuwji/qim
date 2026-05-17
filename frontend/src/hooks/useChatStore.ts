@@ -135,12 +135,13 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
 
   function applyIncomingMessage(next: MessageDTO) {
     if (deletedMessageIDs.current.has(next.id)) return;
+    const fromSelf = next.sender_id === user.id;
     const wasHidden = hiddenConversationIDs.current.has(next.conversation_id);
     forgetHiddenConversationID(hiddenStorageKey, hiddenConversationIDs.current, next.conversation_id);
     dispatchChat({ type: 'incomingMessage', message: next, selectedID: selectedIDRef.current, currentUID: user.id });
     if (wasHidden) void refreshBase();
     if (selectedIDRef.current === next.conversation_id && next.seq > 0) markConversationRead(next.conversation_id, next.seq);
-    if (selectedIDRef.current !== next.conversation_id && !document.hasFocus()) {
+    if (!fromSelf && selectedIDRef.current !== next.conversation_id && !document.hasFocus()) {
       try { new Notification('QIM 新消息', { body: next.content.slice(0, 50) }); } catch {
         // 浏览器可能禁用通知权限，忽略即可。
       }
@@ -204,7 +205,7 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
 
   const deps: ChatStoreDeps = {
     user, onUserChange, selectedID, searchKeyword, selectedIDRef, conversations, details,
-    userCache, friendMap, friends, friendGroups, members, messages, replyTo,
+    userCache, lastMsgMap, friendMap, friends, friendGroups, members, onlineMap, messages, replyTo,
     chatSearch, deletedMessageIDs, deletedStorageKey, messagesRef, typingTimers, wsRef, realtimeHandlerRef,
     setConversations, setDetails, setUserCache, setSelectedID, setMessages,
     setLastMsgMap, setHasMore, setFriends, setFriendGroups, setRequests,

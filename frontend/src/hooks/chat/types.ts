@@ -12,10 +12,12 @@ export interface ChatStoreDeps {
   conversations: UserConvDTO[];
   details: Record<number, ConversationDTO>;
   userCache: Record<number, UserDTO>;
+  lastMsgMap: Record<number, string>;
   friendMap: Record<number, FriendDTO>;
   friends: FriendDTO[];
   friendGroups: FriendGroupDTO[];
   members: Record<number, MemberDTO[]>;
+  onlineMap: Record<number, boolean>;
   messages: Record<number, MessageDTO[]>;
   replyTo: MessageDTO | null;
   chatSearch: string;

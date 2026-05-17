@@ -237,6 +237,11 @@ HTTP Request → Gin Handler → Handler.askManager/askConv → ActorRef.Ask →
 - 前端覆盖率阈值：statements `>=80%`、lines `>=80%`、functions `>=80%`、branches `>=70%`。
 - 组件层优先通过复用组件、TypeScript strict、ESLint 和 build 守门；复杂组件逻辑必须先下沉到 `hooks/chat/models/*Model.ts` 或 `hooks/chat/models/*ViewModel.ts` 再补单测。
 
+### 本地 CI
+
+- 提交或推送前优先运行 `./scripts/local-ci.sh`，它按远程 CI 的主要检查执行后端 `go test`、增量 per-file 覆盖率、`go build ./...`，以及前端 `npm ci`、lint、unit test、coverage、build。
+- `./scripts/local-ci.sh` 默认使用 `HEAD~1..HEAD` 作为后端增量覆盖率比较范围；需要模拟 PR 或指定基线时，用 `CI_BASE=origin/main ./scripts/local-ci.sh` 或 `CI_BASE=<commit> ./scripts/local-ci.sh`。
+
 ## 前端架构原则
 
 ### 目标

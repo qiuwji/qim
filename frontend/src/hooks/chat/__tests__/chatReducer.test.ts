@@ -100,6 +100,19 @@ describe('chatReducer', () => {
     expect(state.conversations[0].unread_count).toBe(1);
   });
 
+  it('同账号其他设备发出的消息不增加未读', () => {
+    const state = chatReducer({ ...createInitialChatState(me), conversations: [conv(1, { unread_count: 2 })] }, {
+      type: 'incomingMessage',
+      message: message(1, 1, { sender_id: 1 }),
+      selectedID: null,
+      currentUID: 1,
+    });
+
+    expect(state.messages[1]).toEqual([message(1, 1, { sender_id: 1 })]);
+    expect(state.lastMsgMap[1]).toBe('message-1');
+    expect(state.conversations[0].unread_count).toBe(2);
+  });
+
   it('加载消息时过滤本地删除、合并分页并维护 hasMore 和预览', () => {
     const firstPage = chatReducer(createInitialChatState(me), {
       type: 'messagesLoaded',
