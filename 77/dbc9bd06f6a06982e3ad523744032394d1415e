@@ -1,0 +1,29 @@
+frontend/src/App.tsx
+  cf1872c6ca43adca 121
+frontend/src/components/UserProfilePage.tsx
+  cf1872c6ca43adca 5,9,62-64
+frontend/src/components/RightPane.tsx
+  cf1872c6ca43adca 41,61,120
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "77dbc9bd06f6a06982e3ad523744032394d1415e",
+  "prompts": {
+    "cf1872c6ca43adca": {
+      "agent_id": {
+        "tool": "trae",
+        "id": "6a08b677d1921616a88b080f",
+        "model": "DeepSeek-V4-Pro__dev"
+      },
+      "human_author": "qiuji.322@BYTEDANCE.COM <qiuji.322@BYTEDANCE.COM@bytedance.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 9,
+      "overriden_lines": 0
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
