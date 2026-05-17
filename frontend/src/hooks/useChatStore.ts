@@ -286,7 +286,7 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
   async function viewUserProfile(uid: number) {
     try {
       const u = userCache[uid] ?? (await api.getUser(uid));
-      if (u) { setUserCache((p) => ({ ...p, [uid]: u })); setViewingUser(u); setSelectedID(null); selectedIDRef.current = null; setMobilePane('chat'); }
+      if (u) { setUserCache((p) => ({ ...p, [uid]: u })); setViewingUser(u); setViewingFriendRequests(false); setViewingGroupManage(false); setSelectedID(null); selectedIDRef.current = null; setMobilePane('chat'); }
     } catch { setNotice({ kind: 'error', text: '获取用户信息失败' }); }
   }
 

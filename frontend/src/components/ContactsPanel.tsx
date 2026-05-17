@@ -78,7 +78,7 @@ export function ContactsPanel({ currentUID, keyword, setKeyword, onSearch, resul
     const fu = userFor(item.friend_uid);
     const dn = item.remark || fu?.nickname || fu?.username || `用户 ${item.friend_uid}`;
     return (
-      <div className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-inherit transition hover:bg-[#e8e8e8]" key={item.id} onClick={() => onViewUser?.(item.friend_uid)} onContextMenu={(e) => { e.preventDefault(); setFriendCtx({ x: e.clientX, y: e.clientY, friend: item }); }}>
+      <div className="flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-left text-inherit transition hover:bg-[#e8e8e8]" key={item.id} onClick={() => onViewUser?.(item.friend_uid)} onContextMenu={(e) => { e.preventDefault(); setFriendCtx({ x: e.clientX, y: e.clientY, friend: item }); }}>
         <Avatar user={fu} small online={onlineMap[item.friend_uid] ?? false} />
         <div className="min-w-0 flex-1">
           <div className="truncate text-sm font-medium text-[#1a1a1a]">{dn}</div>
