@@ -1,9 +1,10 @@
-import type { ConversationDTO, FriendDTO, MemberDTO, UserConvDTO } from '../api/types';
+import type { ConversationDTO, FriendDTO, MemberDTO, MessageDTO, UserConvDTO } from '../api/types';
 import { chatTitle, displayName, shortName } from '../utils';
 
-export function ChatDetailPanel({ chat, detail, members, currentUID, userCache, friendMap, onRenameGroup, onInviteMember, onRemoveMember, onLeaveGroup, onDissolveGroup, onTogglePin, onToggleMute, onSetMemberRole, onTransferOwner, onUploadGroupAvatar, onSetMemberLimit, onViewUser, onClose }: {
+export function ChatDetailPanel({ chat, detail, members, currentUID, userCache, friendMap, chatSearch, chatSearchResult, onChatSearch, onChatSearchChange, onJumpToMessage, onRenameGroup, onInviteMember, onRemoveMember, onLeaveGroup, onDissolveGroup, onTogglePin, onToggleMute, onSetMemberRole, onTransferOwner, onUploadGroupAvatar, onSetMemberLimit, onViewUser, onClose }: {
   chat: UserConvDTO | null; detail?: ConversationDTO; members: MemberDTO[]; currentUID: number; userCache: Record<number, import('../api/types').UserDTO>; friendMap?: Record<number, FriendDTO>;
-  onRenameGroup: () => void; onInviteMember: () => void; onRemoveMember: (uid: number) => void; onLeaveGroup: () => void; onDissolveGroup: () => void; onTogglePin: () => void; onToggleMute: () => void;
+  chatSearch: string; chatSearchResult: MessageDTO[]; onChatSearch: () => void; onChatSearchChange: (v: string) => void; onJumpToMessage: (id: number) => void;
+  onRenameGroup: () => void; onInviteMember: () => void; onRemoveMember: (uid: number) => void; onLeaveGroup: () => void; onDissolveGroup: () => void; onTogglePin: (convID: number) => void; onToggleMute: (convID: number) => void;
   onSetMemberRole: (uid: number, role: number) => void; onTransferOwner: (uid: number) => void; onUploadGroupAvatar: (file: File) => void; onSetMemberLimit: () => void; onViewUser?: (uid: number) => void; onClose: () => void;
 }) {
   if (!chat) return (
@@ -26,9 +27,22 @@ export function ChatDetailPanel({ chat, detail, members, currentUID, userCache, 
         <span>{isGroup ? `${members.length} 位成员` : '私聊'}</span>
         {isAdmin && <label className="upload-btn small">上传群头像<input type="file" accept="image/*" hidden onChange={(e) => e.target.files?.[0] && onUploadGroupAvatar(e.target.files[0])} /></label>}
         <div className="switch-list">
-          <label><span>置顶聊天</span><button className={`switch-btn ${chat.is_pinned ? 'on' : ''}`} onClick={onTogglePin}></button></label>
-          <label><span>消息免打扰</span><button className={`switch-btn ${chat.is_muted ? 'on' : ''}`} onClick={onToggleMute}></button></label>
+          <div className="switch-row"><span>置顶聊天</span><button type="button" className={`switch-btn ${chat.is_pinned ? 'on' : ''}`} onClick={() => onTogglePin(chat.conversation_id)} aria-label="置顶聊天"></button></div>
+          <div className="switch-row"><span>消息免打扰</span><button type="button" className={`switch-btn ${chat.is_muted ? 'on' : ''}`} onClick={() => onToggleMute(chat.conversation_id)} aria-label="消息免打扰"></button></div>
         </div>
+      </div>
+      <div className="detail-card">
+        <div className="card-title"><strong>搜索聊天记录</strong></div>
+        <div className="detail-search-bar">
+          <input value={chatSearch} onChange={(e) => onChatSearchChange(e.target.value)} placeholder="输入关键词" onKeyDown={(e) => e.key === 'Enter' && onChatSearch()} />
+          <button type="button" onClick={onChatSearch}>搜索</button>
+        </div>
+        {chatSearchResult.length > 0 && <div className="detail-search-results">{chatSearchResult.map((m) => (
+          <button key={m.id} type="button" className="detail-search-result" onClick={() => onJumpToMessage(m.id)}>
+            <strong>{displayName(m.sender_id, userCache, friendMap)}</strong>
+            <span>{m.content.slice(0, 60)}</span>
+          </button>
+        ))}</div>}
       </div>
       <div className="detail-card">
         <div className="card-title"><strong>{isGroup ? '群成员' : '聊天成员'}</strong>{isAdmin && <button onClick={onInviteMember}>添加</button>}</div>

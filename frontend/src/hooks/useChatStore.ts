@@ -64,7 +64,6 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
   const [replyTo, setReplyTo] = useState<MessageDTO | null>(null);
   const [chatSearch, setChatSearch] = useState('');
   const [chatSearchResult, setChatSearchResult] = useState<MessageDTO[]>([]);
-  const [showChatSearch, setShowChatSearch] = useState(false);
   const [notice, setNotice] = useState<Notice>(null);
   const [viewingUser, setViewingUser] = useState<UserDTO | null>(null);
   const [hoverCard, setHoverCard] = useState<{ user: UserDTO; rect: DOMRect } | null>(null);
@@ -610,7 +609,7 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
   function selectChat(id: number) {
     if (selectedID === id) { setSelectedID(null); selectedIDRef.current = null; setDetailOpen(false); setMobilePane('list'); }
     else { openConversation(id); }
-    setReplyTo(null); setShowChatSearch(false); setChatSearchResult([]);
+    setReplyTo(null); setChatSearchResult([]);
   }
 
   async function viewUserProfile(uid: number) {
@@ -634,7 +633,7 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
     requests, outgoingReqs, members, searchKeyword, setSearchKeyword, searchResult,
     typing, loading, detailOpen, setDetailOpen, modal, setModal, contextMenu,
     setContextMenu, replyTo, setReplyTo, chatSearch, setChatSearch, chatSearchResult, setChatSearchResult,
-    showChatSearch, setShowChatSearch, notice, setNotice, unreadTotal,
+    notice, setNotice, unreadTotal,
     viewingUser, setViewingUser, hoverCard, setHoverCard, onlineMap,
     refreshBase, loadMessages, loadChatMembers, sendText, sendImage, searchUsers,
     startPrivate, createGroup, addFriendByUsername, handleRequest, uploadAvatar, togglePin, toggleMute,

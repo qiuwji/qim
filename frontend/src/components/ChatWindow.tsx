@@ -6,9 +6,9 @@ import { MessageBubble } from './MessageBubble';
 
 const TYPING_THROTTLE = 5000;
 
-export function ChatWindow({ user, conversation, detail, title, subtitle, messages, hasMore, typingText, memberCount, members, userCache, friendMap, detailOpen, replyTo, showChatSearch, chatSearch, chatSearchResult, onBack, onSend, onSendImage, onTyping, onToggleDetail, onContextMenu, onReply, onLoadMore, onChatSearch, onChatSearchChange, onToggleChatSearch, onJumpToMessage, onAvatarEnter, onAvatarLeave, onAvatarClick }: {
-  user: UserDTO; conversation: UserConvDTO | null; detail?: ConversationDTO; title: string; subtitle: string; messages: MessageDTO[]; hasMore: boolean; typingText?: string; memberCount?: number; members: MemberDTO[]; userCache: Record<number, UserDTO>; friendMap?: Record<number, FriendDTO>; detailOpen: boolean; replyTo: MessageDTO | null; showChatSearch: boolean; chatSearch: string; chatSearchResult: MessageDTO[];
-  onBack: () => void; onSend: (text: string) => Promise<void>; onSendImage: (file: File) => void; onTyping: () => void; onToggleDetail: () => void; onContextMenu: (e: React.MouseEvent, m: MessageDTO) => void; onReply: (m: MessageDTO | null) => void; onLoadMore: () => void | Promise<void>; onChatSearch: () => void; onChatSearchChange: (v: string) => void; onToggleChatSearch: () => void; onJumpToMessage: (id: number) => void;
+export function ChatWindow({ user, conversation, detail, title, subtitle, messages, hasMore, typingText, memberCount, members, userCache, friendMap, detailOpen, replyTo, onBack, onSend, onSendImage, onTyping, onToggleDetail, onContextMenu, onReply, onLoadMore, onAvatarEnter, onAvatarLeave, onAvatarClick }: {
+  user: UserDTO; conversation: UserConvDTO | null; detail?: ConversationDTO; title: string; subtitle: string; messages: MessageDTO[]; hasMore: boolean; typingText?: string; memberCount?: number; members: MemberDTO[]; userCache: Record<number, UserDTO>; friendMap?: Record<number, FriendDTO>; detailOpen: boolean; replyTo: MessageDTO | null;
+  onBack: () => void; onSend: (text: string) => Promise<void>; onSendImage: (file: File) => void; onTyping: () => void; onToggleDetail: () => void; onContextMenu: (e: React.MouseEvent, m: MessageDTO) => void; onReply: (m: MessageDTO | null) => void; onLoadMore: () => void | Promise<void>;
   onAvatarEnter?: (uid: number, e: React.MouseEvent) => void;
   onAvatarLeave?: (e: React.MouseEvent) => void;
   onAvatarClick?: (uid: number) => void;
@@ -123,12 +123,9 @@ export function ChatWindow({ user, conversation, detail, title, subtitle, messag
           <span>{subtitle}</span>
         </div>
         {conversation && <div className="chat-actions">
-          <button className="icon-btn-sm" onClick={onToggleChatSearch} title="搜索">🔍</button>
           <button className={`detail-toggle ${detailOpen ? 'active' : ''}`} onClick={onToggleDetail} title="设置">···</button>
         </div>}
       </header>
-      {showChatSearch && <div className="chat-search-bar"><input value={chatSearch} onChange={(e) => onChatSearchChange(e.target.value)} placeholder="搜索聊天记录" onKeyDown={(e) => e.key === 'Enter' && onChatSearch()} /><button onClick={onChatSearch}>搜索</button></div>}
-      {showChatSearch && chatSearchResult.length > 0 && <div className="search-results">{chatSearchResult.map((m) => (<div key={m.id} className="search-result-item" onClick={() => onJumpToMessage(m.id)}><strong>{displayName(m.sender_id, userCache, friendMap)}</strong><span>{m.content.slice(0, 60)}</span></div>))}</div>}
       <div className="message-area" ref={areaRef} onScroll={handleAreaScroll}>
         {!conversation && <EmptyState title="欢迎使用 QIM" text="左侧选择聊天，或从通讯录里发起新的聊天。" />}
         {conversation && !messages.length && <EmptyState title="还没有消息" text="发送第一条消息，开始这段对话。" />}
