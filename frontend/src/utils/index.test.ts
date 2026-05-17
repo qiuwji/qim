@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { timeText } from './index';
 
-function seconds(date: string) {
-  return Math.floor(new Date(date).getTime() / 1000);
+function seconds(year: number, month: number, day: number, hour: number, minute: number) {
+  return Math.floor(new Date(year, month - 1, day, hour, minute).getTime() / 1000);
 }
 
 describe('timeText', () => {
@@ -12,13 +12,13 @@ describe('timeText', () => {
 
   it('按聊天时间规则展示 24 小时时间', () => {
     vi.useFakeTimers();
-    vi.setSystemTime(new Date('2026-05-17T13:05:00+08:00'));
+    vi.setSystemTime(new Date(2026, 4, 17, 13, 5));
 
-    expect(timeText(seconds('2026-05-17T09:08:00+08:00'))).toBe('09:08');
-    expect(timeText(seconds('2026-05-16T23:59:00+08:00'))).toBe('昨天 23:59');
-    expect(timeText(seconds('2026-05-15T00:01:00+08:00'))).toBe('前天 00:01');
-    expect(timeText(seconds('2026-05-14T18:30:00+08:00'))).toBe('周四 18:30');
-    expect(timeText(seconds('2026-05-10T12:00:00+08:00'))).toBe('2026/05/10 12:00');
+    expect(timeText(seconds(2026, 5, 17, 9, 8))).toBe('09:08');
+    expect(timeText(seconds(2026, 5, 16, 23, 59))).toBe('昨天 23:59');
+    expect(timeText(seconds(2026, 5, 15, 0, 1))).toBe('前天 00:01');
+    expect(timeText(seconds(2026, 5, 14, 18, 30))).toBe('周四 18:30');
+    expect(timeText(seconds(2026, 5, 10, 12, 0))).toBe('2026/05/10 12:00');
   });
 
   it('空时间返回空字符串', () => {
