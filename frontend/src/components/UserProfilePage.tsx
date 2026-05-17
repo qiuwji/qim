@@ -13,7 +13,9 @@ export function UserProfilePage({ user, isFriend, isSelf, friendGroups, currentG
   return (
     <div className="flex h-full flex-col bg-[#f3f4f6]">
       <header className="flex shrink-0 items-center gap-3 border-b border-[#dfe3e8] bg-[#f9fafb] px-4 py-3">
-        <button className="rounded-lg px-3 py-1.5 text-sm text-[#1677c7] hover:bg-[#eceff3]" onClick={onBack}>返回</button>
+        <button className="back-btn" onClick={onBack}>
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
+        </button>
         <strong className="text-base font-semibold text-[#1a1a1a]">个人信息</strong>
       </header>
       <div className="flex-1 overflow-auto">
@@ -24,53 +26,27 @@ export function UserProfilePage({ user, isFriend, isSelf, friendGroups, currentG
               <div className="text-lg font-semibold text-[#1a1a1a]">{user.nickname || user.username}</div>
               <div className="mt-1 text-sm text-[#999]">账号：{user.username}</div>
             </div>
-            {user.sign && <p className="max-w-xs text-center text-sm leading-relaxed text-[#707987]">{user.sign}</p>}
-            {!user.sign && <p className="text-sm text-[#b0b5be]">这个人还没有写个性签名</p>}
           </div>
 
-          <div className="w-full overflow-hidden rounded-2xl bg-white shadow-sm">
-            <div className="flex items-center justify-between border-b border-[#f0f1f3] px-5 py-3.5">
-              <span className="text-sm text-[#858c98]">注册时间</span>
-              <span className="text-sm text-[#1a1a1a]">{user.created_at ? new Date(user.created_at * 1000).toLocaleString('zh-CN') : '-'}</span>
-            </div>
-            <div className="flex items-center justify-between px-5 py-3.5">
-              <span className="text-sm text-[#858c98]">用户 ID</span>
-              <span className="font-mono text-sm text-[#b0b5be]">{user.id}</span>
-            </div>
+          <div className="w-full rounded-2xl bg-white px-5 py-4 shadow-sm">
+            {user.sign
+              ? <p className="text-sm leading-relaxed text-[#707987]">{user.sign}</p>
+              : <p className="text-sm text-[#b0b5be]">这个人还没有写个性签名</p>
+            }
           </div>
 
           {isFriend && friendGroups && friendGroups.length > 0 && onMoveGroup && (
             <div className="w-full overflow-hidden rounded-2xl bg-white shadow-sm">
-              <div className="flex items-center justify-between border-b border-[#f0f1f3] px-5 py-3.5">
+              <button
+                className="flex w-full items-center justify-between px-5 py-3.5 text-left transition hover:bg-[#f6f8fa]"
+                onClick={() => setShowGroupPicker(true)}
+              >
                 <span className="text-sm text-[#858c98]">好友分组</span>
-                <button
-                  className="flex items-center gap-1 text-sm text-[#1677c7] hover:opacity-80"
-                  onClick={() => setShowGroupPicker(!showGroupPicker)}
-                >
-                  <span>{currentGroup?.name || '默认分组'}</span>
-                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                    <polyline points="6 9 12 15 18 9" />
-                  </svg>
-                </button>
-              </div>
-              {showGroupPicker && (
-                <div className="divide-y divide-[#f0f1f3]">
-                  {friendGroups.map((g) => (
-                    <button
-                      key={g.id}
-                      className={`flex w-full items-center justify-between px-5 py-3 text-left text-sm transition hover:bg-[#f6f8fa] ${g.id === currentGroupId ? 'text-[#07c160]' : 'text-[#1a1a1a]'}`}
-                      onClick={() => { onMoveGroup(user.id, g.id); setShowGroupPicker(false); }}
-                    >
-                      <span>{g.name || '默认分组'}</span>
-                      {g.id === currentGroupId && (
-                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              )}
+                <span className="flex items-center gap-1 text-sm text-[#1677c7]">
+                  {currentGroup?.name || '默认分组'}
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="9 18 15 12 9 6" /></svg>
+                </span>
+              </button>
             </div>
           )}
 
@@ -84,6 +60,33 @@ export function UserProfilePage({ user, isFriend, isSelf, friendGroups, currentG
           </div>
         </div>
       </div>
+
+      {showGroupPicker && isFriend && friendGroups && onMoveGroup && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/35 sm:items-center" onClick={() => setShowGroupPicker(false)}>
+          <div className="w-full max-w-sm rounded-t-2xl bg-white shadow-xl sm:rounded-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-[#f0f1f3] px-5 py-3.5">
+              <strong className="text-base font-semibold text-[#1a1a1a]">选择分组</strong>
+              <button className="grid h-7 w-7 place-items-center rounded-md text-[#b0b5be] hover:bg-[#f0f1f3]" onClick={() => setShowGroupPicker(false)}>
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+              </button>
+            </div>
+            <div className="max-h-64 overflow-auto">
+              {friendGroups.map((g) => (
+                <button
+                  key={g.id}
+                  className={`flex w-full items-center justify-between px-5 py-3.5 text-left text-sm transition hover:bg-[#f6f8fa] ${g.id === currentGroupId ? 'text-[#07c160]' : 'text-[#1a1a1a]'}`}
+                  onClick={() => { onMoveGroup(user.id, g.id); setShowGroupPicker(false); }}
+                >
+                  <span>{g.name || '默认分组'}</span>
+                  {g.id === currentGroupId && (
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

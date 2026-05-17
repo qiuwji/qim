@@ -197,10 +197,13 @@ input {
 .detail-toggle.active { background: #dcefff; color: #1677c7; }
 .back-btn {
   display: none;
-  padding: 7px 10px;
-  border-radius: 7px;
-  color: #1677c7;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 8px;
+  color: #555f6d;
   background: #eceff3;
+  place-items: center;
 }
 .back-btn:hover { background: #e0e4ea; }
 .message-area {

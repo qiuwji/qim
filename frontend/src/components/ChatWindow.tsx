@@ -116,26 +116,24 @@ export function ChatWindow({ user, conversation, detail, title, subtitle, messag
 
   return (
     <div className="chat-window">
-      <header className="chat-header">
-        <button className="back-btn" onClick={onBack}>返回</button>
+      {conversation && <header className="chat-header">
+        <button className="back-btn" onClick={onBack}>
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
+        </button>
         <div className="chat-title">
           <strong>{title}</strong>
           <span>{subtitle}</span>
         </div>
-        {conversation && <div className="chat-actions">
-          <button className={`detail-toggle ${detailOpen ? 'active' : ''}`} onClick={onToggleDetail} title="设置">···</button>
-        </div>}
-      </header>
+        <div className="chat-actions">
+          <button className={`detail-toggle ${detailOpen ? 'active' : ''}`} onClick={(e) => { e.stopPropagation(); onToggleDetail(); }} title="设置">···</button>
+        </div>
+      </header>}
       <div className="message-area" ref={areaRef} onScroll={handleAreaScroll}>
         {!conversation && (
-          <div className="flex flex-1 flex-col items-center justify-center gap-4 text-[#c9ced6]">
-            <svg viewBox="0 0 24 24" width="72" height="72" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+          <div className="flex h-full items-center justify-center">
+            <svg viewBox="0 0 24 24" width="64" height="64" fill="none" stroke="#c9ced6" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
             </svg>
-            <div className="text-center">
-              <div className="text-lg font-semibold text-[#b0b5be]">QIM</div>
-              <div className="mt-1 text-sm text-[#c9ced6]">选择聊天开始对话</div>
-            </div>
           </div>
         )}
         {conversation && !messages.length && <EmptyState title="还没有消息" text="发送第一条消息，开始这段对话。" />}
@@ -160,8 +158,8 @@ export function ChatWindow({ user, conversation, detail, title, subtitle, messag
         <div ref={bottomRef} />
       </div>
       {replyMsg && <div className="reply-bar"><span>回复: {replyMsg.content.slice(0, 40)}{replyMsg.content.length > 40 ? '...' : ''}</span><button onClick={() => onReply(null)}>✕</button></div>}
-      <form className="composer" onSubmit={submit}>
-        <textarea value={draft} disabled={!conversation} onChange={handleDraftChange} onKeyDown={handleKeyDown} placeholder={conversation ? '输入消息，Enter 发送，Shift+Enter 换行' : '请选择聊天'} rows={1} />
+      {conversation && <form className="composer" onSubmit={submit}>
+        <textarea value={draft} onChange={handleDraftChange} onKeyDown={handleKeyDown} placeholder="输入消息，Enter 发送，Shift+Enter 换行" rows={1} />
         <div className="composer-bottom">
           <div className="composer-toolbar">
             <button type="button" onClick={() => imageRef.current?.click()} title="图片">
@@ -178,7 +176,7 @@ export function ChatWindow({ user, conversation, detail, title, subtitle, messag
           <button className="primary-btn" disabled={!conversation || !draft.trim()}>发送</button>
         </div>
         {showEmoji && <EmojiPicker onSelect={(emoji: string) => { setDraft((d) => d + emoji); setShowEmoji(false); }} onClose={() => setShowEmoji(false)} />}
-      </form>
+      </form>}
     </div>
   );
 }

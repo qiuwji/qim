@@ -3,7 +3,7 @@ import type { FriendRequestDTO, UserDTO } from '@/api/types';
 import { Avatar } from '@/components/ui';
 
 const STATUS_LABELS: Record<number, string> = { 0: '待处理', 1: '已同意', 2: '已拒绝' };
-const STATUS_COLORS: Record<number, string> = { 0: 'text-[#e6a23c]', 1: 'text-[#07c160]', 2: 'text-[#e04344]' };
+const STATUS_COLORS: Record<number, string> = { 0: 'bg-[#fdf6ec] text-[#e6a23c]', 1: 'bg-[#e8f8ef] text-[#07c160]', 2: 'bg-[#fef0f0] text-[#e04344]' };
 
 export function FriendRequestsView({ currentUID, incoming, outgoing, userCache, onBack, onHandleRequest, onViewUser }: {
   currentUID: number; incoming: FriendRequestDTO[]; outgoing: FriendRequestDTO[]; userCache: Record<number, UserDTO>;
@@ -24,7 +24,9 @@ export function FriendRequestsView({ currentUID, incoming, outgoing, userCache, 
   return (
     <div className="flex h-full flex-col bg-[#f3f4f6]">
       <header className="flex shrink-0 items-center gap-3 border-b border-[#dfe3e8] bg-[#f9fafb] px-4 py-3">
-        <button className="rounded-lg px-3 py-1.5 text-sm text-[#1677c7] hover:bg-[#eceff3]" onClick={onBack}>返回</button>
+        <button className="back-btn" onClick={onBack}>
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
+        </button>
         <div>
           <strong className="text-base font-semibold text-[#1a1a1a]">新的朋友</strong>
           <div className="text-xs text-[#999]">好友申请记录</div>
@@ -46,15 +48,13 @@ export function FriendRequestsView({ currentUID, incoming, outgoing, userCache, 
                 <Avatar user={u} small />
               </div>
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="truncate text-sm font-medium text-[#1a1a1a]">{u.nickname || u.username || `用户 ${uid}`}</span>
-                  <span className={`shrink-0 text-xs ${STATUS_COLORS[req.status] || 'text-[#999]'}`}>{STATUS_LABELS[req.status] || '未知'}</span>
-                </div>
+                <div className="truncate text-sm font-medium text-[#1a1a1a]">{u.nickname || u.username || `用户 ${uid}`}</div>
                 <div className="truncate text-xs text-[#999]">
                   {type === 'incoming' ? (req.message || '请求添加你为好友') : '你发送了好友申请'}
                   <span className="ml-2 text-[#b0b5be]">{new Date(req.created_at * 1000).toLocaleDateString('zh-CN')}</span>
                 </div>
               </div>
+              <span className={`shrink-0 rounded-md px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[req.status] || 'bg-[#f0f1f3] text-[#999]'}`}>{STATUS_LABELS[req.status] || '未知'}</span>
               {isPending && type === 'incoming' && (
                 <div className="flex shrink-0 gap-1.5">
                   <button className="rounded-md bg-[rgba(7,193,96,0.08)] px-3 py-1.5 text-xs font-medium text-[#07c160] hover:bg-[rgba(7,193,96,0.16)]" onClick={() => onHandleRequest(req.id, 'accept')}>同意</button>

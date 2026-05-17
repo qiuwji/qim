@@ -69,6 +69,7 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
   const [notice, setNotice] = useState<Notice>(null);
   const [viewingUser, setViewingUser] = useState<UserDTO | null>(null);
   const [viewingFriendRequests, setViewingFriendRequests] = useState(false);
+  const [viewingGroupManage, setViewingGroupManage] = useState(false);
   const [hoverCard, setHoverCard] = useState<{ user: UserDTO; rect: DOMRect } | null>(null);
   const [onlineMap, setOnlineMap] = useState<Record<number, boolean>>({});
   const [allIncomingReqs, setAllIncomingReqs] = useState<FriendRequestDTO[]>([]);
@@ -104,6 +105,8 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
     setSelectedID(cid);
     selectedIDRef.current = cid;
     setViewingUser(null);
+    setViewingFriendRequests(false);
+    setViewingGroupManage(false);
     setDetailOpen(false);
     setTab('chats');
     setMobilePane('chat');
@@ -261,6 +264,11 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
   useEffect(() => { if (!selectedID) return; void loadMessages(selectedID); void loadChatMembers(selectedID); }, [selectedID]);
   useEffect(() => { if (!selectedID) return; const t = window.setInterval(() => void loadChatMembers(selectedID, true), 5000); return () => window.clearInterval(t); }, [selectedID]);
   useEffect(() => { if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission(); }, []);
+  useEffect(() => {
+    if (!notice) return;
+    const t = setTimeout(() => setNotice(null), 3000);
+    return () => clearTimeout(t);
+  }, [notice]);
 
   async function searchUsers(kw?: string) {
     const q = (kw ?? searchKeyword).trim();
@@ -278,13 +286,25 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
   async function viewUserProfile(uid: number) {
     try {
       const u = userCache[uid] ?? (await api.getUser(uid));
-      if (u) { setUserCache((p) => ({ ...p, [uid]: u })); setViewingUser(u); setMobilePane('chat'); }
+      if (u) { setUserCache((p) => ({ ...p, [uid]: u })); setViewingUser(u); setSelectedID(null); selectedIDRef.current = null; setMobilePane('chat'); }
     } catch { setNotice({ kind: 'error', text: '获取用户信息失败' }); }
   }
 
   function viewFriendRequests() {
     setViewingFriendRequests(true);
     setViewingUser(null);
+    setViewingGroupManage(false);
+    setSelectedID(null);
+    selectedIDRef.current = null;
+    setMobilePane('chat');
+  }
+
+  function viewGroupManage() {
+    setViewingGroupManage(true);
+    setViewingUser(null);
+    setViewingFriendRequests(false);
+    setSelectedID(null);
+    selectedIDRef.current = null;
     setMobilePane('chat');
   }
 
@@ -321,9 +341,9 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
     typing, loading, detailOpen, setDetailOpen, modal, setModal, contextMenu,
     setContextMenu, replyTo, setReplyTo, chatSearch, setChatSearch, chatSearchResult, setChatSearchResult,
     notice, setNotice, unreadTotal,
-    viewingUser, setViewingUser, viewingFriendRequests, setViewingFriendRequests, hoverCard, setHoverCard, onlineMap,
+    viewingUser, setViewingUser, viewingFriendRequests, setViewingFriendRequests, viewingGroupManage, setViewingGroupManage, hoverCard, setHoverCard, onlineMap,
     refreshBase, loadMessages, loadChatMembers,
-    searchUsers, startPrivate, viewUserProfile, viewFriendRequests, showHoverCard,
+    searchUsers, startPrivate, viewUserProfile, viewFriendRequests, viewGroupManage, showHoverCard,
     ...msgActions, ...convActions, ...friendActions, ...groupActions, ...profileActions,
     wsRef,
   };
