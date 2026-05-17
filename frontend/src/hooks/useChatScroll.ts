@@ -6,17 +6,21 @@ const LOAD_MORE_OFFSET = 80;
 export function useChatScroll({
   conversationID,
   messagesLength,
+  latestMessageKey,
   hasMore,
   onLoadMore,
 }: {
   conversationID?: number;
   messagesLength: number;
+  latestMessageKey: string;
   hasMore: boolean;
   onLoadMore: () => void | Promise<void>;
 }) {
   const areaRef = useRef<HTMLDivElement | null>(null);
+  const contentRef = useRef<HTMLDivElement | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const prevLenRef = useRef(0);
+  const prevLatestMessageKeyRef = useRef('');
   const loadingMoreRef = useRef(false);
   const pendingInitialScrollRef = useRef(false);
   const stickToBottomRef = useRef(true);
@@ -78,21 +82,39 @@ export function useChatScroll({
         pendingInitialScrollRef.current = false;
       }
       prevLenRef.current = messagesLength;
+      prevLatestMessageKeyRef.current = latestMessageKey;
       return;
     }
     if (loadingMoreRef.current) {
       loadingMoreRef.current = false;
       prevLenRef.current = messagesLength;
+      prevLatestMessageKeyRef.current = latestMessageKey;
       return;
     }
-    if (messagesLength > prevLenRef.current && stickToBottomRef.current) {
+    const hasNewTailMessage = latestMessageKey !== prevLatestMessageKeyRef.current;
+    if ((messagesLength > prevLenRef.current || hasNewTailMessage) && stickToBottomRef.current) {
       scrollToBottom(true);
+      requestAnimationFrame(() => scrollToBottom(false));
     }
     prevLenRef.current = messagesLength;
-  }, [conversationID, messagesLength, scrollToBottom]);
+    prevLatestMessageKeyRef.current = latestMessageKey;
+  }, [conversationID, latestMessageKey, messagesLength, scrollToBottom]);
+
+  useLayoutEffect(() => {
+    const content = contentRef.current;
+    if (!content || typeof ResizeObserver === 'undefined') return undefined;
+    const observer = new ResizeObserver(() => {
+      if (stickToBottomRef.current && !loadingMoreRef.current) {
+        scrollToBottom(false);
+      }
+    });
+    observer.observe(content);
+    return () => observer.disconnect();
+  }, [scrollToBottom]);
 
   return {
     areaRef,
+    contentRef,
     bottomRef,
     captureStickToBottom,
     handleAreaScroll,

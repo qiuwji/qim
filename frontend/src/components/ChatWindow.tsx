@@ -11,9 +11,14 @@ export function ChatWindow({ user, conversation, detail: _detail, title, subtitl
   onAvatarLeave?: (e: React.MouseEvent) => void;
   onAvatarClick?: (uid: number) => void;
 }) {
-  const { areaRef, bottomRef, captureStickToBottom, handleAreaScroll } = useChatScroll({
+  const latestMessage = messages[messages.length - 1];
+  const latestMessageKey = latestMessage
+    ? `${latestMessage.id}-${latestMessage.client_id}-${latestMessage.seq}-${latestMessage.created_at}`
+    : '';
+  const { areaRef, contentRef, bottomRef, captureStickToBottom, handleAreaScroll } = useChatScroll({
     conversationID: conversation?.conversation_id,
     messagesLength: messages.length,
+    latestMessageKey,
     hasMore,
     onLoadMore,
   });
@@ -35,19 +40,21 @@ export function ChatWindow({ user, conversation, detail: _detail, title, subtitl
         </div>
       </header>}
       <div className="message-area" ref={areaRef} onScroll={handleAreaScroll}>
-        <MessageList
-          conversationActive={Boolean(conversation)}
-          messages={messages}
-          hasMore={hasMore}
-          currentUserID={user.id}
-          userCache={userCache}
-          friendMap={friendMap}
-          onContextMenu={onContextMenu}
-          onAvatarEnter={onAvatarEnter}
-          onAvatarLeave={onAvatarLeave}
-          onAvatarClick={onAvatarClick}
-        />
-        <div ref={bottomRef} />
+        <div ref={contentRef}>
+          <MessageList
+            conversationActive={Boolean(conversation)}
+            messages={messages}
+            hasMore={hasMore}
+            currentUserID={user.id}
+            userCache={userCache}
+            friendMap={friendMap}
+            onContextMenu={onContextMenu}
+            onAvatarEnter={onAvatarEnter}
+            onAvatarLeave={onAvatarLeave}
+            onAvatarClick={onAvatarClick}
+          />
+          <div ref={bottomRef} />
+        </div>
       </div>
       <MessageComposer
         disabled={!conversation}

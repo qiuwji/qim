@@ -258,6 +258,7 @@ HTTP Request → Gin Handler → Handler.askManager/askConv → ActorRef.Ask →
 - `hooks/chat/reducers/` 放 reducer 与 action/state 类型，核心聊天状态变更必须走 reducer。
 - `hooks/chat/effects/` 放生命周期 effect，例如 WebSocket 连接、ref 同步、轮询、通知自动消失。
 - `hooks/chat/__tests__/` 放聊天核心逻辑单测，测试文件按被测模块命名。
+- `hooks/__tests__/` 放 `hooks/` 根层通用 hook 单测，例如 `useChatScroll.test.ts`；不要把通用 hook 测试与生产 hook 文件平铺混放。
 - `useChatStore` 只作为状态编排层，不继续堆积新的业务分支；新增逻辑优先下沉到 `chat/models/`、`chat/actions/` 或 `chat/effects/`。
 
 ### 短期原则
@@ -270,7 +271,7 @@ HTTP Request → Gin Handler → Handler.askManager/askConv → ActorRef.Ask →
 ### 中期原则
 
 - 核心聊天状态已引入 `chatReducer`，`baseLoaded`、`hydrateChatMeta`、`hideConversation`、`openConversation`、`markConversationRead`、`incomingMessage`、`messagesLoaded`、`deleteLocalMessage` 等高风险状态变更必须继续走 reducer。
-- reducer 输入是明确 action，输出是新 state，副作用只放 `useChatStore` 或 `hooks/chat/*Actions.ts`，不得在组件中直接拼业务状态。
+- reducer 输入是明确 action，输出是新 state，副作用只放 `useChatStore` 或 `hooks/chat/actions/*Actions.ts`，不得在组件中直接拼业务状态。
 - `useChatStore` 的数据加载编排已拆到 `actions/chatDataActions.ts`，搜索/导航编排已拆到 `actions/navigationActions.ts`，生命周期副作用已拆到 `effects/useChatLifecycleEffects.ts`；后续新增 API 加载、搜索、页面切换、WebSocket/effect 逻辑不得直接塞回 store 主体。
 - 本地状态语义要明确区分：hide 是前端隐藏，不删消息；delete message 是本地删除，不影响服务端历史。
 
