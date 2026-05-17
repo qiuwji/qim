@@ -52,7 +52,8 @@ jobs:
           FAIL=0
 
           for FILE in $CHANGED; do
-            COV=$(go tool cover -func=coverage.out | grep "/$FILE:" | awk '{
+            BACKEND_FILE="${FILE#backend/}"
+            COV=$(go tool cover -func=coverage.out | grep "/$BACKEND_FILE:" | awk '{
               pct=$NF; sub(/%/,"",pct); sum+=pct; n++
             } END {
               if(n>0) printf "%.1f", sum/n; else print "N/A"
