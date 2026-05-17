@@ -1,0 +1,444 @@
+frontend/src/hooks/chat/groupActions.ts
+  cf1872c6ca43adca 1-109 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0942c0d1921616a88b0d3b","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[1,109]}]}]}
+frontend/src/hooks/chat/types.ts
+  cf1872c6ca43adca 1-63 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0942c0d1921616a88b0d3b","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[1,63]}]}]}
+frontend/src/hooks/chat/messageActions.ts
+  cf1872c6ca43adca 1-65 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0942c0d1921616a88b0d3b","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[1,65]}]}]}
+frontend/src/hooks/chat/conversationActions.ts
+  cf1872c6ca43adca 1-45 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0942c0d1921616a88b0d3b","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[1,45]}]}]}
+frontend/src/hooks/chat/friendActions.ts
+  cf1872c6ca43adca 1-92 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0942c0d1921616a88b0d3b","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[1,92]}]}]}
+frontend/src/hooks/useChatStore.ts
+  cf1872c6ca43adca 5,29-34,87-152,225,237-244,247,249-258,267-269,284-302,313-315 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0942c0d1921616a88b0d3b","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Single":5},{"Range":[29,34]},{"Range":[87,152]},{"Single":225},{"Range":[237,244]},{"Single":247},{"Range":[249,258]},{"Range":[267,269]},{"Range":[284,302]},{"Range":[313,315]}]}]}
+frontend/src/App.tsx
+  cf1872c6ca43adca 2,35,91,96,106 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0942c0d1921616a88b0d3b","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Single":2},{"Single":35},{"Single":91},{"Single":96},{"Single":106}]}]}
+frontend/src/components/EmojiPicker.tsx
+  cf1872c6ca43adca 1-24 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0942c0d1921616a88b0d3b","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[1,24]}]}]}
+frontend/src/components/ChatWindow.tsx
+  cf1872c6ca43adca 5 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0942c0d1921616a88b0d3b","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Single":5}]}]}
+frontend/src/hooks/chat/profileActions.ts
+  cf1872c6ca43adca 1-40 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0942c0d1921616a88b0d3b","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[1,40]}]}]}
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "489e3c345fb58379db6e4aa3c35bd04224359032",
+  "prompts": {
+    "cf1872c6ca43adca": {
+      "agent_id": {
+        "tool": "trae",
+        "id": "6a08b677d1921616a88b080f",
+        "model": "glm-5.1__dev"
+      },
+      "human_author": "qiuji.322@BYTEDANCE.COM <qiuji.322@BYTEDANCE.COM@bytedance.com>",
+      "messages": [],
+      "total_additions": 574,
+      "total_deletions": 502,
+      "accepted_lines": 562,
+      "overriden_lines": 0
+    }
+  },
+  "attestation_metadata": {
+    "frontend/src/App.tsx": [
+      {
+        "hash": "cf1872c6ca43adca",
+        "line_ranges": [
+          {
+            "Single": 2
+          },
+          {
+            "Single": 35
+          },
+          {
+            "Single": 91
+          },
+          {
+            "Single": 96
+          },
+          {
+            "Single": 106
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0942c0d1921616a88b0d3b",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Single": 2
+              },
+              {
+                "Single": 35
+              },
+              {
+                "Single": 91
+              },
+              {
+                "Single": 96
+              },
+              {
+                "Single": 106
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/components/ChatWindow.tsx": [
+      {
+        "hash": "cf1872c6ca43adca",
+        "line_ranges": [
+          {
+            "Single": 5
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0942c0d1921616a88b0d3b",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Single": 5
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/components/EmojiPicker.tsx": [
+      {
+        "hash": "cf1872c6ca43adca",
+        "line_ranges": [
+          {
+            "Range": [
+              1,
+              24
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0942c0d1921616a88b0d3b",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  1,
+                  24
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/hooks/chat/conversationActions.ts": [
+      {
+        "hash": "cf1872c6ca43adca",
+        "line_ranges": [
+          {
+            "Range": [
+              1,
+              45
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0942c0d1921616a88b0d3b",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  1,
+                  45
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/hooks/chat/friendActions.ts": [
+      {
+        "hash": "cf1872c6ca43adca",
+        "line_ranges": [
+          {
+            "Range": [
+              1,
+              92
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0942c0d1921616a88b0d3b",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  1,
+                  92
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/hooks/chat/groupActions.ts": [
+      {
+        "hash": "cf1872c6ca43adca",
+        "line_ranges": [
+          {
+            "Range": [
+              1,
+              109
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0942c0d1921616a88b0d3b",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  1,
+                  109
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/hooks/chat/messageActions.ts": [
+      {
+        "hash": "cf1872c6ca43adca",
+        "line_ranges": [
+          {
+            "Range": [
+              1,
+              65
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0942c0d1921616a88b0d3b",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  1,
+                  65
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/hooks/chat/profileActions.ts": [
+      {
+        "hash": "cf1872c6ca43adca",
+        "line_ranges": [
+          {
+            "Range": [
+              1,
+              40
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0942c0d1921616a88b0d3b",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  1,
+                  40
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/hooks/chat/types.ts": [
+      {
+        "hash": "cf1872c6ca43adca",
+        "line_ranges": [
+          {
+            "Range": [
+              1,
+              63
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0942c0d1921616a88b0d3b",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  1,
+                  63
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/hooks/useChatStore.ts": [
+      {
+        "hash": "cf1872c6ca43adca",
+        "line_ranges": [
+          {
+            "Single": 5
+          },
+          {
+            "Range": [
+              29,
+              34
+            ]
+          },
+          {
+            "Range": [
+              87,
+              152
+            ]
+          },
+          {
+            "Single": 225
+          },
+          {
+            "Range": [
+              237,
+              244
+            ]
+          },
+          {
+            "Single": 247
+          },
+          {
+            "Range": [
+              249,
+              258
+            ]
+          },
+          {
+            "Range": [
+              267,
+              269
+            ]
+          },
+          {
+            "Range": [
+              284,
+              302
+            ]
+          },
+          {
+            "Range": [
+              313,
+              315
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0942c0d1921616a88b0d3b",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Single": 5
+              },
+              {
+                "Range": [
+                  29,
+                  34
+                ]
+              },
+              {
+                "Range": [
+                  87,
+                  152
+                ]
+              },
+              {
+                "Single": 225
+              },
+              {
+                "Range": [
+                  237,
+                  244
+                ]
+              },
+              {
+                "Single": 247
+              },
+              {
+                "Range": [
+                  249,
+                  258
+                ]
+              },
+              {
+                "Range": [
+                  267,
+                  269
+                ]
+              },
+              {
+                "Range": [
+                  284,
+                  302
+                ]
+              },
+              {
+                "Range": [
+                  313,
+                  315
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "remote_transcripts": {
+    "cf1872c6ca43adca": {
+      "tool": "trae",
+      "conversation_id": "6a08b677d1921616a88b080f",
+      "session_id": "6a08b677d1921616a88b080f",
+      "status": "remote_only",
+      "message": "Remote transcript resolution is not implemented yet for TRAE prompts."
+    }
+  }
+}
