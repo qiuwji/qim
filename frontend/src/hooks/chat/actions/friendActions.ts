@@ -1,11 +1,10 @@
 import { api } from '@/api/http';
-import { displayName } from '@/utils';
-import type { ChatStoreDeps } from './types';
+import type { FriendRequestDTO, UserDTO } from '@/api/types';
+import type { ChatStoreDeps } from '../types';
+import { MSG_TYPE_SYSTEM, MSG_TYPE_TEXT } from '../models/messageModel';
 
 const FRIEND_ACCEPTED_SYSTEM_TEXT = '我们的好友申请已经通过了，可以继续聊天了';
 const FRIEND_ACCEPTED_DEFAULT_TEXT = '我们的好友申请通过了~';
-const MSG_TYPE_SYSTEM = 3;
-const MSG_TYPE_TEXT = 1;
 
 export function createFriendActions(d: ChatStoreDeps) {
   function addFriendByUsername() {
@@ -22,7 +21,7 @@ export function createFriendActions(d: ChatStoreDeps) {
     });
   }
 
-  async function acceptFriendRequest(req: import('../../api/types').FriendRequestDTO) {
+  async function acceptFriendRequest(req: FriendRequestDTO) {
     await api.handleFriendRequest(req.id, 'accept');
     await d.refreshBase();
     const cid = await d.ensurePrivateConversation(req.from_uid);
@@ -37,7 +36,6 @@ export function createFriendActions(d: ChatStoreDeps) {
 
   async function handleRequest(reqID: number, action: 'accept' | 'reject') {
     try {
-      const req = d.friends.length ? undefined : undefined;
       const found = (await api.incomingRequests()).find((item) => item.id === reqID);
       if (action === 'accept' && found) { await acceptFriendRequest(found); return; }
       await api.handleFriendRequest(reqID, action);
@@ -82,7 +80,7 @@ export function createFriendActions(d: ChatStoreDeps) {
     } });
   }
 
-  async function addFriendByUser(target: import('../../api/types').UserDTO) {
+  async function addFriendByUser(target: UserDTO) {
     if (target.id === d.user.id) return;
     try { await api.sendFriendRequestByUsername(target.username, '你好'); d.setNotice({ kind: 'ok', text: '好友申请已发送' }); }
     catch (err) { d.setNotice({ kind: 'error', text: err instanceof Error ? err.message : '添加好友失败' }); }

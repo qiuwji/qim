@@ -30,6 +30,7 @@ export interface UserConvDTO {
   is_muted: boolean;
   unread_count: number;
   last_msg_at: number;
+  conv?: ConversationDTO;
 }
 
 export interface ConversationDTO {

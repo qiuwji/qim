@@ -1,5 +1,5 @@
 import { api } from '@/api/http';
-import type { ChatStoreDeps } from './types';
+import type { ChatStoreDeps } from '../types';
 
 export function createConversationActions(d: ChatStoreDeps) {
   async function togglePin(convID?: number) {
@@ -35,11 +35,17 @@ export function createConversationActions(d: ChatStoreDeps) {
     catch (err) { d.setNotice({ kind: 'error', text: err instanceof Error ? err.message : '全部已读失败' }); }
   }
 
+  function hideChat(convID?: number) {
+    const id = convID ?? d.selectedID;
+    if (!id) return;
+    d.setModal({ type: 'confirm', title: '移除会话', text: '确认从聊天列表移除该会话？历史消息不会删除，收到新消息后会重新显示。', danger: true, onConfirm: () => d.hideConversation(id) });
+  }
+
   function selectChat(id: number) {
     if (d.selectedID === id) { d.setSelectedID(null); d.selectedIDRef.current = null; d.setDetailOpen(false); d.setMobilePane('list'); }
     else { d.openConversation(id); }
     d.setReplyTo(null); d.setChatSearchResult([]);
   }
 
-  return { togglePin, toggleMute, markAllRead, selectChat };
+  return { togglePin, toggleMute, markAllRead, hideChat, selectChat };
 }

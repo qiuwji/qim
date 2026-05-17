@@ -81,8 +81,37 @@ jobs:
           echo ""
           echo "All changed files meet 80% coverage threshold."
 
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Coverage gate
+        run: npm run test:coverage
+
+      - name: Build
+        run: npm run build
+
   deploy:
-    needs: test
+    needs: [test, frontend]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
@@ -107,7 +136,7 @@ jobs:
         run: |
           cd frontend
           npm ci
-          npm run build
+          npm run check
 
       - name: Deploy and build on server
         uses: appleboy/ssh-action@v1.0.3

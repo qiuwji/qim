@@ -46,12 +46,32 @@ func (a *ManagerActor) handleListUserConversations(ctx actor.Context, msg ListUs
 
 	result := make([]UserConvDTO, 0, len(ucs))
 	for _, uc := range ucs {
+		conv, err := a.store.GetConversation(uc.ConversationID)
+		if err != nil {
+			continue
+		}
+		members, err := a.store.GetMembers(uc.ConversationID)
+		if err != nil {
+			ctx.Reply(Result{Err: err})
+			return
+		}
 		result = append(result, UserConvDTO{
 			ConversationID: uc.ConversationID,
 			IsPinned:       uc.IsPinned,
 			IsMuted:        uc.IsMuted,
 			UnreadCount:    uc.UnreadCount,
 			LastMsgAt:      uc.LastMsgAt,
+			Conv: &ConversationDTO{
+				ID:          conv.ID,
+				Type:        store.ConvType(conv.Type),
+				Name:        conv.Name,
+				Avatar:      conv.Avatar,
+				OwnerID:     conv.OwnerID,
+				MemberCount: len(members),
+				MemberLimit: conv.MemberLimit,
+				MaxSeq:      conv.MaxSeq,
+				CreatedAt:   conv.CreatedAt,
+			},
 		})
 	}
 	ctx.Reply(Result{Data: result})

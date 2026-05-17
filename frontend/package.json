@@ -6,7 +6,11 @@
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "tsc --noEmit && vite build",
-    "preview": "vite preview --host 0.0.0.0"
+    "preview": "vite preview --host 0.0.0.0",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint .",
+    "check": "npm run lint && npm test && npm run test:coverage && npm run build"
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",
@@ -16,10 +20,17 @@
     "vite": "latest"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@tailwindcss/vite": "^4.3.0",
     "@types/node": "^25.8.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "tailwindcss": "^4.3.0"
+    "@vitest/coverage-v8": "^4.1.6",
+    "eslint": "^10.4.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.6.0",
+    "tailwindcss": "^4.3.0",
+    "typescript-eslint": "^8.59.3",
+    "vitest": "^4.1.6"
   }
 }

@@ -3,6 +3,7 @@ import type { MessageDTO, UserConvDTO } from '@/api/types';
 export const MESSAGE_PAGE_SIZE = 20;
 export const REVOKED_MESSAGE_PREVIEW = '消息已撤回';
 export const MSG_TYPE_TEXT = 1;
+export const MSG_TYPE_LEGACY_SYSTEM = 3;
 export const MSG_TYPE_SYSTEM = 5;
 
 export type PreviewUpdate =
@@ -43,6 +44,10 @@ export function messagePreviewText(msg: MessageDTO | undefined): string | undefi
   if (!msg) return undefined;
   if (msg.revoked) return REVOKED_MESSAGE_PREVIEW;
   return msg.content || undefined;
+}
+
+export function isSystemMessage(msg: MessageDTO): boolean {
+  return msg.msg_type === MSG_TYPE_SYSTEM || msg.msg_type === MSG_TYPE_LEGACY_SYSTEM;
 }
 
 export function isMessageLocallyDeleted(msg: MessageDTO, deletedIDs: Set<number>): boolean {

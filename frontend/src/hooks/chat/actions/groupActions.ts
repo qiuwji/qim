@@ -1,6 +1,7 @@
 import { api } from '@/api/http';
-import { displayName } from '@/utils';
-import type { ChatStoreDeps } from './types';
+import { currentSecond, displayName } from '@/utils';
+import type { ChatStoreDeps } from '../types';
+import { MSG_TYPE_SYSTEM } from '../models/messageModel';
 
 export function createGroupActions(d: ChatStoreDeps) {
   function createGroup() {
@@ -59,8 +60,14 @@ export function createGroupActions(d: ChatStoreDeps) {
 
   function dissolveCurrentGroup() {
     if (!d.selectedID) return;
+    const id = d.selectedID;
     d.setModal({ type: 'confirm', title: '解散群聊', text: '确认解散这个群聊？该操作不可恢复。', danger: true, onConfirm: async () => {
-      try { await api.dissolveGroup(d.selectedID!); d.setConversations((p) => p.filter((i) => i.conversation_id !== d.selectedID)); d.setSelectedID(null); d.setDetailOpen(false); d.setMobilePane('list'); }
+      try {
+        await api.dissolveGroup(id);
+        const now = Date.now();
+        d.applyIncomingMessage({ id: now, conversation_id: id, seq: Number.MAX_SAFE_INTEGER, sender_id: d.user.id, msg_type: MSG_TYPE_SYSTEM, content: '群聊已解散', reply_to: 0, client_id: `system-dissolve-${id}-${now}`, created_at: currentSecond() });
+        d.setNotice({ kind: 'info', text: '群聊已解散' });
+      }
       catch (err) { d.setNotice({ kind: 'error', text: err instanceof Error ? err.message : '解散群聊失败' }); }
     } });
   }

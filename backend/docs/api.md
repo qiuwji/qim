@@ -232,7 +232,18 @@ ws://host/ws?token=<token>
   "is_pinned": false,
   "is_muted": false,
   "unread_count": 3,
-  "last_msg_at": 1710000000
+  "last_msg_at": 1710000000,
+  "conv": {
+    "id": 1,
+    "type": 2,
+    "name": "group",
+    "avatar": "",
+    "owner_id": 1,
+    "member_count": 3,
+    "member_limit": 500,
+    "max_seq": 10,
+    "created_at": 1710000000
+  }
 }
 ```
 
@@ -254,7 +265,8 @@ ws://host/ws?token=<token>
 
 说明：
 
-- 当前后端不提供“删除会话”接口。前端删除会话属于前端本地视图语义，后端只保留“解散群聊”。
+- `conv` 为会话元信息，前端应优先使用 `conv.type` 区分 `private/group`，不要通过成员数量推断会话类型。
+- 当前后端不提供“删除会话”接口。前端“从聊天列表移除”属于本地隐藏视图语义，不删除后端消息；收到该会话新消息后可重新显示。
 - `type`: `1=private`，`2=group`。
 - 登录后未读同步建议复用会话列表摘要；后续可在 WS 建连后主动推 `sync.conversations`。
 

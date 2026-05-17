@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import type { FriendDTO, UserDTO } from '@/api/types';
 import type { ContextMenu as ContextMenuType, ModalState } from '@/types';
-import { shortName } from '@/utils';
-import { ContextMenu } from '@/components/ui';
+import { ContextMenu, Avatar } from '@/components/ui';
 
 export function AppModal({ modal, onClose }: { modal: ModalState; onClose: () => void }) {
   if (!modal) return null;
@@ -74,7 +73,7 @@ function FriendPickerModal({ title, friends, userCache, excludeUIDs, requireGrou
             const checked = selected.has(user.username);
             return (
               <button key={friend.friend_uid} className={`friend-picker-item ${checked ? 'selected' : ''}`} onClick={() => toggle(user.username)}>
-                <span className="avatar fallback small">{shortName(dn)}</span>
+                <Avatar user={user} small />
                 <span className="friend-picker-text"><strong>{dn}</strong><small>@{user.username}</small></span>
                 <span className="friend-picker-check">{checked ? '✓' : ''}</span>
               </button>

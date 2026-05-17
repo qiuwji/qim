@@ -1,4 +1,5 @@
 import type { FriendGroupDTO } from '@/api/types';
+import { PanelHeader } from '@/components/ui';
 
 export function GroupManagePanel({ groups, onBack, onRenameGroup, onDeleteGroup }: {
   groups: FriendGroupDTO[]; onBack: () => void;
@@ -6,12 +7,7 @@ export function GroupManagePanel({ groups, onBack, onRenameGroup, onDeleteGroup 
 }) {
   return (
     <div className="flex h-full flex-col bg-[#f3f4f6]">
-      <header className="flex shrink-0 items-center gap-3 border-b border-[#dfe3e8] bg-[#f9fafb] px-4 py-3">
-        <button className="back-btn" onClick={onBack}>
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
-        </button>
-        <strong className="text-base font-semibold text-[#1a1a1a]">分组管理</strong>
-      </header>
+      <PanelHeader title="分组管理" onBack={onBack} />
       <div className="flex-1 overflow-auto">
         {groups.map((g) => (
           <div key={g.id} className="flex items-center justify-between border-b border-[#f0f1f3] bg-white px-4 py-3">

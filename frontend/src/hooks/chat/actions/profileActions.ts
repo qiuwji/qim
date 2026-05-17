@@ -1,6 +1,6 @@
 import { api, getToken, saveSession } from '@/api/http';
 import { validatePassword } from '@/utils';
-import type { ChatStoreDeps } from './types';
+import type { ChatStoreDeps } from '../types';
 
 export function createProfileActions(d: ChatStoreDeps) {
   async function uploadAvatar(file: File) {

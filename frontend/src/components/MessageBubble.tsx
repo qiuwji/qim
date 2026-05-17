@@ -1,5 +1,5 @@
 import type { MessageDTO, UserDTO } from '@/api/types';
-import { MSG_TYPE_SYSTEM } from '@/hooks/chat/messageModel';
+import { isSystemMessage } from '@/hooks/chat/models/messageModel';
 import { Avatar } from '@/components/ui';
 import { timeText } from '@/utils';
 
@@ -12,7 +12,7 @@ export function MessageBubble({ message, mine, senderName, senderUser, replySour
 }) {
   const isImage = message.msg_type === 2 && !message.revoked;
 
-  if (message.msg_type === MSG_TYPE_SYSTEM && !message.revoked) {
+  if (isSystemMessage(message) && !message.revoked) {
     return <div className="mx-auto my-3 w-fit max-w-[min(520px,78%)] rounded-full bg-[#eef0f3] px-2.5 py-1.5 text-center text-xs leading-normal text-[#7b8491]">{message.content}</div>;
   }
 

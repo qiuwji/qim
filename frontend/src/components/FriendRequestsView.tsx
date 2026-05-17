@@ -1,37 +1,20 @@
 import { useMemo } from 'react';
 import type { FriendRequestDTO, UserDTO } from '@/api/types';
-import { Avatar } from '@/components/ui';
+import { friendRequestTimeline, userFromCache } from '@/hooks/chat/models/contactViewModel';
+import { Avatar, PanelHeader } from '@/components/ui';
 
 const STATUS_LABELS: Record<number, string> = { 0: '待处理', 1: '已同意', 2: '已拒绝' };
 const STATUS_COLORS: Record<number, string> = { 0: 'bg-[#fdf6ec] text-[#e6a23c]', 1: 'bg-[#e8f8ef] text-[#07c160]', 2: 'bg-[#fef0f0] text-[#e04344]' };
 
-export function FriendRequestsView({ currentUID, incoming, outgoing, userCache, onBack, onHandleRequest, onViewUser }: {
+export function FriendRequestsView({ currentUID: _currentUID, incoming, outgoing, userCache, onBack, onHandleRequest, onViewUser }: {
   currentUID: number; incoming: FriendRequestDTO[]; outgoing: FriendRequestDTO[]; userCache: Record<number, UserDTO>;
   onBack: () => void; onHandleRequest: (id: number, a: 'accept' | 'reject') => void; onViewUser?: (uid: number) => void;
 }) {
-  const allItems = useMemo(() => {
-    const items: { type: 'incoming' | 'outgoing'; req: FriendRequestDTO; uid: number }[] = [];
-    for (const r of incoming) items.push({ type: 'incoming', req: r, uid: r.from_uid });
-    for (const r of outgoing) items.push({ type: 'outgoing', req: r, uid: r.to_uid });
-    items.sort((a, b) => b.req.created_at - a.req.created_at);
-    return items;
-  }, [incoming, outgoing]);
-
-  function userFor(uid: number): UserDTO {
-    return userCache[uid] ?? { id: uid, username: String(uid), nickname: `用户 ${uid}`, avatar: '', sign: '', status: 0, created_at: 0, last_online_at: 0 };
-  }
+  const allItems = useMemo(() => friendRequestTimeline(incoming, outgoing), [incoming, outgoing]);
 
   return (
     <div className="flex h-full flex-col bg-[#f3f4f6]">
-      <header className="flex shrink-0 items-center gap-3 border-b border-[#dfe3e8] bg-[#f9fafb] px-4 py-3">
-        <button className="back-btn" onClick={onBack}>
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
-        </button>
-        <div>
-          <strong className="text-base font-semibold text-[#1a1a1a]">新的朋友</strong>
-          <div className="text-xs text-[#999]">好友申请记录</div>
-        </div>
-      </header>
+      <PanelHeader title="新的朋友" subtitle="好友申请记录" onBack={onBack} />
       <div className="flex-1 overflow-auto">
         {allItems.length === 0 && (
           <div className="flex flex-col items-center justify-center gap-3 py-16 text-[#b0b5be]">
@@ -40,7 +23,7 @@ export function FriendRequestsView({ currentUID, incoming, outgoing, userCache, 
           </div>
         )}
         {allItems.map(({ type, req, uid }) => {
-          const u = userFor(uid);
+          const u = userFromCache(uid, userCache);
           const isPending = req.status === 0;
           return (
             <div key={`${type}-${req.id}`} className="flex items-center gap-3 border-b border-[#f0f1f3] bg-white px-4 py-3">

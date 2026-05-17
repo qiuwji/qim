@@ -2,9 +2,9 @@ import type { MessageDTO, UserConvDTO, WsResponse } from '@/api/types';
 import type { RealtimeClient } from '@/api/ws';
 import { normalizePushMessage } from '@/api/ws';
 import type { Notice } from '@/types';
-import { pushText } from '@/utils';
+import { currentSecond, pushText } from '@/utils';
 import { decrementConversationUnread } from './conversationModel';
-import { revokedPreviewUpdate } from './messageModel';
+import { MSG_TYPE_SYSTEM, isSystemMessage, revokedPreviewUpdate } from './messageModel';
 
 type StateSetter<T> = (updater: T | ((prev: T) => T)) => void;
 type CurrentRef<T> = { current: T };
@@ -55,6 +55,10 @@ export function handleRealtimeMessage(msg: WsResponse, ctx: RealtimeHandlerConte
   }
   if (msg.type === 'presence') {
     handlePresencePush(msg, ctx);
+    return;
+  }
+  if (msg.type === 'conversation' && msg.action === 'group_dissolved') {
+    handleGroupDissolved(msg, ctx);
     return;
   }
   if (['friend', 'member', 'conversation'].includes(msg.type)) {
@@ -128,4 +132,31 @@ function handlePresencePush(msg: WsResponse, ctx: RealtimeHandlerContext) {
   if (!uid) return;
 
   ctx.setOnlineMap((prev) => ({ ...prev, [uid]: msg.action === 'online' }));
+}
+
+function handleGroupDissolved(msg: WsResponse, ctx: RealtimeHandlerContext) {
+  const data = msg.data as Record<string, unknown> | undefined;
+  const conversationID = Number(data?.conversation_id ?? 0);
+  if (!conversationID) return;
+  const alreadyShown = (ctx.getMessages()[conversationID] ?? []).some((item) => (
+    isSystemMessage(item) && item.content === '群聊已解散'
+  ));
+  if (alreadyShown) {
+    ctx.setNotice({ kind: 'info', text: pushText(msg) });
+    return;
+  }
+
+  const now = Date.now();
+  ctx.applyIncomingMessage({
+    id: now,
+    conversation_id: conversationID,
+    seq: Number.MAX_SAFE_INTEGER,
+    sender_id: Number(data?.operator_id ?? ctx.currentUID),
+    msg_type: MSG_TYPE_SYSTEM,
+    content: '群聊已解散',
+    reply_to: 0,
+    client_id: `system-dissolve-${conversationID}-${now}`,
+    created_at: currentSecond(),
+  });
+  ctx.setNotice({ kind: 'info', text: pushText(msg) });
 }

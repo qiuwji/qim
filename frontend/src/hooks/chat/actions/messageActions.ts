@@ -1,8 +1,8 @@
 import { api } from '@/api/http';
 import { currentSecond } from '@/utils';
 import type { MessageDTO } from '@/api/types';
-import type { ChatStoreDeps } from './types';
-import { MSG_TYPE_TEXT, removeMessageByID, visibleMessages } from './messageModel';
+import type { ChatStoreDeps } from '../types';
+import { MSG_TYPE_TEXT, visibleMessages } from '../models/messageModel';
 
 export function createMessageActions(d: ChatStoreDeps) {
   async function sendText(text: string) {
@@ -38,12 +38,7 @@ export function createMessageActions(d: ChatStoreDeps) {
   function doDelete(msg: MessageDTO) {
     d.setModal({ type: 'confirm', title: '删除消息', text: '确认删除这条消息？删除只会在本地生效。', danger: true, onConfirm: () => {
       d.rememberDeletedMessage(msg);
-      d.setMessages((p) => {
-        const nextList = removeMessageByID(p[msg.conversation_id] ?? [], msg.id);
-        const last = nextList[nextList.length - 1];
-        d.setLastMessagePreview(msg.conversation_id, last);
-        return { ...p, [msg.conversation_id]: nextList };
-      });
+      d.deleteLocalMessage(msg);
     } });
   }
 

@@ -103,6 +103,12 @@ func TestManagerActor_BitsUT(t *testing.T) {
 	if len(list) != 1 || list[0].ConversationID != 1 {
 		t.Fatalf("list = %+v", list)
 	}
+	if list[0].Conv == nil {
+		t.Fatalf("list conversation meta should not be nil")
+	}
+	if list[0].Conv.Type != ConvTypeGroup || list[0].Conv.Name != "group" || list[0].Conv.MemberCount != 2 {
+		t.Fatalf("list conversation meta = %+v", list[0].Conv)
+	}
 
 	raw, err = ref.Ask(CreatePrivateConvCmd{UID1: 1, UID2: 2}, time.Second)
 	if err != nil {
@@ -119,6 +125,16 @@ func TestManagerActor_BitsUT(t *testing.T) {
 	if raw.(Result).Data.(ConversationDTO).Name != "g" {
 		t.Fatalf("group conversation = %+v", raw.(Result).Data)
 	}
+
+	store.membersErr = errors.New("members down")
+	raw, err = ref.Ask(ListUserConversationsCmd{UID: 1}, time.Second)
+	if err != nil {
+		t.Fatalf("list with members error ask: %v", err)
+	}
+	if raw.(Result).Err == nil {
+		t.Fatalf("list should return members error")
+	}
+	store.membersErr = nil
 
 	store.managerErr = errors.New("store down")
 	for _, cmd := range []any{
@@ -334,6 +350,7 @@ type conversationTestStore struct {
 	duplicateMessage bool
 	commitErr        error
 	managerErr       error
+	membersErr       error
 }
 
 func newConversationTestStore() *conversationTestStore {
@@ -387,6 +404,9 @@ func (s *conversationTestStore) FindPrivateConversation(uid1, uid2 uint64) (*Con
 	return nil, nil
 }
 func (s *conversationTestStore) GetMembers(convID uint64) ([]MemberRecord, error) {
+	if s.membersErr != nil {
+		return nil, s.membersErr
+	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	out := make([]MemberRecord, 0, len(s.members))

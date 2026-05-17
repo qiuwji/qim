@@ -1,4 +1,4 @@
-import type { Dispatch, MutableRefObject, RefObject, SetStateAction } from 'react';
+import type { Dispatch, MutableRefObject, SetStateAction } from 'react';
 import type { ConversationDTO, FriendDTO, FriendGroupDTO, FriendRequestDTO, MemberDTO, MessageDTO, UserConvDTO, UserDTO, WsResponse } from '@/api/types';
 import type { RealtimeClient } from '@/api/ws';
 import type { ContextMenu, MainTab, ModalState, MobilePane, Notice } from '@/types';
@@ -7,6 +7,7 @@ export interface ChatStoreDeps {
   user: UserDTO;
   onUserChange: (u: UserDTO) => void;
   selectedID: number | null;
+  searchKeyword: string;
   selectedIDRef: MutableRefObject<number | null>;
   conversations: UserConvDTO[];
   details: Record<number, ConversationDTO>;
@@ -36,6 +37,7 @@ export interface ChatStoreDeps {
   setFriendGroups: Dispatch<SetStateAction<FriendGroupDTO[]>>;
   setRequests: Dispatch<SetStateAction<FriendRequestDTO[]>>;
   setOutgoingReqs: Dispatch<SetStateAction<FriendRequestDTO[]>>;
+  setSearchResult: Dispatch<SetStateAction<UserDTO[]>>;
   setMembers: Dispatch<SetStateAction<Record<number, MemberDTO[]>>>;
   setTyping: Dispatch<SetStateAction<Record<number, string>>>;
   setDetailOpen: Dispatch<SetStateAction<boolean>>;
@@ -46,6 +48,9 @@ export interface ChatStoreDeps {
   setChatSearchResult: Dispatch<SetStateAction<MessageDTO[]>>;
   setNotice: Dispatch<SetStateAction<Notice>>;
   setViewingUser: Dispatch<SetStateAction<UserDTO | null>>;
+  setViewingFriendRequests: Dispatch<SetStateAction<boolean>>;
+  setViewingGroupManage: Dispatch<SetStateAction<boolean>>;
+  setHoverCard: Dispatch<SetStateAction<{ user: UserDTO; rect: DOMRect } | null>>;
   setOnlineMap: Dispatch<SetStateAction<Record<number, boolean>>>;
   setTab: (tab: MainTab) => void;
   setMobilePane: (pane: MobilePane) => void;
@@ -57,6 +62,8 @@ export interface ChatStoreDeps {
   applyIncomingMessage: (msg: MessageDTO) => void;
   setLastMessagePreview: (cid: number, msg: MessageDTO | undefined) => void;
   rememberDeletedMessage: (msg: MessageDTO) => void;
+  deleteLocalMessage: (msg: MessageDTO) => void;
+  hideConversation: (cid: number) => void;
   openConversation: (cid: number) => void;
   sendConversationMessage: (conversationID: number, text: string, msgType?: number, replyToID?: number) => void;
   ensurePrivateConversation: (uid: number) => Promise<number>;

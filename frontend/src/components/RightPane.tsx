@@ -1,6 +1,7 @@
 import type { ConversationDTO, FriendDTO, FriendGroupDTO, FriendRequestDTO, MemberDTO, MessageDTO, UserConvDTO, UserDTO } from '@/api/types';
 import type { MobilePane } from '@/types';
-import { chatTitle, displayName } from '@/utils';
+import { chatTitle } from '@/utils';
+import { conversationSubtitle } from '@/hooks/chat/models/conversationViewModel';
 import { ChatWindow } from '@/components/ChatWindow';
 import { UserProfilePage } from '@/components/UserProfilePage';
 import { FriendRequestsView } from '@/components/FriendRequestsView';
@@ -64,15 +65,15 @@ export function RightPane(props: RightPaneProps) {
     onAvatarEnter, onAvatarLeave,
   } = props;
 
-  const subtitle = selectedConv
-    ? selectedDetail?.type === 1
-      ? (() => {
-          const peer = selectedMembers.find((m) => m.uid !== user.id);
-          const base = peer ? `${displayName(peer.uid, userCache, friendMap)} · ${onlineMap[peer.uid] ? '在线' : '离线'}` : '私聊';
-          return typingText || base;
-        })()
-      : `${selectedMembers.length} 位成员`
-    : '';
+  const subtitle = selectedConv ? conversationSubtitle({
+    detail: selectedDetail,
+    members: selectedMembers,
+    currentUID: user.id,
+    userCache,
+    friendMap,
+    onlineMap,
+    typingText,
+  }) : '';
 
   const title = selectedConv ? chatTitle(selectedConv, selectedDetail) : '';
 

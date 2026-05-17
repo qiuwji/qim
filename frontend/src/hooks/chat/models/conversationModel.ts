@@ -8,6 +8,35 @@ export function groupConversations(list: UserConvDTO[], details: Record<number, 
   return list.filter((item) => details[item.conversation_id]?.type === 2);
 }
 
+export function hiddenConversationStorageKey(uid: number): string {
+  return `qim:hidden_conversations:${uid}`;
+}
+
+export function readHiddenConversationIDs(storageKey: string): number[] {
+  try {
+    const raw = localStorage.getItem(storageKey);
+    const parsed = raw ? JSON.parse(raw) : [];
+    if (!Array.isArray(parsed)) return [];
+    return parsed.map(Number).filter((id) => Number.isFinite(id) && id > 0);
+  } catch {
+    return [];
+  }
+}
+
+export function persistHiddenConversationID(storageKey: string, hiddenIDs: Set<number>, conversationID: number) {
+  hiddenIDs.add(conversationID);
+  localStorage.setItem(storageKey, JSON.stringify([...hiddenIDs]));
+}
+
+export function forgetHiddenConversationID(storageKey: string, hiddenIDs: Set<number>, conversationID: number) {
+  if (!hiddenIDs.delete(conversationID)) return;
+  localStorage.setItem(storageKey, JSON.stringify([...hiddenIDs]));
+}
+
+export function visibleConversations(list: UserConvDTO[], hiddenIDs: Set<number>): UserConvDTO[] {
+  return list.filter((item) => !hiddenIDs.has(item.conversation_id));
+}
+
 export function markConversationReadLocally(list: UserConvDTO[], cid: number): UserConvDTO[] {
   return list.map((item) => (item.conversation_id === cid ? { ...item, unread_count: 0 } : item));
 }
