@@ -92,19 +92,11 @@ export const api = {
     request<ConversationDTO>('/api/conversations/private', { method: 'POST', body: JSON.stringify({ username }) }),
   createPrivateConversation: (uid: number) =>
     request<ConversationDTO>('/api/conversations/private', { method: 'POST', body: JSON.stringify({ uid }) }),
-  createGroupChat: (payload: { name: string; avatar?: string; members: number[] }) =>
-    request<ConversationDTO>('/api/conversations/group', { method: 'POST', body: JSON.stringify(payload) }),
   createGroupChatByUsernames: (payload: { name: string; avatar?: string; usernames: string[] }) =>
-    request<ConversationDTO>('/api/conversations/group', { method: 'POST', body: JSON.stringify(payload) }),
-  createGroupConversation: (payload: { name: string; avatar?: string; members: number[] }) =>
     request<ConversationDTO>('/api/conversations/group', { method: 'POST', body: JSON.stringify(payload) }),
   pinChat: (id: number, pinned: boolean) =>
     request<boolean>(`/api/conversations/${id}/pin`, { method: 'PUT', body: JSON.stringify({ pinned }) }),
-  pinConversation: (id: number, pinned: boolean) =>
-    request<boolean>(`/api/conversations/${id}/pin`, { method: 'PUT', body: JSON.stringify({ pinned }) }),
   muteChat: (id: number, muted: boolean) =>
-    request<boolean>(`/api/conversations/${id}/mute`, { method: 'PUT', body: JSON.stringify({ muted }) }),
-  muteConversation: (id: number, muted: boolean) =>
     request<boolean>(`/api/conversations/${id}/mute`, { method: 'PUT', body: JSON.stringify({ muted }) }),
   markRead: (id: number, seq: number) =>
     request<boolean>(`/api/conversations/${id}/read`, { method: 'PUT', body: JSON.stringify({ seq }) }),

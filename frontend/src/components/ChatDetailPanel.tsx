@@ -33,14 +33,14 @@ export function ChatDetailPanel({ chat, detail, members, currentUID, userCache, 
       </div>
       <div className="detail-card">
         <div className="card-title"><strong>搜索聊天记录</strong></div>
-        <div className="detail-search-bar">
-          <input value={chatSearch} onChange={(e) => onChatSearchChange(e.target.value)} placeholder="输入关键词" onKeyDown={(e) => e.key === 'Enter' && onChatSearch()} />
-          <button type="button" onClick={onChatSearch}>搜索</button>
+        <div className="grid grid-cols-[1fr_auto] gap-2">
+          <input className="min-w-0 border border-[#d8dde4] rounded-lg px-2.5 py-2 outline-none focus:border-[#12b35f]" value={chatSearch} onChange={(e) => onChatSearchChange(e.target.value)} placeholder="输入关键词" onKeyDown={(e) => e.key === 'Enter' && onChatSearch()} />
+          <button type="button" className="px-3 py-2 rounded-lg text-white bg-[#12b35f] font-semibold" onClick={onChatSearch}>搜索</button>
         </div>
-        {chatSearchResult.length > 0 && <div className="detail-search-results">{chatSearchResult.map((m) => (
-          <button key={m.id} type="button" className="detail-search-result" onClick={() => onJumpToMessage(m.id)}>
-            <strong>{displayName(m.sender_id, userCache, friendMap)}</strong>
-            <span>{m.content.slice(0, 60)}</span>
+        {chatSearchResult.length > 0 && <div className="grid gap-1.5 max-h-44 overflow-auto">{chatSearchResult.map((m) => (
+          <button key={m.id} type="button" className="grid gap-0.5 p-2 text-left rounded-lg bg-[#f3f4f6] hover:bg-[#eceff3]" onClick={() => onJumpToMessage(m.id)}>
+            <strong className="text-[13px] text-[#1f2329]">{displayName(m.sender_id, userCache, friendMap)}</strong>
+            <span className="text-[#858c98] text-xs overflow-hidden text-ellipsis whitespace-nowrap">{m.content.slice(0, 60)}</span>
           </button>
         ))}</div>}
       </div>

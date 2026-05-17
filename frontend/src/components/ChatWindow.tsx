@@ -1,13 +1,13 @@
 import React, { useLayoutEffect, useRef, useState, useCallback } from 'react';
-import type { ConversationDTO, FriendDTO, MemberDTO, MessageDTO, UserConvDTO, UserDTO } from '../api/types';
+import type { ConversationDTO, FriendDTO, MessageDTO, UserConvDTO, UserDTO } from '../api/types';
 import { displayName, timeText } from '../utils';
 import { EmptyState } from './EmptyState';
 import { MessageBubble } from './MessageBubble';
 
 const TYPING_THROTTLE = 5000;
 
-export function ChatWindow({ user, conversation, detail, title, subtitle, messages, hasMore, typingText, memberCount, members, userCache, friendMap, detailOpen, replyTo, onBack, onSend, onSendImage, onTyping, onToggleDetail, onContextMenu, onReply, onLoadMore, onAvatarEnter, onAvatarLeave, onAvatarClick }: {
-  user: UserDTO; conversation: UserConvDTO | null; detail?: ConversationDTO; title: string; subtitle: string; messages: MessageDTO[]; hasMore: boolean; typingText?: string; memberCount?: number; members: MemberDTO[]; userCache: Record<number, UserDTO>; friendMap?: Record<number, FriendDTO>; detailOpen: boolean; replyTo: MessageDTO | null;
+export function ChatWindow({ user, conversation, detail, title, subtitle, messages, hasMore, typingText, userCache, friendMap, detailOpen, replyTo, onBack, onSend, onSendImage, onTyping, onToggleDetail, onContextMenu, onReply, onLoadMore, onAvatarEnter, onAvatarLeave, onAvatarClick }: {
+  user: UserDTO; conversation: UserConvDTO | null; detail?: ConversationDTO; title: string; subtitle: string; messages: MessageDTO[]; hasMore: boolean; typingText?: string; userCache: Record<number, UserDTO>; friendMap?: Record<number, FriendDTO>; detailOpen: boolean; replyTo: MessageDTO | null;
   onBack: () => void; onSend: (text: string) => Promise<void>; onSendImage: (file: File) => void; onTyping: () => void; onToggleDetail: () => void; onContextMenu: (e: React.MouseEvent, m: MessageDTO) => void; onReply: (m: MessageDTO | null) => void; onLoadMore: () => void | Promise<void>;
   onAvatarEnter?: (uid: number, e: React.MouseEvent) => void;
   onAvatarLeave?: (e: React.MouseEvent) => void;
