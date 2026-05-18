@@ -72,8 +72,14 @@ check_backend_incremental_coverage() {
     )"
 
     if [ "$cov" = "N/A" ]; then
-      echo "  $file -> no coverage data (missing tests)"
-      fail=1
+      local has_func
+      has_func="$(grep -c 'func ' "$ROOT_DIR/$file" 2>/dev/null || echo 0)"
+      if [ "$has_func" = "0" ]; then
+        echo "  $file -> no functions (type/const only), skipping"
+      else
+        echo "  $file -> no coverage data (missing tests)"
+        fail=1
+      fi
       continue
     fi
 
