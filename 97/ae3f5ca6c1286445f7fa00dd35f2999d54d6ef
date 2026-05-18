@@ -1,0 +1,2362 @@
+backend/internal/transport/ws/push_handler.go
+  6974aa14fc0d6e8e 41-48,173-192 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[41,48]},{"Range":[173,192]}]}]}
+frontend/src/components/chat/ChatDetailPanel.tsx
+  6974aa14fc0d6e8e 2-6 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[2,6]}]}]}
+frontend/src/hooks/chat/types.ts
+  6974aa14fc0d6e8e 23,71 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Single":23},{"Single":71}]}]}
+frontend/src/App.tsx
+  6974aa14fc0d6e8e 3,5,7-12,41,88-89,105,138 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Single":3},{"Single":5},{"Range":[7,12]},{"Single":41},{"Range":[88,89]},{"Single":105},{"Single":138}]}]}
+frontend/src/components/conversation/ConversationList.tsx
+  6974aa14fc0d6e8e 5-38 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[5,38]}]}]}
+frontend/src/hooks/chat/actions/messageActions.ts
+  6974aa14fc0d6e8e 8,11,46 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Single":8},{"Single":11},{"Single":46}]}]}
+backend/internal/dal/conv_store.go
+  6974aa14fc0d6e8e 4,285-289 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Single":4},{"Range":[285,289]}]}]}
+frontend/src/components/RightPane.tsx
+  6974aa14fc0d6e8e 5-8,24,37,60,137,143 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[5,8]},{"Single":24},{"Single":37},{"Single":60},{"Single":137},{"Single":143}]}]}
+frontend/src/components/user/UserProfilePage.tsx
+  6974aa14fc0d6e8e 3-16 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[3,16]}]}]}
+frontend/src/hooks/useChatStore.ts
+  6974aa14fc0d6e8e 8,53,137-140,150-153,158,161,166,202,216,242 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Single":8},{"Single":53},{"Range":[137,140]},{"Range":[150,153]},{"Single":158},{"Single":161},{"Single":166},{"Single":202},{"Single":216},{"Single":242}]}]}
+agent.md
+  6974aa14fc0d6e8e 7-82,209-228,298,349-357,368,373 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[7,82]},{"Range":[209,228]},{"Single":298},{"Range":[349,357]},{"Single":368},{"Single":373}]}]}
+frontend/src/components/chat/ChatWindow.tsx
+  6974aa14fc0d6e8e 2-70 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[2,70]}]}]}
+frontend/src/hooks/chat/__tests__/messageModel.test.ts
+  6974aa14fc0d6e8e 10,12,86-92 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Single":10},{"Single":12},{"Range":[86,92]}]}]}
+frontend/src/components/contacts/GroupListSection.tsx
+  6974aa14fc0d6e8e 2-23 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[2,23]}]}]}
+frontend/src/components/chat/ChatProfileCard.tsx
+  6974aa14fc0d6e8e 4 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Single":4}]}]}
+frontend/src/components/ui/Modal.tsx
+  6974aa14fc0d6e8e 5-131 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[5,131]}]}]}
+frontend/src/styles/global.css
+  6974aa14fc0d6e8e 1-8 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[1,8]}]}]}
+backend/internal/domain/conversation/events.go
+  6974aa14fc0d6e8e 25-26 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[25,26]}]}]}
+frontend/src/components/ui/index.ts
+  6974aa14fc0d6e8e 8 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Single":8}]}]}
+frontend/src/components/chat/MessageBubble.tsx
+  6974aa14fc0d6e8e 1,3,5,7-33,35,40,42-44,58-61,70,74 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Single":1},{"Single":3},{"Single":5},{"Range":[7,33]},{"Single":35},{"Single":40},{"Range":[42,44]},{"Range":[58,61]},{"Single":70},{"Single":74}]}]}
+frontend/src/hooks/chat/reducers/chatReducer.ts
+  6974aa14fc0d6e8e 25,47,68,130-137 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Single":25},{"Single":47},{"Single":68},{"Range":[130,137]}]}]}
+frontend/src/api/ws.ts
+  6974aa14fc0d6e8e 91,98-100,199-201 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Single":91},{"Range":[98,100]},{"Range":[199,201]}]}]}
+backend/internal/domain/conversation/messages.go
+  6974aa14fc0d6e8e 39-50,70-76 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[39,50]},{"Range":[70,76]}]}]}
+backend/internal/domain/message/messages.go
+  6974aa14fc0d6e8e 20-32 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[20,32]}]}]}
+frontend/src/utils/index.ts
+  6974aa14fc0d6e8e 94-101 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[94,101]}]}]}
+frontend/src/styles/base.css
+  6974aa14fc0d6e8e 1-66 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[1,66]}]}]}
+frontend/src/components/contacts/FriendRequestsView.tsx
+  6974aa14fc0d6e8e 4-24 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[4,24]}]}]}
+frontend/src/components/chat/MessageComposer.tsx
+  6974aa14fc0d6e8e 2,4-5,9-14,18-23,32-38,46-48,51-58,64-65,67-70,74,82-94,96-149,156,162-175 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Single":2},{"Range":[4,5]},{"Range":[9,14]},{"Range":[18,23]},{"Range":[32,38]},{"Range":[46,48]},{"Range":[51,58]},{"Range":[64,65]},{"Range":[67,70]},{"Single":74},{"Range":[82,94]},{"Range":[96,149]},{"Single":156},{"Range":[162,175]}]}]}
+frontend/src/styles/mobile.css
+  6974aa14fc0d6e8e 1-68 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[1,68]}]}]}
+backend/docs/architecture.md
+  876c7f264bd05620 1-393
+frontend/src/components/chat/MessageList.tsx
+  6974aa14fc0d6e8e 61-63 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[61,63]}]}]}
+backend/internal/domain/conversation/actor_test.go
+  6974aa14fc0d6e8e 323 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Single":323}]}]}
+frontend/src/api/types.ts
+  6974aa14fc0d6e8e 60-61 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[60,61]}]}]}
+frontend/src/components/contacts/ContactSearchResults.tsx
+  6974aa14fc0d6e8e 3-54 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[3,54]}]}]}
+backend/internal/dal/models.go
+  6974aa14fc0d6e8e 58-59 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[58,59]}]}]}
+frontend/src/hooks/chat/__tests__/realtimeModel.test.ts
+  6974aa14fc0d6e8e 65 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Single":65}]}]}
+backend/internal/domain/conversation/errors.go
+  6974aa14fc0d6e8e 12-22,42-52 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[12,22]},{"Range":[42,52]}]}]}
+backend/internal/domain/conversation/store/records.go
+  6974aa14fc0d6e8e 59-60 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[59,60]}]}]}
+frontend/src/styles/contacts.css
+  6974aa14fc0d6e8e 1-29 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[1,29]}]}]}
+backend/internal/domain/message/actor.go
+  6974aa14fc0d6e8e 4,94,100-101 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Single":4},{"Single":94},{"Range":[100,101]}]}]}
+frontend/src/styles/layout.css
+  6974aa14fc0d6e8e 1-71 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[1,71]}]}]}
+frontend/src/styles/user.css
+  6974aa14fc0d6e8e 1-92 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[1,92]}]}]}
+frontend/src/components/conversation/ConversationSummaryRow.tsx
+  6974aa14fc0d6e8e 3-24 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[3,24]}]}]}
+frontend/src/components/group/GroupManagePanel.tsx
+  6974aa14fc0d6e8e 2-32 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[2,32]}]}]}
+frontend/src/components/contacts/FriendListSection.tsx
+  6974aa14fc0d6e8e 3-68 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[3,68]}]}]}
+debug-online-presence.md
+  b9d8df275ef9437f 1-38
+frontend/src/components/contacts/ContactsPanel.tsx
+  6974aa14fc0d6e8e 6-119 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[6,119]}]}]}
+frontend/src/types/index.ts
+  6974aa14fc0d6e8e 40 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Single":40}]}]}
+frontend/src/components/ui/SearchBar.tsx
+  6974aa14fc0d6e8e 1,3-14,18 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Single":1},{"Range":[3,14]},{"Single":18}]}]}
+backend/internal/transport/ws/msg.go
+  6974aa14fc0d6e8e 40-46,56-62 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[40,46]},{"Range":[56,62]}]}]}
+frontend/src/styles/modal.css
+  6974aa14fc0d6e8e 1-191 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[1,191]}]}]}
+backend/internal/domain/conversation/message_handler.go
+  6974aa14fc0d6e8e 20-21,36-37,81,91-92,99-135,164,179-180 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[20,21]},{"Range":[36,37]},{"Single":81},{"Range":[91,92]},{"Range":[99,135]},{"Single":164},{"Range":[179,180]}]}]}
+frontend/src/components/chat/MentionPopover.tsx
+  6974aa14fc0d6e8e 1-84 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[1,84]}]}]}
+frontend/src/hooks/chat/models/realtimeModel.ts
+  6974aa14fc0d6e8e 27,45-53 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Single":27},{"Range":[45,53]}]}]}
+frontend/src/styles/detail.css
+  6974aa14fc0d6e8e 1-96 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[1,96]}]}]}
+frontend/src/hooks/chat/models/messageModel.ts
+  6974aa14fc0d6e8e 6,10-19,57 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Single":6},{"Range":[10,19]},{"Single":57}]}]}
+frontend/src/components/ui/EmptyState.tsx
+  6974aa14fc0d6e8e 1-3,6 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[1,3]},{"Single":6}]}]}
+frontend/src/styles/chat.css
+  6974aa14fc0d6e8e 1-259 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b223ed1921616a88b40b0","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[1,259]}]}]}
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "97ae3f5ca6c1286445f7fa00dd35f2999d54d6ef",
+  "prompts": {
+    "6974aa14fc0d6e8e": {
+      "agent_id": {
+        "tool": "trae",
+        "id": "6a09b10fd1921616a88b24de",
+        "model": "glm-5.1__dev"
+      },
+      "human_author": "qiuji.322@BYTEDANCE.COM <qiuji.322@BYTEDANCE.COM@bytedance.com>",
+      "messages": [],
+      "total_additions": 1728,
+      "total_deletions": 1119,
+      "accepted_lines": 1593,
+      "overriden_lines": 0
+    },
+    "876c7f264bd05620": {
+      "agent_id": {
+        "tool": "trae",
+        "id": "6a08b7f8d1921616a88b08d2",
+        "model": "DeepSeek-V4-Pro__dev"
+      },
+      "human_author": "qiuji.322@BYTEDANCE.COM <qiuji.322@BYTEDANCE.COM@bytedance.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 393,
+      "overriden_lines": 0
+    },
+    "b9d8df275ef9437f": {
+      "agent_id": {
+        "tool": "trae",
+        "id": "6a08a86ed1921616a88b009b",
+        "model": "gpt-5.5__dev"
+      },
+      "human_author": "qiuji.322@BYTEDANCE.COM <qiuji.322@BYTEDANCE.COM@bytedance.com>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 38,
+      "overriden_lines": 0
+    }
+  },
+  "attestation_metadata": {
+    "agent.md": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Range": [
+              7,
+              82
+            ]
+          },
+          {
+            "Range": [
+              209,
+              228
+            ]
+          },
+          {
+            "Single": 298
+          },
+          {
+            "Range": [
+              349,
+              357
+            ]
+          },
+          {
+            "Single": 368
+          },
+          {
+            "Single": 373
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  7,
+                  82
+                ]
+              },
+              {
+                "Range": [
+                  209,
+                  228
+                ]
+              },
+              {
+                "Single": 298
+              },
+              {
+                "Range": [
+                  349,
+                  357
+                ]
+              },
+              {
+                "Single": 368
+              },
+              {
+                "Single": 373
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "backend/internal/dal/conv_store.go": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Single": 4
+          },
+          {
+            "Range": [
+              285,
+              289
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Single": 4
+              },
+              {
+                "Range": [
+                  285,
+                  289
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "backend/internal/dal/models.go": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Range": [
+              58,
+              59
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  58,
+                  59
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "backend/internal/domain/conversation/actor_test.go": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Single": 323
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Single": 323
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "backend/internal/domain/conversation/errors.go": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Range": [
+              12,
+              22
+            ]
+          },
+          {
+            "Range": [
+              42,
+              52
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  12,
+                  22
+                ]
+              },
+              {
+                "Range": [
+                  42,
+                  52
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "backend/internal/domain/conversation/events.go": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Range": [
+              25,
+              26
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  25,
+                  26
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "backend/internal/domain/conversation/message_handler.go": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Range": [
+              20,
+              21
+            ]
+          },
+          {
+            "Range": [
+              36,
+              37
+            ]
+          },
+          {
+            "Single": 81
+          },
+          {
+            "Range": [
+              91,
+              92
+            ]
+          },
+          {
+            "Range": [
+              99,
+              135
+            ]
+          },
+          {
+            "Single": 164
+          },
+          {
+            "Range": [
+              179,
+              180
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  20,
+                  21
+                ]
+              },
+              {
+                "Range": [
+                  36,
+                  37
+                ]
+              },
+              {
+                "Single": 81
+              },
+              {
+                "Range": [
+                  91,
+                  92
+                ]
+              },
+              {
+                "Range": [
+                  99,
+                  135
+                ]
+              },
+              {
+                "Single": 164
+              },
+              {
+                "Range": [
+                  179,
+                  180
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "backend/internal/domain/conversation/messages.go": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Range": [
+              39,
+              50
+            ]
+          },
+          {
+            "Range": [
+              70,
+              76
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  39,
+                  50
+                ]
+              },
+              {
+                "Range": [
+                  70,
+                  76
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "backend/internal/domain/conversation/store/records.go": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Range": [
+              59,
+              60
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  59,
+                  60
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "backend/internal/domain/message/actor.go": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Single": 4
+          },
+          {
+            "Single": 94
+          },
+          {
+            "Range": [
+              100,
+              101
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Single": 4
+              },
+              {
+                "Single": 94
+              },
+              {
+                "Range": [
+                  100,
+                  101
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "backend/internal/domain/message/messages.go": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Range": [
+              20,
+              32
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  20,
+                  32
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "backend/internal/transport/ws/msg.go": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Range": [
+              40,
+              46
+            ]
+          },
+          {
+            "Range": [
+              56,
+              62
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  40,
+                  46
+                ]
+              },
+              {
+                "Range": [
+                  56,
+                  62
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "backend/internal/transport/ws/push_handler.go": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Range": [
+              41,
+              48
+            ]
+          },
+          {
+            "Range": [
+              173,
+              192
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  41,
+                  48
+                ]
+              },
+              {
+                "Range": [
+                  173,
+                  192
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/App.tsx": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Single": 3
+          },
+          {
+            "Single": 5
+          },
+          {
+            "Range": [
+              7,
+              12
+            ]
+          },
+          {
+            "Single": 41
+          },
+          {
+            "Range": [
+              88,
+              89
+            ]
+          },
+          {
+            "Single": 105
+          },
+          {
+            "Single": 138
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Single": 3
+              },
+              {
+                "Single": 5
+              },
+              {
+                "Range": [
+                  7,
+                  12
+                ]
+              },
+              {
+                "Single": 41
+              },
+              {
+                "Range": [
+                  88,
+                  89
+                ]
+              },
+              {
+                "Single": 105
+              },
+              {
+                "Single": 138
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/api/types.ts": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Range": [
+              60,
+              61
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  60,
+                  61
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/api/ws.ts": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Single": 91
+          },
+          {
+            "Range": [
+              98,
+              100
+            ]
+          },
+          {
+            "Range": [
+              199,
+              201
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Single": 91
+              },
+              {
+                "Range": [
+                  98,
+                  100
+                ]
+              },
+              {
+                "Range": [
+                  199,
+                  201
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/components/RightPane.tsx": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Range": [
+              5,
+              8
+            ]
+          },
+          {
+            "Single": 24
+          },
+          {
+            "Single": 37
+          },
+          {
+            "Single": 60
+          },
+          {
+            "Single": 137
+          },
+          {
+            "Single": 143
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  5,
+                  8
+                ]
+              },
+              {
+                "Single": 24
+              },
+              {
+                "Single": 37
+              },
+              {
+                "Single": 60
+              },
+              {
+                "Single": 137
+              },
+              {
+                "Single": 143
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/components/chat/ChatDetailPanel.tsx": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Range": [
+              2,
+              6
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  2,
+                  6
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/components/chat/ChatProfileCard.tsx": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Single": 4
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Single": 4
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/components/chat/ChatWindow.tsx": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Range": [
+              2,
+              70
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  2,
+                  70
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/components/chat/MentionPopover.tsx": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Range": [
+              1,
+              84
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  1,
+                  84
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/components/chat/MessageBubble.tsx": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Single": 1
+          },
+          {
+            "Single": 3
+          },
+          {
+            "Single": 5
+          },
+          {
+            "Range": [
+              7,
+              33
+            ]
+          },
+          {
+            "Single": 35
+          },
+          {
+            "Single": 40
+          },
+          {
+            "Range": [
+              42,
+              44
+            ]
+          },
+          {
+            "Range": [
+              58,
+              61
+            ]
+          },
+          {
+            "Single": 70
+          },
+          {
+            "Single": 74
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Single": 1
+              },
+              {
+                "Single": 3
+              },
+              {
+                "Single": 5
+              },
+              {
+                "Range": [
+                  7,
+                  33
+                ]
+              },
+              {
+                "Single": 35
+              },
+              {
+                "Single": 40
+              },
+              {
+                "Range": [
+                  42,
+                  44
+                ]
+              },
+              {
+                "Range": [
+                  58,
+                  61
+                ]
+              },
+              {
+                "Single": 70
+              },
+              {
+                "Single": 74
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/components/chat/MessageComposer.tsx": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Single": 2
+          },
+          {
+            "Range": [
+              4,
+              5
+            ]
+          },
+          {
+            "Range": [
+              9,
+              14
+            ]
+          },
+          {
+            "Range": [
+              18,
+              23
+            ]
+          },
+          {
+            "Range": [
+              32,
+              38
+            ]
+          },
+          {
+            "Range": [
+              46,
+              48
+            ]
+          },
+          {
+            "Range": [
+              51,
+              58
+            ]
+          },
+          {
+            "Range": [
+              64,
+              65
+            ]
+          },
+          {
+            "Range": [
+              67,
+              70
+            ]
+          },
+          {
+            "Single": 74
+          },
+          {
+            "Range": [
+              82,
+              94
+            ]
+          },
+          {
+            "Range": [
+              96,
+              149
+            ]
+          },
+          {
+            "Single": 156
+          },
+          {
+            "Range": [
+              162,
+              175
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Single": 2
+              },
+              {
+                "Range": [
+                  4,
+                  5
+                ]
+              },
+              {
+                "Range": [
+                  9,
+                  14
+                ]
+              },
+              {
+                "Range": [
+                  18,
+                  23
+                ]
+              },
+              {
+                "Range": [
+                  32,
+                  38
+                ]
+              },
+              {
+                "Range": [
+                  46,
+                  48
+                ]
+              },
+              {
+                "Range": [
+                  51,
+                  58
+                ]
+              },
+              {
+                "Range": [
+                  64,
+                  65
+                ]
+              },
+              {
+                "Range": [
+                  67,
+                  70
+                ]
+              },
+              {
+                "Single": 74
+              },
+              {
+                "Range": [
+                  82,
+                  94
+                ]
+              },
+              {
+                "Range": [
+                  96,
+                  149
+                ]
+              },
+              {
+                "Single": 156
+              },
+              {
+                "Range": [
+                  162,
+                  175
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/components/chat/MessageList.tsx": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Range": [
+              61,
+              63
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  61,
+                  63
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/components/contacts/ContactSearchResults.tsx": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Range": [
+              3,
+              54
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  3,
+                  54
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/components/contacts/ContactsPanel.tsx": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Range": [
+              6,
+              119
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  6,
+                  119
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/components/contacts/FriendListSection.tsx": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Range": [
+              3,
+              68
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  3,
+                  68
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/components/contacts/FriendRequestsView.tsx": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Range": [
+              4,
+              24
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  4,
+                  24
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/components/contacts/GroupListSection.tsx": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Range": [
+              2,
+              23
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  2,
+                  23
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/components/conversation/ConversationList.tsx": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Range": [
+              5,
+              38
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  5,
+                  38
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/components/conversation/ConversationSummaryRow.tsx": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Range": [
+              3,
+              24
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  3,
+                  24
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/components/group/GroupManagePanel.tsx": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Range": [
+              2,
+              32
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  2,
+                  32
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/components/ui/EmptyState.tsx": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Range": [
+              1,
+              3
+            ]
+          },
+          {
+            "Single": 6
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  1,
+                  3
+                ]
+              },
+              {
+                "Single": 6
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/components/ui/Modal.tsx": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Range": [
+              5,
+              131
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  5,
+                  131
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/components/ui/SearchBar.tsx": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Single": 1
+          },
+          {
+            "Range": [
+              3,
+              14
+            ]
+          },
+          {
+            "Single": 18
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Single": 1
+              },
+              {
+                "Range": [
+                  3,
+                  14
+                ]
+              },
+              {
+                "Single": 18
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/components/ui/index.ts": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Single": 8
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Single": 8
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/components/user/UserProfilePage.tsx": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Range": [
+              3,
+              16
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  3,
+                  16
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/hooks/chat/__tests__/messageModel.test.ts": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Single": 10
+          },
+          {
+            "Single": 12
+          },
+          {
+            "Range": [
+              86,
+              92
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Single": 10
+              },
+              {
+                "Single": 12
+              },
+              {
+                "Range": [
+                  86,
+                  92
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/hooks/chat/__tests__/realtimeModel.test.ts": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Single": 65
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Single": 65
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/hooks/chat/actions/messageActions.ts": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Single": 8
+          },
+          {
+            "Single": 11
+          },
+          {
+            "Single": 46
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Single": 8
+              },
+              {
+                "Single": 11
+              },
+              {
+                "Single": 46
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/hooks/chat/models/messageModel.ts": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Single": 6
+          },
+          {
+            "Range": [
+              10,
+              19
+            ]
+          },
+          {
+            "Single": 57
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Single": 6
+              },
+              {
+                "Range": [
+                  10,
+                  19
+                ]
+              },
+              {
+                "Single": 57
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/hooks/chat/models/realtimeModel.ts": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Single": 27
+          },
+          {
+            "Range": [
+              45,
+              53
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Single": 27
+              },
+              {
+                "Range": [
+                  45,
+                  53
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/hooks/chat/reducers/chatReducer.ts": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Single": 25
+          },
+          {
+            "Single": 47
+          },
+          {
+            "Single": 68
+          },
+          {
+            "Range": [
+              130,
+              137
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Single": 25
+              },
+              {
+                "Single": 47
+              },
+              {
+                "Single": 68
+              },
+              {
+                "Range": [
+                  130,
+                  137
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/hooks/chat/types.ts": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Single": 23
+          },
+          {
+            "Single": 71
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Single": 23
+              },
+              {
+                "Single": 71
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/hooks/useChatStore.ts": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Single": 8
+          },
+          {
+            "Single": 53
+          },
+          {
+            "Range": [
+              137,
+              140
+            ]
+          },
+          {
+            "Range": [
+              150,
+              153
+            ]
+          },
+          {
+            "Single": 158
+          },
+          {
+            "Single": 161
+          },
+          {
+            "Single": 166
+          },
+          {
+            "Single": 202
+          },
+          {
+            "Single": 216
+          },
+          {
+            "Single": 242
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Single": 8
+              },
+              {
+                "Single": 53
+              },
+              {
+                "Range": [
+                  137,
+                  140
+                ]
+              },
+              {
+                "Range": [
+                  150,
+                  153
+                ]
+              },
+              {
+                "Single": 158
+              },
+              {
+                "Single": 161
+              },
+              {
+                "Single": 166
+              },
+              {
+                "Single": 202
+              },
+              {
+                "Single": 216
+              },
+              {
+                "Single": 242
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/styles/base.css": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Range": [
+              1,
+              66
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  1,
+                  66
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/styles/chat.css": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Range": [
+              1,
+              259
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  1,
+                  259
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/styles/contacts.css": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Range": [
+              1,
+              29
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  1,
+                  29
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/styles/detail.css": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Range": [
+              1,
+              96
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  1,
+                  96
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/styles/global.css": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Range": [
+              1,
+              8
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  1,
+                  8
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/styles/layout.css": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Range": [
+              1,
+              71
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  1,
+                  71
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/styles/mobile.css": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Range": [
+              1,
+              68
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  1,
+                  68
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/styles/modal.css": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Range": [
+              1,
+              191
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  1,
+                  191
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/styles/user.css": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Range": [
+              1,
+              92
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  1,
+                  92
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/types/index.ts": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Single": 40
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Single": 40
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/utils/index.ts": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Range": [
+              94,
+              101
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b223ed1921616a88b40b0",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  94,
+                  101
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "remote_transcripts": {
+    "6974aa14fc0d6e8e": {
+      "tool": "trae",
+      "conversation_id": "6a09b10fd1921616a88b24de",
+      "session_id": "6a09b10fd1921616a88b24de",
+      "status": "remote_only",
+      "message": "Remote transcript resolution is not implemented yet for TRAE prompts."
+    }
+  }
+}
