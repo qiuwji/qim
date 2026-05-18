@@ -2,6 +2,11 @@ package conversation
 
 import "qim/internal/domain/conversation/store"
 
+const (
+	MsgTypeText   int8 = 1
+	MsgTypeSystem int8 = 5
+)
+
 type Result struct {
 	Data any
 	Err  error

@@ -5,7 +5,7 @@ import { RealtimeClient } from '@/api/ws';
 import type { ConversationDTO, FriendDTO, FriendGroupDTO, FriendRequestDTO, MemberDTO, MessageDTO, UserConvDTO, UserDTO, WsResponse } from '@/api/types';
 import { currentSecond, displayName } from '@/utils';
 import type { ContextMenu, MainTab, MobilePane, ModalState, Notice } from '@/types';
-import { messageDisplayText } from './chat/models/messageModel';
+import { isMentionedMe, messageDisplayText } from './chat/models/messageModel';
 import {
   forgetHiddenConversationID,
   groupConversations as filterGroupConversations,
@@ -141,16 +141,24 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
   function applyIncomingMessage(next: MessageDTO) {
     if (deletedMessageIDs.current.has(next.id)) return;
     const fromSelf = next.sender_id === user.id;
+    const isSelectedConversation = selectedIDRef.current === next.conversation_id;
+    const needsConversationMeta = !conversations.some((c) => c.conversation_id === next.conversation_id) || !details[next.conversation_id];
     const wasHidden = hiddenConversationIDs.current.has(next.conversation_id);
     forgetHiddenConversationID(hiddenStorageKey, hiddenConversationIDs.current, next.conversation_id);
     dispatchChat({ type: 'incomingMessage', message: next, selectedID: selectedIDRef.current, currentUID: user.id });
-    if (wasHidden) void refreshBase();
-    if (selectedIDRef.current === next.conversation_id && next.seq > 0) markConversationRead(next.conversation_id, next.seq);
-    if (!fromSelf && selectedIDRef.current !== next.conversation_id && !document.hasFocus()) {
+    if (wasHidden || needsConversationMeta) void refreshBase();
+    if (isSelectedConversation && next.seq > 0) markConversationRead(next.conversation_id, next.seq);
+    if (!fromSelf && !isSelectedConversation) {
       const conv = conversations.find((c) => c.conversation_id === next.conversation_id);
       const isMuted = conv?.is_muted ?? false;
+      const preview = messageDisplayText(next).slice(0, 50);
+      const mentionedMe = isMentionedMe(next, user.id);
+      if (mentionedMe) {
+        setMention(next.conversation_id, true);
+      }
+      setNotice({ kind: 'info', text: mentionedMe ? `有人@你：${preview}` : `收到新消息：${preview}` });
       if (!isMuted) {
-        try { new Notification('QIM 新消息', { body: messageDisplayText(next).slice(0, 50) }); } catch { /* */ }
+        try { new Notification(mentionedMe ? 'QIM 有人@你' : 'QIM 新消息', { body: preview }); } catch { /* */ }
       }
     }
   }

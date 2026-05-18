@@ -2,6 +2,7 @@ package conversation
 
 import (
 	"fmt"
+	"time"
 
 	"qim/internal/actor"
 	"qim/internal/domain/conversation/store"
@@ -99,6 +100,7 @@ func (a *ManagerActor) handleCreatePrivate(ctx actor.Context, msg CreatePrivateC
 }
 
 func (a *ManagerActor) handleCreateGroup(ctx actor.Context, msg CreateGroupConvCmd) {
+	memberUIDs := groupConversationMemberUIDs(msg.OwnerID, msg.Members)
 	conv, err := a.store.CreateGroupConversation(store.CreateGroupConversationInput{
 		OwnerID:    msg.OwnerID,
 		Name:       msg.Name,
@@ -109,20 +111,28 @@ func (a *ManagerActor) handleCreateGroup(ctx actor.Context, msg CreateGroupConvC
 		ctx.Reply(Result{Err: err})
 		return
 	}
-	if err := a.spawnConvActor(conv.ID); err != nil {
+	systemMsg, err := a.appendGroupCreatedSystemMessage(conv, memberUIDs)
+	if err != nil {
 		ctx.Reply(Result{Err: err})
 		return
 	}
 
+	if err := a.spawnConvActor(conv.ID); err != nil {
+		ctx.Reply(Result{Err: err})
+		return
+	}
 	ctx.Reply(Result{Data: ConversationDTO{
 		ID:          conv.ID,
 		Type:        store.ConvType(conv.Type),
 		Name:        conv.Name,
 		Avatar:      conv.Avatar,
 		OwnerID:     conv.OwnerID,
+		MemberCount: len(memberUIDs),
 		MemberLimit: conv.MemberLimit,
+		MaxSeq:      systemMsg.Seq,
 		CreatedAt:   conv.CreatedAt,
 	}})
+	a.publishGroupCreated(conv, systemMsg, memberUIDs)
 }
 
 func (a *ManagerActor) spawnConvActor(convID uint64) error {
@@ -131,6 +141,72 @@ func (a *ManagerActor) spawnConvActor(convID uint64) error {
 		return NewConversationActor(convID, a.store, a.engine, a.events)
 	})
 	return err
+}
+
+func (a *ManagerActor) appendGroupCreatedSystemMessage(conv *store.ConversationRecord, memberUIDs []uint64) (*store.MessageCommitResult, error) {
+	now := conv.CreatedAt
+	if now == 0 {
+		now = time.Now().Unix()
+	}
+	content := "群聊已创建"
+	if conv.Name != "" {
+		content = fmt.Sprintf("群聊「%s」已创建", conv.Name)
+	}
+	return a.store.CommitMessage(store.MessageCommitInput{
+		Message: store.MessageAppendInput{
+			ConversationID: conv.ID,
+			Seq:            1,
+			SenderID:       conv.OwnerID,
+			MsgType:        MsgTypeSystem,
+			Content:        content,
+			CreatedAt:      now,
+		},
+		UnreadProjection: store.UnreadProjectionInput{
+			ConversationID: conv.ID,
+			SenderID:       conv.OwnerID,
+			MemberUIDs:     memberUIDs,
+			LastMsgAt:      now,
+		},
+	})
+}
+
+func (a *ManagerActor) publishGroupCreated(conv *store.ConversationRecord, msg *store.MessageCommitResult, memberUIDs []uint64) {
+	if a.events == nil || msg == nil || msg.Duplicated {
+		return
+	}
+	copiedMembers := append([]uint64(nil), memberUIDs...)
+	_ = a.events.Publish(ConversationUpdatedEvent{
+		ConversationID: conv.ID,
+		DisplayName:    conv.Name,
+		Avatar:         conv.Avatar,
+		MemberUIDs:     copiedMembers,
+	})
+	_ = a.events.Publish(MessageSentEvent{
+		MessageID:      msg.MessageID,
+		ConversationID: conv.ID,
+		Seq:            msg.Seq,
+		SenderID:       msg.SenderID,
+		MemberUIDs:     copiedMembers,
+		MsgType:        msg.MsgType,
+		Content:        msg.Content,
+		CreatedAt:      msg.CreatedAt,
+	})
+}
+
+func groupConversationMemberUIDs(ownerID uint64, members []uint64) []uint64 {
+	result := make([]uint64, 0, len(members)+1)
+	seen := map[uint64]struct{}{}
+	for _, uid := range append([]uint64{ownerID}, members...) {
+		if uid == 0 {
+			continue
+		}
+		if _, ok := seen[uid]; ok {
+			continue
+		}
+		seen[uid] = struct{}{}
+		result = append(result, uid)
+	}
+	return result
 }
 
 func (a *ManagerActor) handleReadAll(ctx actor.Context, msg ReadAllConvCmd) {

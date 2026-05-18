@@ -57,7 +57,7 @@ check_backend_incremental_coverage() {
     local backend_file="${file#backend/}"
     local cov
     cov="$(
-      go tool cover -func="$BACKEND_DIR/coverage.out" | grep "/$backend_file:" | awk '
+      (cd "$BACKEND_DIR" && go tool cover -func=coverage.out) | grep "/$backend_file:" | awk '
         {
           pct=$NF
           sub(/%/, "", pct)

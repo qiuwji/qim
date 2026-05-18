@@ -34,7 +34,7 @@ func (a *ConversationActor) handleSendMessage(ctx actor.Context, msg SendMessage
 			ClientID:       msg.ClientID,
 			CreatedAt:      now,
 			MentionUIDs:    mentionUIDs,
-			MentionAll:     msg.MentionAll,
+			MentionAll:     mentionAll,
 		},
 		UnreadProjection: store.UnreadProjectionInput{
 			ConversationID: a.convID,

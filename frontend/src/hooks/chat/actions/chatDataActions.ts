@@ -7,6 +7,15 @@ import { collectMissingFriendUserIDs } from '../models/friendModel';
 import { latestVisibleMessage, messagePreviewText, MESSAGE_PAGE_SIZE } from '../models/messageModel';
 import type { ChatAction, ChatState } from '../reducers/chatReducer';
 
+async function fetchUsersByID(uids: number[], cached: Record<number, UserDTO>): Promise<Record<number, UserDTO>> {
+  const missing = Array.from(new Set(uids)).filter((uid) => uid > 0 && !cached[uid]);
+  if (!missing.length) return {};
+  const users = await Promise.all(missing.map((uid) => api.getUser(uid).catch(() => null)));
+  const next: Record<number, UserDTO> = {};
+  for (const userItem of users) if (userItem) next[userItem.id] = userItem;
+  return next;
+}
+
 export function useChatDataActions({
   user,
   conversations,
@@ -72,6 +81,10 @@ export function useChatDataActions({
       ]);
       nextMembers[id] = memberList;
       nextPreviews[id] = messagePreviewText(latestVisibleMessage(msgList, deletedMessageIDs.current));
+      Object.assign(nextUsers, await fetchUsersByID([
+        ...memberList.map((member) => member.uid),
+        ...msgList.map((message) => message.sender_id),
+      ], { ...snapshot.userCache, ...nextUsers }));
 
       const serverDetail = chat.conv ?? snapshot.details[id];
       if (serverDetail?.type === 1) {
@@ -147,6 +160,8 @@ export function useChatDataActions({
   const loadMessages = useCallback(async (cid: number, beforeSeq = 0) => {
     try {
       const rawList = await api.messages(cid, beforeSeq, MESSAGE_PAGE_SIZE);
+      const users = await fetchUsersByID(rawList.map((message) => message.sender_id), chatStateRef.current.userCache);
+      if (Object.keys(users).length) dispatchChat({ type: 'hydrateFriendUsers', users });
       dispatchChat({
         type: 'messagesLoaded',
         conversationID: cid,
@@ -162,7 +177,7 @@ export function useChatDataActions({
     } catch (err) {
       setNotice({ kind: 'error', text: err instanceof Error ? err.message : '消息加载失败' });
     }
-  }, [deletedMessageIDs, dispatchChat, loadChatMembers, markConversationRead, setNotice]);
+  }, [chatStateRef, deletedMessageIDs, dispatchChat, loadChatMembers, markConversationRead, setNotice]);
 
   const ensurePrivateConversation = useCallback(async (uid: number): Promise<number> => {
     const existing = conversations.find((conv) => {

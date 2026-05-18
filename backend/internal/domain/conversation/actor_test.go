@@ -89,8 +89,9 @@ func TestConversationActorRealtimeGroupEvents_BitsUT(t *testing.T) {
 
 func TestManagerActor_BitsUT(t *testing.T) {
 	store := newConversationTestStore()
+	bus := &conversationTestBus{}
 	engine := actor.NewEngine()
-	ref, err := engine.Spawn("conv-manager-test", NewManagerActor(store, engine, nil))
+	ref, err := engine.Spawn("conv-manager-test", NewManagerActor(store, engine, bus))
 	if err != nil {
 		t.Fatalf("spawn manager: %v", err)
 	}
@@ -122,8 +123,41 @@ func TestManagerActor_BitsUT(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create group ask: %v", err)
 	}
-	if raw.(Result).Data.(ConversationDTO).Name != "g" {
-		t.Fatalf("group conversation = %+v", raw.(Result).Data)
+	groupDTO := raw.(Result).Data.(ConversationDTO)
+	if groupDTO.Name != "g" || groupDTO.MemberCount != 2 || groupDTO.MaxSeq != 1 {
+		t.Fatalf("group conversation = %+v", groupDTO)
+	}
+	if store.lastCommit == nil {
+		t.Fatalf("group creation should commit system message")
+	}
+	if store.lastCommit.Message.MsgType != MsgTypeSystem || store.lastCommit.Message.Content != "群聊「g」已创建" {
+		t.Fatalf("system message commit = %+v", store.lastCommit.Message)
+	}
+	if store.lastCommit.Message.Seq != 1 || store.lastCommit.Message.ConversationID != 11 {
+		t.Fatalf("system message seq/conversation = %+v", store.lastCommit.Message)
+	}
+	waitForEvent(t, bus, EventConversationUpdated)
+	waitForEvent(t, bus, EventMessageSent)
+	createdEvents := bus.eventsByName(EventConversationUpdated)
+	createdEvent := createdEvents[len(createdEvents)-1].(ConversationUpdatedEvent)
+	if createdEvent.ConversationID != 11 || createdEvent.DisplayName != "g" || len(createdEvent.MemberUIDs) != 2 {
+		t.Fatalf("conversation updated event = %+v", createdEvent)
+	}
+	sentEvents := bus.eventsByName(EventMessageSent)
+	sentEvent := sentEvents[len(sentEvents)-1].(MessageSentEvent)
+	if sentEvent.MsgType != MsgTypeSystem || sentEvent.Content != "群聊「g」已创建" {
+		t.Fatalf("message sent event = %+v", sentEvent)
+	}
+	groupRef, ok := engine.Lookup("conv:11")
+	if !ok {
+		t.Fatalf("created conversation actor should exist")
+	}
+	raw, err = groupRef.Ask(SendMessageCmd{SenderID: 1, MsgType: MsgTypeText, Content: "hello"}, time.Second)
+	if err != nil {
+		t.Fatalf("send in created group ask: %v", err)
+	}
+	if dto := raw.(Result).Data.(MessageDTO); dto.Seq != 2 {
+		t.Fatalf("first user message seq = %d, want 2", dto.Seq)
 	}
 
 	store.membersErr = errors.New("members down")
@@ -345,9 +379,11 @@ func ptrString(s string) *string { return &s }
 type conversationTestStore struct {
 	mu               sync.Mutex
 	conv             *ConversationRecord
+	createdConvs     map[uint64]*ConversationRecord
 	members          map[uint64]MemberRecord
 	messageRevoked   bool
 	duplicateMessage bool
+	lastCommit       *MessageCommitInput
 	commitErr        error
 	managerErr       error
 	membersErr       error
@@ -363,6 +399,7 @@ func newConversationTestStore() *conversationTestStore {
 			MemberLimit: 10,
 			CreatedAt:   1,
 		},
+		createdConvs: map[uint64]*ConversationRecord{},
 		members: map[uint64]MemberRecord{
 			1: {ConversationID: 1, UserID: 1, Role: int8(MemberRoleOwner), JoinTime: 1},
 			2: {ConversationID: 1, UserID: 2, Role: int8(MemberRoleAdmin), JoinTime: 1},
@@ -371,7 +408,13 @@ func newConversationTestStore() *conversationTestStore {
 }
 
 func (s *conversationTestStore) GetConversation(id uint64) (*ConversationRecord, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	if id != s.conv.ID {
+		if conv, ok := s.createdConvs[id]; ok {
+			cp := *conv
+			return &cp, nil
+		}
 		return nil, errors.New("not found")
 	}
 	cp := *s.conv
@@ -389,7 +432,11 @@ func (s *conversationTestStore) CreateGroupConversation(input CreateGroupConvers
 	if s.managerErr != nil {
 		return nil, s.managerErr
 	}
-	return &ConversationRecord{ID: 11, Type: int8(ConvTypeGroup), Name: input.Name, Avatar: input.Avatar, OwnerID: input.OwnerID, MemberLimit: 500, CreatedAt: 1}, nil
+	conv := &ConversationRecord{ID: 11, Type: int8(ConvTypeGroup), Name: input.Name, Avatar: input.Avatar, OwnerID: input.OwnerID, MemberLimit: 500, CreatedAt: 1}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.createdConvs[conv.ID] = conv
+	return conv, nil
 }
 func (s *conversationTestStore) UpdateConversation(id uint64, updates map[string]any) error {
 	s.mu.Lock()
@@ -469,6 +516,16 @@ func (s *conversationTestStore) CommitMessage(input MessageCommitInput) (*Messag
 	if s.commitErr != nil {
 		return nil, s.commitErr
 	}
+	s.mu.Lock()
+	lastCommit := input
+	s.lastCommit = &lastCommit
+	if input.Message.ConversationID == s.conv.ID {
+		s.conv.MaxSeq = input.Message.Seq
+	}
+	if conv, ok := s.createdConvs[input.Message.ConversationID]; ok {
+		conv.MaxSeq = input.Message.Seq
+	}
+	s.mu.Unlock()
 	if s.duplicateMessage {
 		return &MessageCommitResult{
 			MessageID:  9001,
@@ -528,6 +585,18 @@ func (b *conversationTestBus) count(name string) int {
 		}
 	}
 	return n
+}
+
+func (b *conversationTestBus) eventsByName(name string) []eventbus.Event {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	out := make([]eventbus.Event, 0)
+	for _, event := range b.events {
+		if event.Name() == name {
+			out = append(out, event)
+		}
+	}
+	return out
 }
 
 func waitForEvent(t *testing.T, bus *conversationTestBus, name string) {
