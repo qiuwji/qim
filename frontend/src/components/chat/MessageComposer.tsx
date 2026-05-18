@@ -83,6 +83,12 @@ export function MessageComposer({
     setDraft(text);
     setMentions((prev) => syncMentions(text, prev));
 
+    const now = Date.now();
+    if (now - lastTypingRef.current > TYPING_THROTTLE) {
+      lastTypingRef.current = now;
+      onTyping();
+    }
+
     const cursorPos = e.target.selectionStart;
     const lastAt = text.lastIndexOf('@', cursorPos - 1);
     if (lastAt >= 0 && isGroup) {

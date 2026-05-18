@@ -85,6 +85,40 @@ func TestDispatcherSystemFlow_BitsUT(t *testing.T) {
 	}
 }
 
+func TestDispatchSendWithMention_BitsUT(t *testing.T) {
+	engine := actor.NewEngine()
+	mustSpawnWS(t, engine, "conv-manager-mention", wsConvResultActor{data: "conv"})
+
+	dispatcher := NewDispatcher(
+		service.NewConvService(engine, func(convID uint64) actor.Actor { return wsConvResultActor{data: convID} }),
+		service.NewMsgService(engine),
+		service.NewFriendService(engine),
+		service.NewUserService(engine, func(uid uint64) actor.Actor { return wsUserResultActor{data: uid} }),
+		nil, nil,
+	)
+
+	t.Run("带mention_uids和mention_all", func(t *testing.T) {
+		resp := dispatcher.Dispatch(1, req("msg", "send", `{"conversation_id":1,"msg_type":1,"content":"@all","mention_uids":[2,3],"mention_all":true}`))
+		if resp.Type != "ack" {
+			t.Fatalf("mention send resp = %+v", resp)
+		}
+	})
+
+	t.Run("无mention字段", func(t *testing.T) {
+		resp := dispatcher.Dispatch(1, req("msg", "send", `{"conversation_id":1,"msg_type":1,"content":"hello"}`))
+		if resp.Type != "ack" {
+			t.Fatalf("no-mention send resp = %+v", resp)
+		}
+	})
+
+	t.Run("无效JSON", func(t *testing.T) {
+		resp := dispatcher.Dispatch(1, req("msg", "send", `{invalid}`))
+		if resp.Type != "error" {
+			t.Fatalf("invalid json resp = %+v", resp)
+		}
+	})
+}
+
 func TestReplyHelpers_BitsUT(t *testing.T) {
 	if resp, ok := resultReply("a", conversation.Result{Err: conversation.ErrNotMember}); !ok || resp.Type != "error" {
 		t.Fatalf("conversation error resp=%+v ok=%v", resp, ok)

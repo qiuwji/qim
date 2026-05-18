@@ -365,6 +365,7 @@ HTTP Request → Gin Handler → Handler.askManager/askConv → ActorRef.Ask →
 
 ### 短期原则
 
+- 提交代码前必须运行 `./scripts/local-ci.sh` 确认通过，不得跳过本地 CI 直接推送。
 - CSS 按业务域拆分到 `styles/` 目录，禁止在 `global.css` 中堆积新样式。`global.css` 仅作为 `@import` 入口文件。拆分规则：`base.css`（全局重置/变量/通用按钮）、`layout.css`（im-shell/pane 布局）、`chat.css`（聊天窗口/composer/mention）、`contacts.css`（通讯录/搜索）、`user.css`（头像/用户卡片/资料页）、`modal.css`（弹窗/选择器/上下文菜单）、`detail.css`（详情面板/开关/成员网格）、`mobile.css`（响应式媒体查询）。新增样式必须归入对应域文件，不得新建无业务归属的 CSS 文件。
 - 继续把 `useChatStore` 里的纯逻辑下沉到 `hooks/chat/models/`。
 - 每次修改会话、消息、成员、实时事件的业务规则，都必须补对应 model/realtime 单测。

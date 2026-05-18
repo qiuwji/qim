@@ -17,7 +17,7 @@ func (a *ConversationActor) handleSendMessage(ctx actor.Context, msg SendMessage
 		return
 	}
 
-	mentionUIDs := a.validateMention(msg)
+	mentionUIDs, mentionAll := a.validateMention(msg)
 
 	now := time.Now().Unix()
 	nextSeq := a.maxSeq + 1
@@ -78,7 +78,7 @@ func (a *ConversationActor) handleSendMessage(ctx actor.Context, msg SendMessage
 	}
 	if !result.Duplicated {
 		a.maxSeq = actualSeq
-		a.publishMessageSent(result.MessageID, actualSeq, msg, mentionUIDs, memberUIDs, createdAt)
+		a.publishMessageSent(result.MessageID, actualSeq, msg, mentionUIDs, mentionAll, memberUIDs, createdAt)
 	}
 	ctx.Reply(Result{Data: MessageDTO{
 		ID:             result.MessageID,
@@ -89,26 +89,26 @@ func (a *ConversationActor) handleSendMessage(ctx actor.Context, msg SendMessage
 		Content:        content,
 		ReplyTo:        replyTo,
 		MentionUIDs:    mentionUIDs,
-		MentionAll:     msg.MentionAll,
+		MentionAll:     mentionAll,
 		Revoked:        result.Revoked,
 		ClientID:       clientID,
 		CreatedAt:      createdAt,
 	}})
 }
 
-func (a *ConversationActor) validateMention(msg SendMessageCmd) []uint64 {
+func (a *ConversationActor) validateMention(msg SendMessageCmd) ([]uint64, bool) {
 	if a.convType != store.ConvTypeGroup {
-		return nil
+		return nil, false
 	}
 	if msg.MentionAll {
 		if err := a.requireAdmin(msg.SenderID); err != nil {
-			return a.filterMentionMembers(msg.MentionUIDs)
+			return a.filterMentionMembers(msg.MentionUIDs), false
 		}
 	}
 	if len(msg.MentionUIDs) > 50 {
-		return a.filterMentionMembers(msg.MentionUIDs[:50])
+		return a.filterMentionMembers(msg.MentionUIDs[:50]), msg.MentionAll
 	}
-	return a.filterMentionMembers(msg.MentionUIDs)
+	return a.filterMentionMembers(msg.MentionUIDs), msg.MentionAll
 }
 
 func (a *ConversationActor) filterMentionMembers(uids []uint64) []uint64 {
@@ -161,7 +161,7 @@ func (a *ConversationActor) handleRevokeMessage(ctx actor.Context, msg RevokeMes
 	ctx.Reply(Result{Data: true})
 }
 
-func (a *ConversationActor) publishMessageSent(messageID uint64, seq int64, msg SendMessageCmd, mentionUIDs []uint64, memberUIDs []uint64, createdAt int64) {
+func (a *ConversationActor) publishMessageSent(messageID uint64, seq int64, msg SendMessageCmd, mentionUIDs []uint64, mentionAll bool, memberUIDs []uint64, createdAt int64) {
 	if a.events == nil {
 		return
 	}
@@ -177,7 +177,7 @@ func (a *ConversationActor) publishMessageSent(messageID uint64, seq int64, msg 
 		ClientID:       msg.ClientID,
 		CreatedAt:      createdAt,
 		MentionUIDs:    mentionUIDs,
-		MentionAll:     msg.MentionAll,
+		MentionAll:     mentionAll,
 	})
 }
 

@@ -320,7 +320,7 @@ func TestConversationActorPrivateConversationRejectsGroupOps_BitsUT(t *testing.T
 func TestConversationActorPublishNilEvents_BitsUT(t *testing.T) {
 	a := NewConversationActor(1, nil, nil, nil)
 	a.members[1] = &MemberState{UID: 1}
-	a.publishMessageSent(1, 1, SendMessageCmd{SenderID: 1}, nil, []uint64{1}, 1)
+	a.publishMessageSent(1, 1, SendMessageCmd{SenderID: 1}, nil, false, []uint64{1}, 1)
 	a.publishMessageRevoked(&MessageRecord{ID: 1, Seq: 1, SenderID: 1}, 1)
 	a.publishConversationUpdated()
 	a.publishMemberJoined(2, MemberRoleRegular, 1)
@@ -540,4 +540,213 @@ func waitForEvent(t *testing.T, bus *conversationTestBus, name string) {
 		time.Sleep(time.Millisecond * 10)
 	}
 	t.Fatalf("event %s was not published", name)
+}
+
+func TestConversationActorMentionValidation_BitsUT(t *testing.T) {
+	store := newConversationTestStore()
+	bus := &conversationTestBus{}
+	engine := actor.NewEngine()
+	ref, err := engine.Spawn("conv-mention-test", NewConversationActor(1, store, engine, bus))
+	if err != nil {
+		t.Fatalf("spawn conversation actor: %v", err)
+	}
+
+	t.Run("群聊发送带mention的消息", func(t *testing.T) {
+		raw, err := ref.Ask(SendMessageCmd{
+			SenderID:    1,
+			MsgType:     1,
+			Content:     "@user2 hello",
+			MentionUIDs: []uint64{2},
+		}, time.Second)
+		if err != nil {
+			t.Fatalf("send ask error: %v", err)
+		}
+		result := raw.(Result)
+		if result.Err != nil {
+			t.Fatalf("send result error: %v", result.Err)
+		}
+		dto := result.Data.(MessageDTO)
+		if len(dto.MentionUIDs) != 1 || dto.MentionUIDs[0] != 2 {
+			t.Fatalf("mention uids = %v, want [2]", dto.MentionUIDs)
+		}
+		waitForEvent(t, bus, EventMessageSent)
+	})
+
+	t.Run("群聊管理员@全体", func(t *testing.T) {
+		raw, err := ref.Ask(SendMessageCmd{
+			SenderID:    1,
+			MsgType:     1,
+			Content:     "@全体成员 hello",
+			MentionUIDs: []uint64{2},
+			MentionAll:  true,
+		}, time.Second)
+		if err != nil {
+			t.Fatalf("send ask error: %v", err)
+		}
+		result := raw.(Result)
+		if result.Err != nil {
+			t.Fatalf("send result error: %v", result.Err)
+		}
+		dto := result.Data.(MessageDTO)
+		if !dto.MentionAll {
+			t.Fatalf("mention_all should be true")
+		}
+		if len(dto.MentionUIDs) != 1 || dto.MentionUIDs[0] != 2 {
+			t.Fatalf("mention uids = %v, want [2]", dto.MentionUIDs)
+		}
+	})
+
+	t.Run("普通成员@全体降级为手动@列表", func(t *testing.T) {
+		regularStore := newConversationTestStore()
+		regularStore.members[5] = MemberRecord{ConversationID: 1, UserID: 5, Role: int8(MemberRoleRegular), JoinTime: 1}
+		regularBus := &conversationTestBus{}
+		regularRef, err := engine.Spawn("conv-mention-regular-test", NewConversationActor(1, regularStore, engine, regularBus))
+		if err != nil {
+			t.Fatalf("spawn conversation actor: %v", err)
+		}
+		raw, err := regularRef.Ask(SendMessageCmd{
+			SenderID:    5,
+			MsgType:     1,
+			Content:     "@全体成员 hello",
+			MentionUIDs: []uint64{2},
+			MentionAll:  true,
+		}, time.Second)
+		if err != nil {
+			t.Fatalf("send ask error: %v", err)
+		}
+		result := raw.(Result)
+		if result.Err != nil {
+			t.Fatalf("send result error: %v", result.Err)
+		}
+		dto := result.Data.(MessageDTO)
+		if dto.MentionAll {
+			t.Fatalf("mention_all should be false for regular member")
+		}
+		if len(dto.MentionUIDs) != 1 || dto.MentionUIDs[0] != 2 {
+			t.Fatalf("mention uids = %v, want [2] (downgraded)", dto.MentionUIDs)
+		}
+	})
+
+	t.Run("mention非成员被过滤", func(t *testing.T) {
+		raw, err := ref.Ask(SendMessageCmd{
+			SenderID:    1,
+			MsgType:     1,
+			Content:     "hello",
+			MentionUIDs: []uint64{2, 99, 100},
+		}, time.Second)
+		if err != nil {
+			t.Fatalf("send ask error: %v", err)
+		}
+		result := raw.(Result)
+		if result.Err != nil {
+			t.Fatalf("send result error: %v", result.Err)
+		}
+		dto := result.Data.(MessageDTO)
+		if len(dto.MentionUIDs) != 1 || dto.MentionUIDs[0] != 2 {
+			t.Fatalf("mention uids = %v, want [2] (non-members filtered)", dto.MentionUIDs)
+		}
+	})
+
+	t.Run("mention去重", func(t *testing.T) {
+		raw, err := ref.Ask(SendMessageCmd{
+			SenderID:    1,
+			MsgType:     1,
+			Content:     "hello",
+			MentionUIDs: []uint64{2, 2, 2},
+		}, time.Second)
+		if err != nil {
+			t.Fatalf("send ask error: %v", err)
+		}
+		result := raw.(Result)
+		if result.Err != nil {
+			t.Fatalf("send result error: %v", result.Err)
+		}
+		dto := result.Data.(MessageDTO)
+		if len(dto.MentionUIDs) != 1 {
+			t.Fatalf("mention uids = %v, want deduplicated [2]", dto.MentionUIDs)
+		}
+	})
+
+	t.Run("mention超过50人截断", func(t *testing.T) {
+		bigUIDs := make([]uint64, 60)
+		for i := range bigUIDs {
+			bigUIDs[i] = uint64(i + 100)
+		}
+		raw, err := ref.Ask(SendMessageCmd{
+			SenderID:    1,
+			MsgType:     1,
+			Content:     "hello",
+			MentionUIDs: bigUIDs,
+		}, time.Second)
+		if err != nil {
+			t.Fatalf("send ask error: %v", err)
+		}
+		result := raw.(Result)
+		if result.Err != nil {
+			t.Fatalf("send result error: %v", result.Err)
+		}
+		dto := result.Data.(MessageDTO)
+		if len(dto.MentionUIDs) > 50 {
+			t.Fatalf("mention uids len = %d, want <= 50", len(dto.MentionUIDs))
+		}
+	})
+
+	t.Run("单聊mention被静默忽略", func(t *testing.T) {
+		privStore := newConversationTestStore()
+		privStore.conv.Type = int8(ConvTypePrivate)
+		privRef, err := engine.Spawn("conv-mention-private-test", NewConversationActor(1, privStore, engine, nil))
+		if err != nil {
+			t.Fatalf("spawn private conversation actor: %v", err)
+		}
+		raw, err := privRef.Ask(SendMessageCmd{
+			SenderID:    1,
+			MsgType:     1,
+			Content:     "hello",
+			MentionUIDs: []uint64{2},
+			MentionAll:  true,
+		}, time.Second)
+		if err != nil {
+			t.Fatalf("send ask error: %v", err)
+		}
+		result := raw.(Result)
+		if result.Err != nil {
+			t.Fatalf("send result error: %v", result.Err)
+		}
+		dto := result.Data.(MessageDTO)
+		if len(dto.MentionUIDs) != 0 || dto.MentionAll {
+			t.Fatalf("private chat mention should be nil, got uids=%v all=%v", dto.MentionUIDs, dto.MentionAll)
+		}
+	})
+}
+
+func TestFilterMentionMembers_BitsUT(t *testing.T) {
+	a := &ConversationActor{
+		members: map[uint64]*MemberState{
+			1: {UID: 1},
+			2: {UID: 2},
+			3: {UID: 3},
+		},
+	}
+
+	cases := []struct {
+		name string
+		uids []uint64
+		want int
+	}{
+		{"nil输入", nil, 0},
+		{"空输入", []uint64{}, 0},
+		{"全零过滤", []uint64{0, 0}, 0},
+		{"非成员过滤", []uint64{99}, 0},
+		{"部分成员", []uint64{1, 99, 2}, 2},
+		{"去重", []uint64{1, 1, 2}, 2},
+	}
+
+	for _, tt := range cases {
+		t.Run(tt.name, func(t *testing.T) {
+			got := a.filterMentionMembers(tt.uids)
+			if len(got) != tt.want {
+				t.Fatalf("filterMentionMembers(%v) = %v, want len %d", tt.uids, got, tt.want)
+			}
+		})
+	}
 }
