@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { FriendGroupDTO, UserDTO } from '@/api/types';
-import { Avatar } from '@/components/ui';
+import { Avatar, PanelHeader } from '@/components/ui';
 
 export function UserProfilePage({ user, isFriend, isSelf, friendGroups, currentGroupId, onBack, onStartPrivate, onAddFriend, onMoveGroup, onDeleteFriend }: {
   user: UserDTO; isFriend?: boolean; isSelf?: boolean; friendGroups?: FriendGroupDTO[]; currentGroupId?: number;
@@ -13,12 +13,7 @@ export function UserProfilePage({ user, isFriend, isSelf, friendGroups, currentG
 
   return (
     <div className="flex h-full flex-col bg-[#f3f4f6]">
-      <header className="flex shrink-0 items-center gap-3 border-b border-[#dfe3e8] bg-[#f9fafb] px-4 py-3">
-        <button className="back-btn" onClick={onBack}>
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
-        </button>
-        <strong className="text-base font-semibold text-[#1a1a1a]">个人信息</strong>
-      </header>
+      <PanelHeader title="个人信息" onBack={onBack} />
       <div className="flex-1 overflow-auto">
         <div className="mx-auto flex max-w-lg flex-col items-center gap-5 px-6 py-8">
           <div className="flex w-full flex-col items-center gap-4 rounded-2xl bg-white p-8 shadow-sm">

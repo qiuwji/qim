@@ -2,11 +2,11 @@ import { useState } from 'react';
 import type { ConversationDTO, FriendDTO, MemberDTO, UserConvDTO, UserDTO } from '@/api/types';
 import { chatTitle, timeText } from '@/utils';
 import { Badge, ContextMenu } from '@/components/ui';
-import { ConversationAvatar } from '@/components/ConversationAvatar';
+import { ConversationAvatar } from '@/components/conversation/ConversationAvatar';
 
-export function ConversationList({ conversations, details, lastMsgMap, selectedID, onSelect, members, userCache, onlineMap, friendMap: _friendMap, currentUID, onTogglePin, onToggleMute, onHide }: {
+export function ConversationList({ conversations, details, lastMsgMap, selectedID, onSelect, members, userCache, onlineMap, friendMap: _friendMap, currentUID, mentionMap, onTogglePin, onToggleMute, onHide }: {
   conversations: UserConvDTO[]; details: Record<number, ConversationDTO>; lastMsgMap: Record<number, string>; selectedID: number | null; onSelect: (id: number) => void;
-  members: Record<number, MemberDTO[]>; userCache: Record<number, UserDTO>; onlineMap: Record<number, boolean>; friendMap?: Record<number, FriendDTO>; currentUID: number;
+  members: Record<number, MemberDTO[]>; userCache: Record<number, UserDTO>; onlineMap: Record<number, boolean>; friendMap?: Record<number, FriendDTO>; currentUID: number; mentionMap?: Record<number, boolean>;
   onTogglePin: (convID?: number) => void; onToggleMute: (convID?: number) => void; onHide: (convID?: number) => void;
 }) {
   const [ctx, setCtx] = useState<{ x: number; y: number; item: UserConvDTO } | null>(null);
@@ -35,7 +35,7 @@ export function ConversationList({ conversations, details, lastMsgMap, selectedI
                 <time className="shrink-0 text-xs text-[#999]">{timeText(item.last_msg_at)}</time>
               </div>
               <div className="flex min-w-0 items-center justify-between gap-2">
-                <span className="min-w-0 flex-1 truncate text-[13px] text-[#858c98]">{lastMsg || '暂无消息'}</span>
+                <span className="min-w-0 flex-1 truncate text-[13px] text-[#858c98]">{mentionMap?.[item.conversation_id] && item.unread_count > 0 ? <span className="mention-badge">[有人@我]</span> : null}{lastMsg || '暂无消息'}</span>
                 <Badge count={item.unread_count} muted={item.is_muted} />
               </div>
             </div>

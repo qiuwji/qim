@@ -17,17 +17,19 @@ type Result struct {
 }
 
 type MessageDTO struct {
-	ID             uint64  `json:"id"`
-	ConversationID uint64  `json:"conversation_id"`
-	Seq            int64   `json:"seq"`
-	SenderID       uint64  `json:"sender_id"`
-	MsgType        MsgType `json:"msg_type"`
-	Content        string  `json:"content"`
-	ReplyTo        uint64  `json:"reply_to"`
-	Revoked        bool    `json:"revoked"`
-	Edited         bool    `json:"edited"`
-	ClientID       string  `json:"client_id"`
-	CreatedAt      int64   `json:"created_at"`
+	ID             uint64   `json:"id"`
+	ConversationID uint64   `json:"conversation_id"`
+	Seq            int64    `json:"seq"`
+	SenderID       uint64   `json:"sender_id"`
+	MsgType        MsgType  `json:"msg_type"`
+	Content        string   `json:"content"`
+	ReplyTo        uint64   `json:"reply_to"`
+	MentionUIDs    []uint64 `json:"mention_uids"`
+	MentionAll     bool     `json:"mention_all"`
+	Revoked        bool     `json:"revoked"`
+	Edited         bool     `json:"edited"`
+	ClientID       string   `json:"client_id"`
+	CreatedAt      int64    `json:"created_at"`
 }
 
 type StoreMsgCmd struct {

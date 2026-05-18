@@ -88,14 +88,16 @@ export class RealtimeClient {
     this.socket.send(JSON.stringify({ type, action, data }));
   }
 
-  sendMessage(input: { conversation_id: number; content: string; msg_type?: number; reply_to?: number }) {
+  sendMessage(input: { conversation_id: number; content: string; msg_type?: number; reply_to?: number; mention_uids?: number[]; mention_all?: boolean }) {
     const clientID = `${Date.now()}-${crypto.randomUUID?.() ?? Math.random().toString(16).slice(2)}`;
     this.send('msg', 'send', {
       conversation_id: input.conversation_id,
       msg_type: input.msg_type ?? 1,
       content: input.content,
       reply_to: input.reply_to ?? 0,
-      client_id: clientID
+      client_id: clientID,
+      mention_uids: input.mention_uids,
+      mention_all: input.mention_all,
     });
     return clientID;
   }
@@ -194,6 +196,8 @@ export function normalizePushMessage(data: unknown): MessageDTO | null {
     client_id: String(item.client_id ?? item.ClientID ?? ''),
     created_at: Number(item.created_at ?? item.CreatedAt ?? Math.floor(Date.now() / 1000)),
     revoked: Boolean(item.revoked ?? false),
-    edited: Boolean(item.edited ?? false)
+    edited: Boolean(item.edited ?? false),
+    mention_uids: Array.isArray(item.mention_uids) ? item.mention_uids.map(Number) : undefined,
+    mention_all: Boolean(item.mention_all ?? false),
   };
 }

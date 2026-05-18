@@ -2,14 +2,14 @@ import { useState } from 'react';
 import type { ConversationDTO, FriendDTO, MemberDTO, UserConvDTO, UserDTO } from '@/api/types';
 import type { ContextMenu as ContextMenuType, ModalState } from '@/types';
 import { ContextMenu, Avatar } from '@/components/ui';
-import { ConversationSummaryRow } from '@/components/ConversationSummaryRow';
+import { ConversationSummaryRow } from '@/components/conversation/ConversationSummaryRow';
 
 export function AppModal({ modal, onClose }: { modal: ModalState; onClose: () => void }) {
   if (!modal) return null;
   if (modal.type === 'prompt') return <PromptModal fields={modal.fields} title={modal.title} onConfirm={modal.onConfirm} onClose={onClose} />;
   if (modal.type === 'confirm') return <ConfirmModal title={modal.title} text={modal.text} danger={modal.danger} onConfirm={modal.onConfirm} onClose={onClose} />;
   if (modal.type === 'friend-picker') return <FriendPickerModal title={modal.title} friends={modal.friends} userCache={modal.userCache} excludeUIDs={modal.excludeUIDs} requireGroupName={modal.requireGroupName} onConfirm={modal.onConfirm} onClose={onClose} />;
-  if (modal.type === 'conversation-picker') return <ConversationPickerModal title={modal.title} conversations={modal.conversations} details={modal.details} members={modal.members} userCache={modal.userCache} onlineMap={modal.onlineMap} currentUID={modal.currentUID} lastMsgMap={modal.lastMsgMap} onConfirm={modal.onConfirm} onClose={onClose} />;
+  if (modal.type === 'conversation-picker') return <ConversationPickerModal title={modal.title} conversations={modal.conversations} details={modal.details} members={modal.members} userCache={modal.userCache} onlineMap={modal.onlineMap} currentUID={modal.currentUID} lastMsgMap={modal.lastMsgMap} mentionMap={modal.mentionMap} onConfirm={modal.onConfirm} onClose={onClose} />;
   return null;
 }
 
@@ -89,7 +89,7 @@ function FriendPickerModal({ title, friends, userCache, excludeUIDs, requireGrou
   );
 }
 
-function ConversationPickerModal({ title, conversations, details, members, userCache, onlineMap, currentUID, lastMsgMap, onConfirm, onClose }: {
+function ConversationPickerModal({ title, conversations, details, members, userCache, onlineMap, currentUID, lastMsgMap, mentionMap, onConfirm, onClose }: {
   title: string;
   conversations: UserConvDTO[];
   details: Record<number, ConversationDTO>;
@@ -98,6 +98,7 @@ function ConversationPickerModal({ title, conversations, details, members, userC
   onlineMap: Record<number, boolean>;
   currentUID: number;
   lastMsgMap: Record<number, string>;
+  mentionMap?: Record<number, boolean>;
   onConfirm: (conversationID: number) => void;
   onClose: () => void;
 }) {
@@ -127,6 +128,7 @@ function ConversationPickerModal({ title, conversations, details, members, userC
               currentUID={currentUID}
               userCache={userCache}
               onlineMap={onlineMap}
+              mentionMap={mentionMap}
               subtitle={lastMsgMap[conversation.conversation_id] || '暂无消息'}
               selected={selectedID === conversation.conversation_id}
               onClick={setSelectedID}

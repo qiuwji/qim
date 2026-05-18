@@ -1,9 +1,9 @@
 import type { ConversationDTO, FriendDTO, MemberDTO, MessageDTO, UserConvDTO } from '@/api/types';
-import { ChatDetailHeader } from '@/components/ChatDetailHeader';
-import { ChatProfileCard } from '@/components/ChatProfileCard';
-import { ChatSearchSection } from '@/components/ChatSearchSection';
-import { MemberSection } from '@/components/MemberSection';
-import { GroupAdminSection } from '@/components/GroupAdminSection';
+import { ChatDetailHeader } from '@/components/chat/ChatDetailHeader';
+import { ChatProfileCard } from '@/components/chat/ChatProfileCard';
+import { ChatSearchSection } from '@/components/chat/ChatSearchSection';
+import { MemberSection } from '@/components/group/MemberSection';
+import { GroupAdminSection } from '@/components/group/GroupAdminSection';
 import { canManageGroup } from '@/hooks/chat/models/conversationViewModel';
 
 export function ChatDetailPanel({ chat, detail, members, currentUID, userCache, friendMap, chatSearch, chatSearchResult, onChatSearch, onChatSearchChange, onJumpToMessage, onRenameGroup, onInviteMember, onRemoveMember, onLeaveGroup, onDissolveGroup, onTogglePin, onToggleMute, onHide, onSetMemberRole, onTransferOwner, onUploadGroupAvatar, onSetMemberLimit, onViewUser, onClose }: {

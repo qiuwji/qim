@@ -1,0 +1,92 @@
+.avatar, .mini-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  object-fit: cover;
+  flex: 0 0 auto;
+}
+.avatar.large { width: 72px; height: 72px; border-radius: 16px; }
+.fallback, .mini-avatar {
+  display: grid;
+  place-items: center;
+  color: white;
+  font-weight: 700;
+  background: linear-gradient(135deg, #43a047, #07c160);
+}
+.mini-avatar { width: 34px; height: 34px; border-radius: 8px; font-size: 12px; background: linear-gradient(135deg, #5b8def, #4080e0); }
+
+.user-card {
+  position: fixed;
+  z-index: 60;
+  min-width: 220px;
+  background: white;
+  border: 1px solid #e4e7ec;
+  border-radius: 12px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.16);
+  padding: 16px;
+  display: grid;
+  gap: 10px;
+  pointer-events: auto;
+}
+.user-card-header {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.user-card-info {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.user-card-info strong { font-size: 15px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.user-card-info span { color: #858c98; font-size: 13px; }
+.user-card-id { font-family: monospace; color: #b0b5be !important; font-size: 11px !important; }
+.user-card-sign { margin: 0; color: #707987; font-size: 13px; line-height: 1.4; }
+.user-card-actions { display: grid; gap: 6px; }
+.user-card-actions .primary-btn { padding: 7px 12px; font-size: 13px; }
+.user-card-actions .wide-btn { padding: 7px 12px; font-size: 13px; }
+
+.user-profile-page {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #f3f4f6;
+}
+.user-profile-content {
+  flex: 1;
+  overflow: auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+.user-profile-hero {
+  display: grid;
+  place-items: center;
+  gap: 6px;
+  padding: 24px;
+  border: 1px solid #e4e7ec;
+  border-radius: 14px;
+  background: white;
+  width: 100%;
+}
+.user-profile-hero strong { font-size: 18px; font-weight: 650; }
+.user-profile-hero span { color: #858c98; font-size: 14px; }
+.user-profile-fields {
+  width: 100%;
+  border: 1px solid #e4e7ec;
+  border-radius: 14px;
+  background: white;
+  overflow: hidden;
+}
+.profile-field {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #f0f1f3;
+}
+.profile-field:last-child { border-bottom: none; }
+.profile-field label { color: #858c98; font-size: 14px; flex-shrink: 0; }
+.profile-field span { color: #1f2329; font-size: 14px; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60%; }

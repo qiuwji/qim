@@ -1,0 +1,29 @@
+.contacts-panel { overflow: auto; padding: 4px 8px; }
+.user-line, .plain-line {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 10px;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  transition: background 0.12s;
+}
+.user-line:hover, .plain-line:hover { background: #e8e8e8; }
+
+.search-box { display: grid; grid-template-columns: 1fr auto; gap: 8px; padding: 6px; }
+.search-box button, .line-actions button { padding: 8px 10px; border-radius: 7px; color: #1677c7; background: #eef6ff; }
+.contacts-divider {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px 6px;
+  color: #858c98;
+  font-size: 12px;
+  background: #f7f8fa;
+}
+.contacts-divider span { font-weight: 600; }
+
+.line-actions { display: flex; gap: 6px; }

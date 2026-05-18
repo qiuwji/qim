@@ -56,6 +56,8 @@ type MessageAppendInput struct {
 	ReplyTo        uint64
 	ClientID       string
 	CreatedAt      int64
+	MentionUIDs    []uint64
+	MentionAll     bool
 }
 
 type UnreadProjectionInput struct {

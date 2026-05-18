@@ -5,10 +5,10 @@ import type { ChatStoreDeps } from '../types';
 import { MSG_TYPE_TEXT, visibleMessages } from '../models/messageModel';
 
 export function createMessageActions(d: ChatStoreDeps) {
-  async function sendText(text: string) {
+  async function sendText(text: string, mentionUIDs?: number[], mentionAll?: boolean) {
     if (!d.selectedID || !text.trim()) return;
     try {
-      d.sendConversationMessage(d.selectedID, text, MSG_TYPE_TEXT);
+      d.sendConversationMessage(d.selectedID, text, MSG_TYPE_TEXT, d.replyTo?.id ?? 0, mentionUIDs, mentionAll);
       d.setReplyTo(null);
     } catch (err) {
       d.setNotice({ kind: 'error', text: err instanceof Error ? err.message : '发送失败' });
@@ -43,7 +43,7 @@ export function createMessageActions(d: ChatStoreDeps) {
   }
 
   function doForward(msg: MessageDTO) {
-    d.setModal({ type: 'conversation-picker', title: '转发消息', conversations: d.conversations, details: d.details, members: d.members, userCache: d.userCache, onlineMap: d.onlineMap, currentUID: d.user.id, lastMsgMap: d.lastMsgMap, onConfirm: (cid) => {
+    d.setModal({ type: 'conversation-picker', title: '转发消息', conversations: d.conversations, details: d.details, members: d.members, userCache: d.userCache, onlineMap: d.onlineMap, currentUID: d.user.id, lastMsgMap: d.lastMsgMap, mentionMap: d.mentionMap, onConfirm: (cid) => {
       try { d.wsRef.current.sendMessage({ conversation_id: cid, content: `[转发] ${msg.content}`, msg_type: msg.msg_type }); d.setNotice({ kind: 'ok', text: '已转发' }); }
       catch { d.setNotice({ kind: 'error', text: '转发失败' }); }
     } });

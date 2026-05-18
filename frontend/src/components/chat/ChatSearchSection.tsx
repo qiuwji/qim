@@ -1,5 +1,6 @@
 import type { FriendDTO, MessageDTO, UserDTO } from '@/api/types';
 import { displayName } from '@/utils';
+import { messageDisplayText } from '@/hooks/chat/models/messageModel';
 import { SearchInput } from '@/components/ui';
 
 export function ChatSearchSection({ value, onChange, onSearch, results, userCache, friendMap, onJumpToMessage }: {
@@ -14,7 +15,7 @@ export function ChatSearchSection({ value, onChange, onSearch, results, userCach
           {results.map((m) => (
             <button key={m.id} type="button" className="grid gap-0.5 p-2 text-left rounded-lg bg-[#f3f4f6] hover:bg-[#eceff3]" onClick={() => onJumpToMessage(m.id)}>
               <strong className="text-[13px] text-[#1f2329]">{displayName(m.sender_id, userCache, friendMap)}</strong>
-              <span className="text-[#858c98] text-xs overflow-hidden text-ellipsis whitespace-nowrap">{m.content.slice(0, 60)}</span>
+              <span className="text-[#858c98] text-xs overflow-hidden text-ellipsis whitespace-nowrap">{messageDisplayText(m).slice(0, 60)}</span>
             </button>
           ))}
         </div>

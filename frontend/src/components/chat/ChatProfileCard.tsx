@@ -1,7 +1,7 @@
 import type { ConversationDTO, UserConvDTO } from '@/api/types';
 import { chatTitle } from '@/utils';
 import { conversationMemberText } from '@/hooks/chat/models/conversationViewModel';
-import { ConversationAvatar } from '@/components/ConversationAvatar';
+import { ConversationAvatar } from '@/components/conversation/ConversationAvatar';
 import { SwitchRow } from '@/components/ui';
 
 export function ChatProfileCard({ chat, detail, members, isAdmin, onTogglePin, onToggleMute, onHide, onUploadGroupAvatar }: {

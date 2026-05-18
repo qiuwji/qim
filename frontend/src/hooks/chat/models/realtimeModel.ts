@@ -24,6 +24,7 @@ export interface RealtimeHandlerContext {
   setConversations: StateSetter<UserConvDTO[]>;
   setTyping: StateSetter<Record<number, string>>;
   setOnlineMap: StateSetter<Record<number, boolean>>;
+  setMention: (conversationID: number, value: boolean) => void;
   refreshBase: () => Promise<void>;
 }
 
@@ -39,6 +40,15 @@ export function handleRealtimeMessage(msg: WsResponse, ctx: RealtimeHandlerConte
   if ((msg.type === 'ack' && msg.action === 'send') || (msg.type === 'message' && msg.action === 'new')) {
     const next = normalizePushMessage(msg.data);
     if (next) ctx.applyIncomingMessage(next);
+    return;
+  }
+  if (msg.type === 'message' && msg.action === 'mention') {
+    const data = msg.data as Record<string, unknown> | undefined;
+    const conversationID = Number(data?.conversation_id ?? 0);
+    if (conversationID) {
+      ctx.setMention(conversationID, true);
+      try { new Notification('QIM 有人@你', { body: '点击查看' }); } catch { /* */ }
+    }
     return;
   }
   if (msg.type === 'message' && msg.action === 'revoked') {

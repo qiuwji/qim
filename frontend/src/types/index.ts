@@ -37,5 +37,6 @@ export type ModalState = null | {
   onlineMap: Record<number, boolean>;
   currentUID: number;
   lastMsgMap: Record<number, string>;
+  mentionMap?: Record<number, boolean>;
   onConfirm: (conversationID: number) => void;
 };

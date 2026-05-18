@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import type { FriendRequestDTO, UserDTO } from '@/api/types';
 import { friendRequestTimeline, userFromCache } from '@/hooks/chat/models/contactViewModel';
-import { Avatar, PanelHeader } from '@/components/ui';
+import { Avatar, EmptyState, PanelHeader } from '@/components/ui';
 
 const STATUS_LABELS: Record<number, string> = { 0: '待处理', 1: '已同意', 2: '已拒绝' };
 const STATUS_COLORS: Record<number, string> = { 0: 'bg-[#fdf6ec] text-[#e6a23c]', 1: 'bg-[#e8f8ef] text-[#07c160]', 2: 'bg-[#fef0f0] text-[#e04344]' };
@@ -17,10 +17,11 @@ export function FriendRequestsView({ currentUID: _currentUID, incoming, outgoing
       <PanelHeader title="新的朋友" subtitle="好友申请记录" onBack={onBack} />
       <div className="flex-1 overflow-auto">
         {allItems.length === 0 && (
-          <div className="flex flex-col items-center justify-center gap-3 py-16 text-[#b0b5be]">
-            <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
-            <span className="text-sm">暂无好友申请记录</span>
-          </div>
+          <EmptyState
+            title="暂无好友申请记录"
+            text="好友申请与验证消息将在这里显示"
+            icon={<svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>}
+          />
         )}
         {allItems.map(({ type, req, uid }) => {
           const u = userFromCache(uid, userCache);

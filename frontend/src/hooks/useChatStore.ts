@@ -5,6 +5,7 @@ import { RealtimeClient } from '@/api/ws';
 import type { ConversationDTO, FriendDTO, FriendGroupDTO, FriendRequestDTO, MemberDTO, MessageDTO, UserConvDTO, UserDTO, WsResponse } from '@/api/types';
 import { currentSecond, displayName } from '@/utils';
 import type { ContextMenu, MainTab, MobilePane, ModalState, Notice } from '@/types';
+import { messageDisplayText } from './chat/models/messageModel';
 import {
   forgetHiddenConversationID,
   groupConversations as filterGroupConversations,
@@ -49,7 +50,7 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
   const {
     conversations, details, userCache, selectedID, messages, lastMsgMap, hasMore,
     friends, friendGroups, requests, outgoingReqs, allIncomingReqs, allOutgoingReqs,
-    members, typing, onlineMap, viewingUser,
+    members, typing, onlineMap, viewingUser, mentionMap,
   } = chatState;
 
   const setChatField = useCallback(<K extends keyof ChatState>(key: K, value: SetStateAction<ChatState[K]>) => {
@@ -133,6 +134,10 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
     markConversationRead(cid);
   }
 
+  function setMention(conversationID: number, value: boolean) {
+    dispatchChat({ type: 'setMention', conversationID, value });
+  }
+
   function applyIncomingMessage(next: MessageDTO) {
     if (deletedMessageIDs.current.has(next.id)) return;
     const fromSelf = next.sender_id === user.id;
@@ -142,20 +147,23 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
     if (wasHidden) void refreshBase();
     if (selectedIDRef.current === next.conversation_id && next.seq > 0) markConversationRead(next.conversation_id, next.seq);
     if (!fromSelf && selectedIDRef.current !== next.conversation_id && !document.hasFocus()) {
-      try { new Notification('QIM 新消息', { body: next.content.slice(0, 50) }); } catch {
-        // 浏览器可能禁用通知权限，忽略即可。
+      const conv = conversations.find((c) => c.conversation_id === next.conversation_id);
+      const isMuted = conv?.is_muted ?? false;
+      if (!isMuted) {
+        try { new Notification('QIM 新消息', { body: messageDisplayText(next).slice(0, 50) }); } catch { /* */ }
       }
     }
   }
 
-  function sendConversationMessage(conversationID: number, text: string, msgType = MSG_TYPE_TEXT, replyToID = msgType === MSG_TYPE_TEXT ? replyTo?.id ?? 0 : 0) {
+  function sendConversationMessage(conversationID: number, text: string, msgType = MSG_TYPE_TEXT, replyToID = msgType === MSG_TYPE_TEXT ? replyTo?.id ?? 0 : 0, mentionUIDs?: number[], mentionAll?: boolean) {
     const content = text.trim();
     if (!content) return;
-    const clientID = wsRef.current.sendMessage({ conversation_id: conversationID, content, msg_type: msgType, reply_to: replyToID });
+    const clientID = wsRef.current.sendMessage({ conversation_id: conversationID, content, msg_type: msgType, reply_to: replyToID, mention_uids: mentionUIDs, mention_all: mentionAll });
     const optimistic: MessageDTO = {
       id: Date.now(), conversation_id: conversationID, seq: Number.MAX_SAFE_INTEGER,
       sender_id: user.id, msg_type: msgType, content, reply_to: replyToID,
       client_id: clientID, created_at: currentSecond(),
+      mention_uids: mentionUIDs, mention_all: mentionAll,
     };
     applyIncomingMessage(optimistic);
   }
@@ -191,7 +199,7 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
       getMessages: () => messagesRef.current,
       getDisplayName: (uid) => displayName(uid, userCache, friendMap),
       applyIncomingMessage, setLastMessagePreview, setNotice,
-      setMessages, setLastMsgMap, setConversations, setTyping, setOnlineMap, refreshBase,
+      setMessages, setLastMsgMap, setConversations, setTyping, setOnlineMap, setMention, refreshBase,
     });
   }
 
@@ -205,7 +213,7 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
 
   const deps: ChatStoreDeps = {
     user, onUserChange, selectedID, searchKeyword, selectedIDRef, conversations, details,
-    userCache, lastMsgMap, friendMap, friends, friendGroups, members, onlineMap, messages, replyTo,
+    userCache, lastMsgMap, friendMap, friends, friendGroups, members, onlineMap, messages, replyTo, mentionMap,
     chatSearch, deletedMessageIDs, deletedStorageKey, messagesRef, typingTimers, wsRef, realtimeHandlerRef,
     setConversations, setDetails, setUserCache, setSelectedID, setMessages,
     setLastMsgMap, setHasMore, setFriends, setFriendGroups, setRequests,
@@ -231,7 +239,7 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
     requests, outgoingReqs, allIncomingReqs, allOutgoingReqs, members, searchKeyword, setSearchKeyword, searchResult,
     typing, loading, detailOpen, setDetailOpen, modal, setModal, contextMenu,
     setContextMenu, replyTo, setReplyTo, chatSearch, setChatSearch, chatSearchResult, setChatSearchResult,
-    notice, setNotice, unreadTotal,
+    notice, setNotice, unreadTotal, mentionMap,
     viewingUser, setViewingUser, viewingFriendRequests, setViewingFriendRequests, viewingGroupManage, setViewingGroupManage, hoverCard, setHoverCard, onlineMap,
     refreshBase, loadMessages, loadChatMembers,
     ...navigationActions,

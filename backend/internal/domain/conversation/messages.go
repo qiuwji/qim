@@ -36,16 +36,18 @@ type UserConvDTO struct {
 }
 
 type MessageDTO struct {
-	ID             uint64 `json:"id"`
-	ConversationID uint64 `json:"conversation_id"`
-	Seq            int64  `json:"seq"`
-	SenderID       uint64 `json:"sender_id"`
-	MsgType        int8   `json:"msg_type"`
-	Content        string `json:"content"`
-	ReplyTo        uint64 `json:"reply_to"`
-	Revoked        bool   `json:"revoked"`
-	ClientID       string `json:"client_id"`
-	CreatedAt      int64  `json:"created_at"`
+	ID             uint64   `json:"id"`
+	ConversationID uint64   `json:"conversation_id"`
+	Seq            int64    `json:"seq"`
+	SenderID       uint64   `json:"sender_id"`
+	MsgType        int8     `json:"msg_type"`
+	Content        string   `json:"content"`
+	ReplyTo        uint64   `json:"reply_to"`
+	MentionUIDs    []uint64 `json:"mention_uids"`
+	MentionAll     bool     `json:"mention_all"`
+	Revoked        bool     `json:"revoked"`
+	ClientID       string   `json:"client_id"`
+	CreatedAt      int64    `json:"created_at"`
 }
 
 type ListUserConversationsCmd struct {
@@ -65,11 +67,13 @@ type CreateGroupConvCmd struct {
 }
 
 type SendMessageCmd struct {
-	SenderID uint64
-	MsgType  int8
-	Content  string
-	ReplyTo  uint64
-	ClientID string
+	SenderID    uint64
+	MsgType     int8
+	Content     string
+	ReplyTo     uint64
+	ClientID    string
+	MentionUIDs []uint64
+	MentionAll  bool
 }
 
 type RevokeMessageCmd struct {

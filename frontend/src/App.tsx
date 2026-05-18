@@ -1,14 +1,15 @@
 import { useRef, useState } from 'react';
 import { getToken } from '@/api/http';
+import { scrollToMessage } from '@/utils';
 import { useAuth, useChatStore } from '@/hooks/useChatStore';
-import { AuthPage } from '@/components/AuthPage';
+import { AuthPage } from '@/components/auth/AuthPage';
 import { NavRail } from '@/components/NavRail';
-import { ConversationList } from '@/components/ConversationList';
-import { ContactsPanel } from '@/components/ContactsPanel';
-import { ProfilePanel } from '@/components/ProfilePanel';
-import { ChatDetailPanel } from '@/components/ChatDetailPanel';
-import { AppModal, ContextMenuPopup } from '@/components/Modal';
-import { UserCard } from '@/components/UserCard';
+import { ConversationList } from '@/components/conversation/ConversationList';
+import { ContactsPanel } from '@/components/contacts/ContactsPanel';
+import { ProfilePanel } from '@/components/user/ProfilePanel';
+import { ChatDetailPanel } from '@/components/chat/ChatDetailPanel';
+import { AppModal, ContextMenuPopup } from '@/components/ui/Modal';
+import { UserCard } from '@/components/user/UserCard';
 import { RightPane, type RightPaneView } from '@/components/RightPane';
 
 function App() {
@@ -37,6 +38,7 @@ function ChatPage({ user, onUserChange, onLogout }: { user: import('@/api/types'
     renameFriendGroup, deleteFriendGroup, updateProfile, changePassword,
     doRevoke, doDelete, doForward, doChatSearch, selectChat,
     viewUserProfile, showHoverCard, moveFriendGroup, loadMessages,
+    mentionMap,
   } = store;
 
   const selectedMessages = selectedID ? messages[selectedID] ?? [] : [];
@@ -83,8 +85,8 @@ function ChatPage({ user, onUserChange, onLogout }: { user: import('@/api/types'
               </div>}
             </div>}
         </div>
-        {tab === 'chats' && <ConversationList conversations={sortedConversations} details={details} lastMsgMap={lastMsgMap} selectedID={selectedID} onSelect={selectChat} members={members} userCache={userCache} onlineMap={onlineMap} friendMap={friendMap} currentUID={user.id} onTogglePin={togglePin} onToggleMute={toggleMute} onHide={hideChat} />}
-        {tab === 'contacts' && <ContactsPanel currentUID={user.id} keyword={searchKeyword} setKeyword={setSearchKeyword} onSearch={searchUsers} results={searchResult} friends={friends} friendGroups={friendGroups} requests={requests} outgoingReqs={outgoingReqs} groupConversations={groupConversations} details={details} userCache={userCache} onlineMap={onlineMap} friendMap={friendMap} onStartPrivate={startPrivate} onRequest={addFriendByUser} onHandleRequest={handleRequest} onSelectChat={selectChat} onDeleteFriend={deleteFriend} onUpdateRemark={updateFriendRemark} onCreateGroup={createFriendGroup} onViewUser={viewUserProfile} onViewFriendRequests={() => viewingFriendRequests ? (setViewingFriendRequests(false), setMobilePane('contacts')) : viewFriendRequests()} onViewGroupManage={viewGroupManage} />}
+        {tab === 'chats' && <ConversationList conversations={sortedConversations} details={details} lastMsgMap={lastMsgMap} selectedID={selectedID} onSelect={selectChat} members={members} userCache={userCache} onlineMap={onlineMap} friendMap={friendMap} currentUID={user.id} mentionMap={mentionMap} onTogglePin={togglePin} onToggleMute={toggleMute} onHide={hideChat} />}
+        {tab === 'contacts' && <ContactsPanel currentUID={user.id} keyword={searchKeyword} setKeyword={setSearchKeyword} onSearch={searchUsers} results={searchResult} friends={friends} friendGroups={friendGroups} requests={requests} outgoingReqs={outgoingReqs} groupConversations={groupConversations} details={details} userCache={userCache} onlineMap={onlineMap} friendMap={friendMap} mentionMap={mentionMap} onStartPrivate={startPrivate} onRequest={addFriendByUser} onHandleRequest={handleRequest} onSelectChat={selectChat} onDeleteFriend={deleteFriend} onUpdateRemark={updateFriendRemark} onCreateGroup={createFriendGroup} onViewUser={viewUserProfile} onViewFriendRequests={() => viewingFriendRequests ? (setViewingFriendRequests(false), setMobilePane('contacts')) : viewFriendRequests()} onViewGroupManage={viewGroupManage} />}
         {tab === 'profile' && <ProfilePanel user={user} onUploadAvatar={uploadAvatar} onUpdateProfile={updateProfile} onChangePassword={changePassword} />}
       </section>
       <section className={`pane-chat ${mobilePane === 'chat' ? 'mobile-show' : ''}`}>
@@ -100,6 +102,7 @@ function ChatPage({ user, onUserChange, onLogout }: { user: import('@/api/types'
           selectedID={selectedID}
           hasMore={selectedID ? hasMore[selectedID] ?? false : false}
           typingText={selectedID ? typing[selectedID] : ''}
+          members={selectedMembers}
           userCache={userCache}
           friendMap={friendMap}
           onlineMap={onlineMap}
@@ -132,7 +135,7 @@ function ChatPage({ user, onUserChange, onLogout }: { user: import('@/api/types'
         />
       </section>
       <aside className="pane-detail" onClick={(e) => e.stopPropagation()}>
-        <ChatDetailPanel chat={selectedConv} detail={selectedDetail} members={selectedMembers} currentUID={user.id} userCache={userCache} friendMap={friendMap} chatSearch={chatSearch} chatSearchResult={chatSearchResult} onChatSearch={doChatSearch} onChatSearchChange={setChatSearch} onJumpToMessage={(id) => { setDetailOpen(false); setChatSearchResult([]); const el = document.getElementById(`msg-${id}`); if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.classList.add('highlight-msg'); setTimeout(() => el.classList.remove('highlight-msg'), 2000); } }} onRenameGroup={renameGroup} onInviteMember={inviteMember} onRemoveMember={removeMember} onLeaveGroup={leaveCurrentGroup} onDissolveGroup={dissolveCurrentGroup} onTogglePin={togglePin} onToggleMute={toggleMute} onHide={hideChat} onSetMemberRole={setMemberRole} onTransferOwner={transferOwner} onUploadGroupAvatar={uploadGroupAvatar} onSetMemberLimit={setMemberLimit} onViewUser={viewUserProfile} onClose={() => setDetailOpen(false)} />
+        <ChatDetailPanel chat={selectedConv} detail={selectedDetail} members={selectedMembers} currentUID={user.id} userCache={userCache} friendMap={friendMap} chatSearch={chatSearch} chatSearchResult={chatSearchResult} onChatSearch={doChatSearch} onChatSearchChange={setChatSearch} onJumpToMessage={(id) => { setDetailOpen(false); setChatSearchResult([]); scrollToMessage(id); }} onRenameGroup={renameGroup} onInviteMember={inviteMember} onRemoveMember={removeMember} onLeaveGroup={leaveCurrentGroup} onDissolveGroup={dissolveCurrentGroup} onTogglePin={togglePin} onToggleMute={toggleMute} onHide={hideChat} onSetMemberRole={setMemberRole} onTransferOwner={transferOwner} onUploadGroupAvatar={uploadGroupAvatar} onSetMemberLimit={setMemberLimit} onViewUser={viewUserProfile} onClose={() => setDetailOpen(false)} />
       </aside>
       {notice && <div className={`notice floating ${notice.kind}`} onClick={() => setNotice(null)}>{notice.text}</div>}
       <AppModal modal={modal} onClose={() => setModal(null)} />

@@ -1,6 +1,6 @@
 import React from 'react';
 import type { FriendDTO, FriendGroupDTO, UserDTO } from '@/api/types';
-import { CollapsibleSection } from '@/components/ui';
+import { CollapsibleSection, EmptyState } from '@/components/ui';
 import { ContactFriendItem } from './ContactFriendItem';
 
 export function FriendListSection({
@@ -65,7 +65,7 @@ export function FriendListSection({
         </CollapsibleSection>
       )}
 
-      {friends.length === 0 && <div className="px-3 py-8 text-center text-[13px] text-[#b0b5be]">暂无好友，搜索账号添加</div>}
+      {friends.length === 0 && <EmptyState title="暂无好友" text="搜索账号添加好友" />}
     </>
   );
 }

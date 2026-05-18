@@ -320,7 +320,7 @@ func TestConversationActorPrivateConversationRejectsGroupOps_BitsUT(t *testing.T
 func TestConversationActorPublishNilEvents_BitsUT(t *testing.T) {
 	a := NewConversationActor(1, nil, nil, nil)
 	a.members[1] = &MemberState{UID: 1}
-	a.publishMessageSent(1, 1, SendMessageCmd{SenderID: 1}, []uint64{1}, 1)
+	a.publishMessageSent(1, 1, SendMessageCmd{SenderID: 1}, nil, []uint64{1}, 1)
 	a.publishMessageRevoked(&MessageRecord{ID: 1, Seq: 1, SenderID: 1}, 1)
 	a.publishConversationUpdated()
 	a.publishMemberJoined(2, MemberRoleRegular, 1)

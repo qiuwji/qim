@@ -4,6 +4,82 @@
 
 QIM 是一个使用 Go 语言实现的即时通讯（IM）后端系统，核心设计基于 **Actor 模型**，自研了一套轻量级 Actor 框架作为并发与消息隔离的基础设施。系统采用分层架构，通过 Actor 之间的消息传递实现业务逻辑的解耦与并发安全。
 
+产品需求文档（PRD）存放在 `requirements/` 目录下，按编号命名，如 `01-音视频通话一期-单人私聊音视频.md`。本文档仅记录技术架构与编码规范，业务需求请查阅对应的需求文档。
+
+技术方案文档存放在 `tech-design/` 目录下，按前后端拆分为 `tech-design/backend/` 和 `tech-design/frontend/`，命名与需求文档对应，如 `01-音视频通话一期-单人私聊音视频.md`。每次需求的技术方案必须在文档开头 link 到对应的需求文档（相对路径），例如：`需求文档：[01-音视频通话一期-单人私聊音视频](../../requirements/01-音视频通话一期-单人私聊音视频.md)`。
+
+### 后端技术方案文档规范
+
+后端技术方案必须按以下结构编写：
+
+```
+需求文档：[链接](相对路径)
+
+# 需求名称
+
+## 一、需求分析
+- 需求背景与目标
+- 现状分析（现有代码/表结构/链路中哪些可复用、哪些缺失）
+- 核心问题与约束
+
+## 二、系统概要设计
+- 架构设计：涉及哪些 Actor/Service/模块，交互关系
+- 时序图：核心流程的 Actor 间消息时序（用 mermaid sequenceDiagram）
+- 数据流图：数据从入口到存储的完整路径
+- 推送策略：EventBus 事件 vs Actor 直连的划分
+
+## 三、系统详细设计
+- API 设计：WS 协议（上行/下行消息格式、action 定义）
+- 数据模型：新增/修改的表结构、字段说明、索引
+- 消息定义：新增的 Cmd/Query/Event/DTO
+- 校验规则：输入校验、权限校验、边界条件
+- 错误码：新增错误码及含义
+- 推送路由：PushHandler 新增的事件路由规则
+
+## 四、改动清单
+- 按文件列出所有改动，标注新增/修改
+
+## 五、测试补充
+- 必补的测试用例及覆盖场景
+
+## 六、不改动
+- 明确列出本期不改动的部分
+```
+
+### 前端技术方案文档规范
+
+前端技术方案必须按以下结构编写：
+
+```
+需求文档：[链接](相对路径)
+
+# 需求名称
+
+## 一、需求分析
+- 需求背景与目标
+- 现状分析（现有组件/hooks 可复用、缺失部分）
+
+## 二、系统概要设计
+- 组件架构：新增/修改的组件及其层级关系
+- 数据流：用户操作 → 状态变更 → UI 更新的完整路径
+- 状态管理：新增的状态字段及其生命周期
+
+## 三、系统详细设计
+- 组件设计：新增组件的 Props/State/交互逻辑
+- Hook 设计：新增 hook 的接口与实现要点
+- WS 协议：上行/下行消息格式
+- 类型定义：新增/修改的 TypeScript 类型
+
+## 四、改动清单
+- 按文件列出所有改动，标注新增/修改
+
+## 五、测试补充
+- 必补的测试用例及覆盖场景
+
+## 六、不改动
+- 明确列出本期不改动的部分
+```
+
 ## 技术栈
 
 | 层面 | 技术 |
@@ -130,7 +206,26 @@ type Lifecycle interface {
   - 好友请求（发送/接收/处理）、好友管理（删除/备注/分组移动）、好友分组（CRUD/排序）
 
 ### 在线状态域（presence）
-- **PresenceActor**（名称：`presence`）：在线状态管理（桩实现）
+- **PresenceActor**（名称：`presence`）：在线状态管理
+  - 注册在线连接（支持多设备）、离线、批量在线状态查询
+  - 数据结构：`gateways map[uid]map[gatewayName]*ActorRef`，一个用户可有多个 Gateway
+  - `ctx.Watch(gateway)` 监听 Gateway 终止，自动清理
+
+### 通话域（call）
+- **CallManagerActor**（名称：`call-manager`）：通话生命周期管理
+  - 创建通话（检查双方忙线、在线状态）、查找用户当前通话
+  - 维护 `uid → callID` 映射，CallActor 销毁后通过 `actor.Terminated` 自动清理
+  - 所有 CallXxxCmd 消息转发给对应 CallActor 处理
+- **CallActor**（名称：`call:<callID>`）：单通电话的状态机
+  - 状态：`ringing → connected → ended`
+  - 信令转发（offer/answer/ice）走 Actor 直连：CallActor → PresenceActor → 目标 GatewayActor
+  - 状态通知（incoming/accepted/rejected/cancelled/ended/timeout）走 EventBus → PushHandler
+  - 推送架构规则：**EventBus 传"事实"（Fact），Actor 直连传"指令/数据"（Command/Data）**
+  - 多设备：来电广播到所有设备，信令只推给承载信令的 Gateway（记录 callerGateway/calleeGateway）
+  - 多设备接听互斥：先到的 accept 生效，后到的返回 `call.already_answered`
+  - 超时：OnStart 启动 30s 计时器，超时自动结束
+  - 通话记录：OnStop 写入数据库，时长由后端权威计算（ended_at - started_at）
+  - 信令 Gateway 断开：`ctx.Watch(callerGateway/calleeGateway)`，只有承载信令的 Gateway 断开才结束通话
 
 ## 网关层
 
@@ -200,6 +295,7 @@ HTTP Request → Gin Handler → Handler.askManager/askConv → ActorRef.Ask →
 | 用户域 | ✅ 基本完成 | 注册/登录/资料管理 |
 | 好友域 | ✅ 完整 | 请求/关系/分组 |
 | 在线状态域 | ✅ 基本完成 | PresenceActor 支持在线连接注册、离线、批量在线状态查询 |
+| 通话域 | 🔲 待开发 | CallManagerActor + CallActor，信令转发 + 状态通知 + 通话记录 |
 | GatewayActor | ✅ 基本完成 | WebSocket 连接管理、消息路由、频率限制、Presence 注册 |
 | 实时推送 | ✅ 基本完成 | MessagePushActor 订阅领域事件并推送消息、撤回、成员、好友、在线状态 |
 | JWT 认证 | ✅ 完整 | Generate/Parse 已实现并有测试 |
@@ -250,9 +346,15 @@ HTTP Request → Gin Handler → Handler.askManager/askConv → ActorRef.Ask →
 
 ### 分层约束
 
-- `components/` 只负责展示、交互触发和组合，不直接承载复杂业务判断。
-- `components/ui/` 放无业务语义的函数式基础组件，例如 `Avatar`、`Badge`、`PanelHeader`、`SwitchRow`。
-- 业务复用组件放在 `components/`，例如 `ConversationAvatar`、`ConversationSummaryRow`、`MessageList`、`MessageComposer`、`ContactFriendItem`，用于统一会话头像、标题、列表行、消息列表、输入区和联系人行等展示规则。
+- `components/` 按业务域组织子目录，只负责展示、交互触发和组合，不直接承载复杂业务判断。
+- `components/ui/` 放无业务语义的函数式基础组件，例如 `Avatar`、`Badge`、`PanelHeader`、`SwitchRow`、`Modal`。
+- `components/chat/` 放聊天域组件：`ChatWindow`、`MessageList`、`MessageComposer`、`MessageBubble`、`ChatDetailPanel`、`ChatDetailHeader`、`ChatProfileCard`、`ChatSearchSection`。
+- `components/contacts/` 放通讯录域组件：`ContactsPanel`、`ContactFriendItem`、`ContactSearchResults`、`FriendListSection`、`FriendRequestsView`、`GroupListSection`。
+- `components/conversation/` 放会话域组件：`ConversationList`、`ConversationAvatar`、`ConversationSummaryRow`。
+- `components/group/` 放群组域组件：`GroupManagePanel`、`GroupAdminSection`、`MemberSection`。
+- `components/user/` 放用户域组件：`ProfilePanel`、`UserCard`、`UserProfilePage`。
+- `components/auth/` 放登录域组件：`AuthPage`。
+- 全局布局组件（`NavRail`、`RightPane`）放在 `components/` 根目录。
 - `hooks/chat/models/` 放纯函数、视图模型和状态计算，禁止直接调用 API、WebSocket、DOM。
 - `hooks/chat/actions/` 负责组织副作用和 API 编排，副作用执行后只通过明确的状态更新函数落库到 store。
 - `hooks/chat/reducers/` 放 reducer 与 action/state 类型，核心聊天状态变更必须走 reducer。
@@ -263,10 +365,12 @@ HTTP Request → Gin Handler → Handler.askManager/askConv → ActorRef.Ask →
 
 ### 短期原则
 
+- CSS 按业务域拆分到 `styles/` 目录，禁止在 `global.css` 中堆积新样式。`global.css` 仅作为 `@import` 入口文件。拆分规则：`base.css`（全局重置/变量/通用按钮）、`layout.css`（im-shell/pane 布局）、`chat.css`（聊天窗口/composer/mention）、`contacts.css`（通讯录/搜索）、`user.css`（头像/用户卡片/资料页）、`modal.css`（弹窗/选择器/上下文菜单）、`detail.css`（详情面板/开关/成员网格）、`mobile.css`（响应式媒体查询）。新增样式必须归入对应域文件，不得新建无业务归属的 CSS 文件。
 - 继续把 `useChatStore` 里的纯逻辑下沉到 `hooks/chat/models/`。
 - 每次修改会话、消息、成员、实时事件的业务规则，都必须补对应 model/realtime 单测。
 - 会话类型必须以服务端 `conv.type` 为准，不允许用成员数推断私聊/群聊。
 - 系统消息展示必须走统一判断函数，兼容历史类型但新增逻辑使用当前协议类型。
+- 复用优先：新增交互逻辑前先检查 `utils/`、`models/`、`components/ui/` 是否已有可复用的函数或组件，避免在多个组件中重复相同的 DOM 操作、格式化逻辑或业务判断。已有工具函数如 `scrollToMessage`、`messageDisplayText`、`displayName`、`timeText` 等必须优先复用，不得在组件中重写。
 
 ### 中期原则
 

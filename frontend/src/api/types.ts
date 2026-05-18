@@ -57,6 +57,8 @@ export interface MessageDTO {
   edited?: boolean;
   client_id: string;
   created_at: number;
+  mention_uids?: number[];
+  mention_all?: boolean;
 }
 
 export interface FriendDTO {

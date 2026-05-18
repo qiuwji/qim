@@ -91,3 +91,11 @@ export function pushText(msg: import('../api/types').WsResponse) {
   };
   return map[`${msg.type}/${msg.action}`] ?? '收到新的实时事件';
 }
+
+export function scrollToMessage(messageID: number, highlightClass = 'highlight-msg', duration = 2000) {
+  const el = document.getElementById(`msg-${messageID}`);
+  if (!el) return;
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  el.classList.add(highlightClass);
+  setTimeout(() => el.classList.remove(highlightClass), duration);
+}

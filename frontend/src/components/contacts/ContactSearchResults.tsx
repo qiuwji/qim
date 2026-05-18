@@ -1,6 +1,6 @@
 import React from 'react';
 import type { ConversationDTO, FriendDTO, FriendGroupDTO, UserConvDTO, UserDTO } from '@/api/types';
-import { ConversationSummaryRow } from '@/components/ConversationSummaryRow';
+import { ConversationSummaryRow } from '@/components/conversation/ConversationSummaryRow';
 import { ContactFriendItem } from './ContactFriendItem';
 
 export function ContactSearchResults({
@@ -10,6 +10,7 @@ export function ContactSearchResults({
   details,
   userCache,
   onlineMap,
+  mentionMap,
   onSelectChat,
   onViewUser,
   onFriendContext,
@@ -20,6 +21,7 @@ export function ContactSearchResults({
   details: Record<number, ConversationDTO>;
   userCache: Record<number, UserDTO>;
   onlineMap: Record<number, boolean>;
+  mentionMap?: Record<number, boolean>;
   onSelectChat: (id: number) => void;
   onViewUser?: (uid: number) => void;
   onFriendContext: (e: React.MouseEvent, friend: FriendDTO) => void;
@@ -49,6 +51,7 @@ export function ContactSearchResults({
               conversation={item}
               detail={details[item.conversation_id]}
               subtitle={`${details[item.conversation_id]?.member_count ?? 0} 位成员`}
+              mentionMap={mentionMap}
               onClick={onSelectChat}
             />
           ))}

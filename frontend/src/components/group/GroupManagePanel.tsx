@@ -1,5 +1,5 @@
 import type { FriendGroupDTO } from '@/api/types';
-import { PanelHeader } from '@/components/ui';
+import { EmptyState, PanelHeader } from '@/components/ui';
 
 export function GroupManagePanel({ groups, onBack, onRenameGroup, onDeleteGroup }: {
   groups: FriendGroupDTO[]; onBack: () => void;
@@ -29,9 +29,7 @@ export function GroupManagePanel({ groups, onBack, onRenameGroup, onDeleteGroup 
             </div>
           </div>
         ))}
-        {groups.length === 0 && (
-          <div className="py-16 text-center text-sm text-[#b0b5be]">暂无分组</div>
-        )}
+        {groups.length === 0 && <EmptyState title="暂无分组" text="还没有创建任何好友分组" />}
       </div>
     </div>
   );

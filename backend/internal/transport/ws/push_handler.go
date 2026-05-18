@@ -38,6 +38,14 @@ func (h *MessagePushHandler) handleEvent(event eventbus.Event) {
 	}
 
 	switch e := event.(type) {
+	case conversation.MessageSentEvent:
+		for _, uid := range uniqueUIDs(e.MemberUIDs) {
+			h.pushToUser(uid, "message", "new", e)
+		}
+		if len(e.MentionUIDs) > 0 || e.MentionAll {
+			go h.pushMention(e)
+		}
+		return
 	case presencedomain.UserOnlineEvent:
 		h.handlePresenceChange(e.UID, "online")
 	case presencedomain.UserOfflineEvent:
@@ -159,6 +167,26 @@ func (h *MessagePushHandler) pushToUser(uid uint64, pushType, action string, dat
 		if err := gateway.Tell(PushCmd{Type: pushType, Action: action, Data: data}); err != nil {
 			zap.L().Warn("push to gateway failed", zap.Uint64("uid", uid), zap.String("gateway", gateway.Name()), zap.String("type", pushType), zap.String("action", action), zap.Error(err))
 		}
+	}
+}
+
+func (h *MessagePushHandler) pushMention(e conversation.MessageSentEvent) {
+	mentionUIDs := make([]uint64, len(e.MentionUIDs))
+	copy(mentionUIDs, e.MentionUIDs)
+
+	if e.MentionAll {
+		mentionUIDs = append(mentionUIDs, e.MemberUIDs...)
+		mentionUIDs = uniqueUIDs(mentionUIDs)
+	}
+
+	for _, uid := range mentionUIDs {
+		if uid == e.SenderID {
+			continue
+		}
+		h.pushToUser(uid, "message", "mention", map[string]any{
+			"conversation_id": e.ConversationID,
+			"message_id":      e.MessageID,
+		})
 	}
 }
 

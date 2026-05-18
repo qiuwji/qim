@@ -37,11 +37,13 @@ func (r *msgRouter) dispatch(uid uint64, action string, data json.RawMessage) Ws
 
 func (r *msgRouter) dispatchSend(uid uint64, action string, data json.RawMessage) WsResponse {
 	var req struct {
-		ConversationID uint64 `json:"conversation_id"`
-		MsgType        int8   `json:"msg_type"`
-		Content        string `json:"content"`
-		ReplyTo        uint64 `json:"reply_to"`
-		ClientID       string `json:"client_id"`
+		ConversationID uint64   `json:"conversation_id"`
+		MsgType        int8     `json:"msg_type"`
+		Content        string   `json:"content"`
+		ReplyTo        uint64   `json:"reply_to"`
+		ClientID       string   `json:"client_id"`
+		MentionUIDs    []uint64 `json:"mention_uids"`
+		MentionAll     bool     `json:"mention_all"`
 	}
 	if err := json.Unmarshal(data, &req); err != nil {
 		return errReply(action, err)
@@ -51,11 +53,13 @@ func (r *msgRouter) dispatchSend(uid uint64, action string, data json.RawMessage
 		return errReply(action, err)
 	}
 	return askDispatch(ref, conversation.SendMessageCmd{
-		SenderID: uid,
-		MsgType:  req.MsgType,
-		Content:  req.Content,
-		ReplyTo:  req.ReplyTo,
-		ClientID: req.ClientID,
+		SenderID:    uid,
+		MsgType:     req.MsgType,
+		Content:     req.Content,
+		ReplyTo:     req.ReplyTo,
+		ClientID:    req.ClientID,
+		MentionUIDs: req.MentionUIDs,
+		MentionAll:  req.MentionAll,
 	}, action)
 }
 

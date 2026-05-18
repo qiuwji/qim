@@ -7,7 +7,9 @@ import {
   isSystemMessage,
   latestVisibleMessage,
   mergeLoadedMessages,
+  messageDisplayText,
   messagePreviewText,
+  MSG_TYPE_IMAGE,
   MSG_TYPE_LEGACY_SYSTEM,
   MSG_TYPE_SYSTEM,
   persistDeletedMessageID,
@@ -81,6 +83,13 @@ describe('messageModel', () => {
     expect(messagePreviewText(message(1, { content: '' }))).toBeUndefined();
     expect(messagePreviewText(message(2, { content: 'hello' }))).toBe('hello');
     expect(messagePreviewText(message(3, { revoked: true }))).toBe('消息已撤回');
+    expect(messagePreviewText(message(4, { msg_type: MSG_TYPE_IMAGE, content: '/uploads/img.png' }))).toBe('[图片]');
+  });
+
+  it('messageDisplayText 对图片消息返回 [图片]', () => {
+    expect(messageDisplayText(message(1, { msg_type: MSG_TYPE_IMAGE, content: '/uploads/abc.png' }))).toBe('[图片]');
+    expect(messageDisplayText(message(2, { content: 'hello' }))).toBe('hello');
+    expect(messageDisplayText(message(3, { msg_type: MSG_TYPE_IMAGE, content: '' }))).toBe('[图片]');
   });
 
   it('同时识别当前和历史系统消息类型', () => {

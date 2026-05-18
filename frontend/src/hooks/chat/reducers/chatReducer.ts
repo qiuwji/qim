@@ -22,6 +22,7 @@ export interface ChatState {
   typing: Record<number, string>;
   onlineMap: Record<number, boolean>;
   viewingUser: UserDTO | null;
+  mentionMap: Record<number, boolean>;
 }
 
 export function createInitialChatState(user: UserDTO): ChatState {
@@ -43,6 +44,7 @@ export function createInitialChatState(user: UserDTO): ChatState {
     typing: {},
     onlineMap: {},
     viewingUser: null,
+    mentionMap: {},
   };
 }
 
@@ -63,6 +65,7 @@ export type ChatAction =
   | { type: 'openConversation'; conversationID: number }
   | { type: 'closeConversation' }
   | { type: 'markConversationRead'; conversationID: number }
+  | { type: 'setMention'; conversationID: number; value: boolean }
   | { type: 'incomingMessage'; message: MessageDTO; selectedID: number | null; currentUID: number }
   | { type: 'messagesLoaded'; conversationID: number; rawMessages: MessageDTO[]; beforeSeq: number; pageSize: number; deletedIDs: Set<number> }
   | { type: 'deleteLocalMessage'; message: MessageDTO };
@@ -124,7 +127,14 @@ export function chatReducer(state: ChatState, action: ChatAction): ChatState {
       return { ...state, selectedID: null };
 
     case 'markConversationRead':
-      return { ...state, conversations: markConversationReadLocally(state.conversations, action.conversationID) };
+      return {
+        ...state,
+        conversations: markConversationReadLocally(state.conversations, action.conversationID),
+        mentionMap: { ...state.mentionMap, [action.conversationID]: false },
+      };
+
+    case 'setMention':
+      return { ...state, mentionMap: { ...state.mentionMap, [action.conversationID]: action.value } };
 
     case 'incomingMessage': {
       const preview = messagePreviewText(action.message);

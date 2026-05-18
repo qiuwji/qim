@@ -62,6 +62,7 @@ function createContext(overrides: Partial<RealtimeHandlerContext> = {}) {
     setConversations: vi.fn((update) => { state.conversations = applySetter(state.conversations, update); }),
     setTyping: vi.fn((update) => { state.typing = applySetter(state.typing, update); }),
     setOnlineMap: vi.fn((update) => { state.onlineMap = applySetter(state.onlineMap, update); }),
+    setMention: vi.fn(),
     refreshBase: vi.fn(async () => undefined),
     ...overrides,
   };

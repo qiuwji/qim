@@ -5,5 +5,6 @@ export { ContextMenu, OverlayMenu } from './ContextMenu';
 export { EmptyState } from './EmptyState';
 export { EmojiPicker } from './EmojiPicker';
 export { PanelHeader } from './PanelHeader';
+export { SearchBar } from './SearchBar';
 export { SearchInput } from './SearchInput';
 export { SwitchRow } from './SwitchRow';

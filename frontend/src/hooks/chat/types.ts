@@ -20,6 +20,7 @@ export interface ChatStoreDeps {
   onlineMap: Record<number, boolean>;
   messages: Record<number, MessageDTO[]>;
   replyTo: MessageDTO | null;
+  mentionMap: Record<number, boolean>;
   chatSearch: string;
   deletedMessageIDs: MutableRefObject<Set<number>>;
   deletedStorageKey: string;
@@ -67,6 +68,6 @@ export interface ChatStoreDeps {
   deleteLocalMessage: (msg: MessageDTO) => void;
   hideConversation: (cid: number) => void;
   openConversation: (cid: number) => void;
-  sendConversationMessage: (conversationID: number, text: string, msgType?: number, replyToID?: number) => void;
+  sendConversationMessage: (conversationID: number, text: string, msgType?: number, replyToID?: number, mentionUIDs?: number[], mentionAll?: boolean) => void;
   ensurePrivateConversation: (uid: number) => Promise<number>;
 }

@@ -1,7 +1,7 @@
 import React from 'react';
 import type { FriendDTO, MessageDTO, UserDTO } from '@/api/types';
 import { EmptyState } from '@/components/ui';
-import { displayName, timeText } from '@/utils';
+import { displayName, scrollToMessage, timeText } from '@/utils';
 import { MessageBubble } from './MessageBubble';
 
 export function MessageList({
@@ -27,6 +27,9 @@ export function MessageList({
   onAvatarLeave?: (e: React.MouseEvent) => void;
   onAvatarClick?: (uid: number) => void;
 }) {
+  function handleReplyClick(messageID: number) {
+    scrollToMessage(messageID);
+  }
   if (!conversationActive) {
     return (
       <div className="flex h-full items-center justify-center">
@@ -55,10 +58,14 @@ export function MessageList({
                 senderName={displayName(message.sender_id, userCache, friendMap)}
                 senderUser={userCache[message.sender_id]}
                 replySource={replySource}
+                currentUID={currentUserID}
+                userCache={userCache}
+                friendMap={friendMap}
                 onContextMenu={onContextMenu}
                 onAvatarEnter={onAvatarEnter ? (e) => onAvatarEnter(message.sender_id, e) : undefined}
                 onAvatarLeave={onAvatarLeave}
                 onAvatarClick={onAvatarClick ? () => onAvatarClick(message.sender_id) : undefined}
+                onReplyClick={handleReplyClick}
               />
             </div>
           </React.Fragment>

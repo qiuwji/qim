@@ -17,6 +17,8 @@ func (a *ConversationActor) handleSendMessage(ctx actor.Context, msg SendMessage
 		return
 	}
 
+	mentionUIDs := a.validateMention(msg)
+
 	now := time.Now().Unix()
 	nextSeq := a.maxSeq + 1
 	memberUIDs := a.memberUIDs()
@@ -31,6 +33,8 @@ func (a *ConversationActor) handleSendMessage(ctx actor.Context, msg SendMessage
 			ReplyTo:        msg.ReplyTo,
 			ClientID:       msg.ClientID,
 			CreatedAt:      now,
+			MentionUIDs:    mentionUIDs,
+			MentionAll:     msg.MentionAll,
 		},
 		UnreadProjection: store.UnreadProjectionInput{
 			ConversationID: a.convID,
@@ -74,7 +78,7 @@ func (a *ConversationActor) handleSendMessage(ctx actor.Context, msg SendMessage
 	}
 	if !result.Duplicated {
 		a.maxSeq = actualSeq
-		a.publishMessageSent(result.MessageID, actualSeq, msg, memberUIDs, createdAt)
+		a.publishMessageSent(result.MessageID, actualSeq, msg, mentionUIDs, memberUIDs, createdAt)
 	}
 	ctx.Reply(Result{Data: MessageDTO{
 		ID:             result.MessageID,
@@ -84,10 +88,49 @@ func (a *ConversationActor) handleSendMessage(ctx actor.Context, msg SendMessage
 		MsgType:        msgType,
 		Content:        content,
 		ReplyTo:        replyTo,
+		MentionUIDs:    mentionUIDs,
+		MentionAll:     msg.MentionAll,
 		Revoked:        result.Revoked,
 		ClientID:       clientID,
 		CreatedAt:      createdAt,
 	}})
+}
+
+func (a *ConversationActor) validateMention(msg SendMessageCmd) []uint64 {
+	if a.convType != store.ConvTypeGroup {
+		return nil
+	}
+	if msg.MentionAll {
+		if err := a.requireAdmin(msg.SenderID); err != nil {
+			return a.filterMentionMembers(msg.MentionUIDs)
+		}
+	}
+	if len(msg.MentionUIDs) > 50 {
+		return a.filterMentionMembers(msg.MentionUIDs[:50])
+	}
+	return a.filterMentionMembers(msg.MentionUIDs)
+}
+
+func (a *ConversationActor) filterMentionMembers(uids []uint64) []uint64 {
+	if len(uids) == 0 {
+		return nil
+	}
+	seen := make(map[uint64]struct{}, len(uids))
+	result := make([]uint64, 0, len(uids))
+	for _, uid := range uids {
+		if uid == 0 {
+			continue
+		}
+		if _, ok := seen[uid]; ok {
+			continue
+		}
+		if _, isMember := a.members[uid]; !isMember {
+			continue
+		}
+		seen[uid] = struct{}{}
+		result = append(result, uid)
+	}
+	return result
 }
 
 func (a *ConversationActor) handleRevokeMessage(ctx actor.Context, msg RevokeMessageCmd) {
@@ -118,7 +161,7 @@ func (a *ConversationActor) handleRevokeMessage(ctx actor.Context, msg RevokeMes
 	ctx.Reply(Result{Data: true})
 }
 
-func (a *ConversationActor) publishMessageSent(messageID uint64, seq int64, msg SendMessageCmd, memberUIDs []uint64, createdAt int64) {
+func (a *ConversationActor) publishMessageSent(messageID uint64, seq int64, msg SendMessageCmd, mentionUIDs []uint64, memberUIDs []uint64, createdAt int64) {
 	if a.events == nil {
 		return
 	}
@@ -133,6 +176,8 @@ func (a *ConversationActor) publishMessageSent(messageID uint64, seq int64, msg 
 		ReplyTo:        msg.ReplyTo,
 		ClientID:       msg.ClientID,
 		CreatedAt:      createdAt,
+		MentionUIDs:    mentionUIDs,
+		MentionAll:     msg.MentionAll,
 	})
 }
 

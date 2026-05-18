@@ -55,7 +55,8 @@ type Message struct {
 	MsgType        int8   `gorm:"not null"`
 	Content        string `gorm:"type:text;not null"`
 	ReplyTo        uint64 `gorm:"default:0"`
-	MentionUIDs    string `gorm:"size:512"`
+	MentionUIDs    string `gorm:"type:text"`
+	MentionAll     bool   `gorm:"default:false"`
 	Revoked        bool   `gorm:"default:false"`
 	Edited         bool   `gorm:"default:false"`
 	ClientID       string `gorm:"index:idx_msg_client_lookup;size:64"`

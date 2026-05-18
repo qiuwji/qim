@@ -2,10 +2,10 @@ import type { ConversationDTO, FriendDTO, FriendGroupDTO, FriendRequestDTO, Memb
 import type { MobilePane } from '@/types';
 import { chatTitle } from '@/utils';
 import { conversationSubtitle } from '@/hooks/chat/models/conversationViewModel';
-import { ChatWindow } from '@/components/ChatWindow';
-import { UserProfilePage } from '@/components/UserProfilePage';
-import { FriendRequestsView } from '@/components/FriendRequestsView';
-import { GroupManagePanel } from '@/components/GroupManagePanel';
+import { ChatWindow } from '@/components/chat/ChatWindow';
+import { UserProfilePage } from '@/components/user/UserProfilePage';
+import { FriendRequestsView } from '@/components/contacts/FriendRequestsView';
+import { GroupManagePanel } from '@/components/group/GroupManagePanel';
 
 export type RightPaneView = 'chat' | 'friend-requests' | 'group-manage' | 'user-profile';
 
@@ -21,6 +21,7 @@ interface RightPaneProps {
   selectedID: number | null;
   hasMore: boolean;
   typingText: string;
+  members: MemberDTO[];
   userCache: Record<number, UserDTO>;
   friendMap: Record<number, FriendDTO>;
   onlineMap: Record<number, boolean>;
@@ -33,7 +34,7 @@ interface RightPaneProps {
   allIncomingReqs: FriendRequestDTO[];
   allOutgoingReqs: FriendRequestDTO[];
   friendGroups: FriendGroupDTO[];
-  sendText: (text: string) => void;
+  sendText: (text: string, mentionUIDs?: number[], mentionAll?: boolean) => void;
   sendImage: (file: File) => void;
   handleRequest: (id: number, a: 'accept' | 'reject') => void;
   viewUserProfile: (uid: number) => void;
@@ -56,7 +57,7 @@ export function RightPane(props: RightPaneProps) {
   const {
     view, user, tab, setMobilePane,
     selectedConv, selectedDetail, selectedMessages, selectedMembers, selectedID, hasMore, typingText,
-    userCache, friendMap, onlineMap, detailOpen, replyTo,
+    members, userCache, friendMap, onlineMap, detailOpen, replyTo,
     viewingUser, setViewingUser, setViewingFriendRequests, setViewingGroupManage,
     allIncomingReqs, allOutgoingReqs, friendGroups,
     sendText, sendImage, handleRequest, viewUserProfile, startPrivate, addFriendByUser, deleteFriend,
@@ -133,12 +134,13 @@ export function RightPane(props: RightPaneProps) {
       messages={selectedMessages}
       hasMore={selectedID ? hasMore : false}
       typingText={selectedID ? typingText : ''}
+      members={members}
       userCache={userCache}
       friendMap={friendMap}
       detailOpen={detailOpen}
       replyTo={replyTo}
       onBack={goBack}
-      onSend={(text) => { sendText(text); return Promise.resolve(); }}
+      onSend={(text, mentionUIDs, mentionAll) => { sendText(text, mentionUIDs, mentionAll); return Promise.resolve(); }}
       onSendImage={sendImage}
       onTyping={() => selectedID && wsRef.current.typing(selectedID)}
       onToggleDetail={() => setDetailOpen(!detailOpen)}

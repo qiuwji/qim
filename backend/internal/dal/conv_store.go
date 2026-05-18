@@ -1,6 +1,7 @@
 package dal
 
 import (
+	"encoding/json"
 	"errors"
 	"time"
 
@@ -281,6 +282,11 @@ func (s *gormConvStore) CommitMessage(input store.MessageCommitInput) (*store.Me
 		ClientID:       input.Message.ClientID,
 		CreatedAt:      input.Message.CreatedAt,
 	}
+	if len(input.Message.MentionUIDs) > 0 {
+		b, _ := json.Marshal(input.Message.MentionUIDs)
+		msg.MentionUIDs = string(b)
+	}
+	msg.MentionAll = input.Message.MentionAll
 
 	if err := s.db.Transaction(func(tx *gorm.DB) error {
 		if err := s.appendMessage(tx, msg); err != nil {

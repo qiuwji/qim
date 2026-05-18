@@ -1,6 +1,7 @@
 package message
 
 import (
+	"encoding/json"
 	"time"
 
 	"qim/internal/actor"
@@ -90,10 +91,14 @@ func toDTO(m dal.Message) MessageDTO {
 		SenderID:       m.SenderID,
 		MsgType:        MsgType(m.MsgType),
 		ReplyTo:        m.ReplyTo,
+		MentionAll:     m.MentionAll,
 		Revoked:        m.Revoked,
 		Edited:         m.Edited,
 		ClientID:       m.ClientID,
 		CreatedAt:      m.CreatedAt,
+	}
+	if m.MentionUIDs != "" {
+		_ = json.Unmarshal([]byte(m.MentionUIDs), &dto.MentionUIDs)
 	}
 	if !m.Revoked {
 		dto.Content = m.Content
