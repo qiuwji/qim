@@ -1,0 +1,266 @@
+backend/internal/domain/conversation/actor_test.go
+  6974aa14fc0d6e8e 323,544-752 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b25d8d1921616a88b4182","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Single":323},{"Range":[544,752]}]}]}
+backend/internal/transport/ws/push_handler_test.go
+  6974aa14fc0d6e8e 102-248 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b25d8d1921616a88b4182","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[102,248]}]}]}
+backend/internal/domain/conversation/message_handler.go
+  6974aa14fc0d6e8e 20,81,92,99,101,105,109,111,164,180 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b25d8d1921616a88b4182","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Single":20},{"Single":81},{"Single":92},{"Single":99},{"Single":101},{"Single":105},{"Single":109},{"Single":111},{"Single":164},{"Single":180}]}]}
+agent.md
+  6974aa14fc0d6e8e 368 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b25d8d1921616a88b4182","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Single":368}]}]}
+frontend/src/components/chat/MessageComposer.tsx
+  6974aa14fc0d6e8e 86-91 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b25d8d1921616a88b4182","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[86,91]}]}]}
+backend/internal/transport/ws/dispatcher_system_test.go
+  6974aa14fc0d6e8e 88-121 gitai:{"mixed_line_ranges":[],"operations":[{"operation_id":"6a0b25d8d1921616a88b4182","tool_type":"agent","tool_id":"SearchReplace","line_ranges":[{"Range":[88,121]}]}]}
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "89b6445726ebe702782e24bd5ee28973fbdd2447",
+  "prompts": {
+    "6974aa14fc0d6e8e": {
+      "agent_id": {
+        "tool": "trae",
+        "id": "6a09b10fd1921616a88b24de",
+        "model": "glm-5.1__dev"
+      },
+      "human_author": "qiuji.322@BYTEDANCE.COM <qiuji.322@BYTEDANCE.COM@bytedance.com>",
+      "messages": [],
+      "total_additions": 423,
+      "total_deletions": 26,
+      "accepted_lines": 409,
+      "overriden_lines": 0
+    }
+  },
+  "attestation_metadata": {
+    "agent.md": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Single": 368
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b25d8d1921616a88b4182",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Single": 368
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "backend/internal/domain/conversation/actor_test.go": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Single": 323
+          },
+          {
+            "Range": [
+              544,
+              752
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b25d8d1921616a88b4182",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Single": 323
+              },
+              {
+                "Range": [
+                  544,
+                  752
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "backend/internal/domain/conversation/message_handler.go": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Single": 20
+          },
+          {
+            "Single": 81
+          },
+          {
+            "Single": 92
+          },
+          {
+            "Single": 99
+          },
+          {
+            "Single": 101
+          },
+          {
+            "Single": 105
+          },
+          {
+            "Single": 109
+          },
+          {
+            "Single": 111
+          },
+          {
+            "Single": 164
+          },
+          {
+            "Single": 180
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b25d8d1921616a88b4182",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Single": 20
+              },
+              {
+                "Single": 81
+              },
+              {
+                "Single": 92
+              },
+              {
+                "Single": 99
+              },
+              {
+                "Single": 101
+              },
+              {
+                "Single": 105
+              },
+              {
+                "Single": 109
+              },
+              {
+                "Single": 111
+              },
+              {
+                "Single": 164
+              },
+              {
+                "Single": 180
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "backend/internal/transport/ws/dispatcher_system_test.go": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Range": [
+              88,
+              121
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b25d8d1921616a88b4182",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  88,
+                  121
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "backend/internal/transport/ws/push_handler_test.go": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Range": [
+              102,
+              248
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b25d8d1921616a88b4182",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  102,
+                  248
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frontend/src/components/chat/MessageComposer.tsx": [
+      {
+        "hash": "6974aa14fc0d6e8e",
+        "line_ranges": [
+          {
+            "Range": [
+              86,
+              91
+            ]
+          }
+        ],
+        "mixed_line_ranges": [],
+        "operations": [
+          {
+            "operation_id": "6a0b25d8d1921616a88b4182",
+            "tool_type": "agent",
+            "tool_id": "SearchReplace",
+            "line_ranges": [
+              {
+                "Range": [
+                  86,
+                  91
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "remote_transcripts": {
+    "6974aa14fc0d6e8e": {
+      "tool": "trae",
+      "conversation_id": "6a09b10fd1921616a88b24de",
+      "session_id": "6a09b10fd1921616a88b24de",
+      "status": "remote_only",
+      "message": "Remote transcript resolution is not implemented yet for TRAE prompts."
+    }
+  }
+}
