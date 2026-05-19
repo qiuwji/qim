@@ -377,3 +377,32 @@ func TestCallEndedPushesToBoth_BitsUT(t *testing.T) {
 		}
 	}
 }
+
+func TestPushToUserExcept_BitsUT(t *testing.T) {
+	engine := actor.NewEngine()
+	received := make(chan PushCmd, 5)
+	gw1, _ := engine.Spawn("gw:accept", pushGatewayActor{received: received})
+	gw2, _ := engine.Spawn("gw:other", pushGatewayActor{received: received})
+	presence, _ := engine.Spawn("push-except-presence", pushExceptPresenceActor{gateways: []*actor.ActorRef{gw1, gw2}})
+	handler := NewMessagePushActor(presence, nil)
+
+	handler.pushToUserExcept(100, "call", "answered_elsewhere", map[string]string{"call_id": "c1"}, "gw:accept")
+
+	cmds := drainPushCmds(received, 1, time.Second)
+	if len(cmds) != 1 {
+		t.Fatalf("expected 1 push (accept GW excluded), got %d", len(cmds))
+	}
+	if cmds[0].Action != "answered_elsewhere" {
+		t.Fatalf("expected answered_elsewhere, got %s", cmds[0].Action)
+	}
+}
+
+type pushExceptPresenceActor struct {
+	gateways []*actor.ActorRef
+}
+
+func (a pushExceptPresenceActor) Receive(ctx actor.Context) {
+	if query, ok := ctx.Message().(presencedomain.GetGatewaysQuery); ok {
+		ctx.Reply(presencedomain.GatewaysResult{UID: query.UID, Gateways: a.gateways})
+	}
+}
