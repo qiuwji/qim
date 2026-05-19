@@ -14,7 +14,7 @@ import (
 	"qim/internal/eventbus"
 	"qim/internal/pkg/logx"
 
-	"gorm.io/driver/sqlite"
+	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 )
 

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"qim/internal/actor"
+	calldomain "qim/internal/domain/call"
 	"qim/internal/domain/conversation"
 	"qim/internal/domain/friend"
 	presencedomain "qim/internal/domain/presence"
@@ -269,3 +270,110 @@ func (a pushPresenceActor) Receive(ctx actor.Context) {
 type unknownPushEvent struct{}
 
 func (unknownPushEvent) Name() string { return "unknown" }
+
+func TestRouteCallPushEvents_BitsUT(t *testing.T) {
+	tests := []struct {
+		name       string
+		event      interface{ Name() string }
+		wantType   string
+		wantAction string
+		wantUIDs   int
+	}{
+		{"来电通知", calldomain.CallIncomingEvent{CalleeUID: 200}, "call", "incoming", 1},
+		{"呼叫中", calldomain.CallCallingEvent{CallerUID: 100}, "call", "calling", 1},
+		{"已接听", calldomain.CallAcceptedEvent{CallerUID: 100}, "call", "accepted", 1},
+		{"已拒绝", calldomain.CallRejectedEvent{CallerUID: 100}, "call", "rejected", 1},
+		{"已取消", calldomain.CallCancelledEvent{CalleeUID: 200}, "call", "cancelled", 1},
+		{"已结束", calldomain.CallEndedEvent{CallerUID: 100, CalleeUID: 200}, "call", "ended", 2},
+		{"超时", calldomain.CallTimeoutEvent{CallerUID: 100, CalleeUID: 200}, "call", "timeout", 2},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			pushType, action, recipients, data, ok := routePushEvent(tt.event)
+			if !ok {
+				t.Fatalf("routePushEvent should match")
+			}
+			if pushType != tt.wantType || action != tt.wantAction || len(recipients) != tt.wantUIDs || data == nil {
+				t.Fatalf("got type=%s action=%s recipients=%v data=%T", pushType, action, recipients, data)
+			}
+		})
+	}
+}
+
+func TestCallPushHandlerDeliversToGateway_BitsUT(t *testing.T) {
+	engine := actor.NewEngine()
+	received := make(chan PushCmd, 5)
+	gateway, err := engine.Spawn("call-push-gateway", pushGatewayActor{received: received})
+	if err != nil {
+		t.Fatalf("spawn gateway: %v", err)
+	}
+	presence, err := engine.Spawn("call-push-presence", pushPresenceActor{gateway: gateway})
+	if err != nil {
+		t.Fatalf("spawn presence: %v", err)
+	}
+	handler, err := engine.Spawn("call-push-handler", NewMessagePushActor(presence, nil))
+	if err != nil {
+		t.Fatalf("spawn handler: %v", err)
+	}
+
+	event := calldomain.CallIncomingEvent{
+		CallID:       "call_test",
+		CallerUID:    100,
+		CalleeUID:    200,
+		CallType:     1,
+		CallerName:   "Alice",
+		CallerAvatar: "avatar",
+	}
+	if err := handler.Tell(eventbus.EventEnvelope{Event: event}); err != nil {
+		t.Fatalf("tell event: %v", err)
+	}
+
+	select {
+	case cmd := <-received:
+		if cmd.Type != "call" || cmd.Action != "incoming" {
+			t.Fatalf("push cmd = %+v", cmd)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("gateway did not receive incoming push")
+	}
+}
+
+func TestCallEndedPushesToBoth_BitsUT(t *testing.T) {
+	engine := actor.NewEngine()
+	received := make(chan PushCmd, 5)
+	gateway, err := engine.Spawn("call-ended-gateway", pushGatewayActor{received: received})
+	if err != nil {
+		t.Fatalf("spawn gateway: %v", err)
+	}
+	presence, err := engine.Spawn("call-ended-presence", pushPresenceActor{gateway: gateway})
+	if err != nil {
+		t.Fatalf("spawn presence: %v", err)
+	}
+	handler, err := engine.Spawn("call-ended-handler", NewMessagePushActor(presence, nil))
+	if err != nil {
+		t.Fatalf("spawn handler: %v", err)
+	}
+
+	event := calldomain.CallEndedEvent{
+		CallID:    "call_ended",
+		CallerUID: 100,
+		CalleeUID: 200,
+		StartedAt: 1700000000,
+		Duration:  120,
+		EndReason: "hangup",
+	}
+	if err := handler.Tell(eventbus.EventEnvelope{Event: event}); err != nil {
+		t.Fatalf("tell event: %v", err)
+	}
+
+	cmds := drainPushCmds(received, 2, time.Second)
+	if len(cmds) < 2 {
+		t.Fatalf("expected at least 2 pushes for ended (both parties), got %d", len(cmds))
+	}
+	for _, cmd := range cmds {
+		if cmd.Type != "call" || cmd.Action != "ended" {
+			t.Fatalf("unexpected push: type=%s action=%s", cmd.Type, cmd.Action)
+		}
+	}
+}

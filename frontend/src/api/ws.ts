@@ -174,6 +174,38 @@ export class RealtimeClient {
     this.send('conv', 'transfer_owner', { conv_id, new_owner_id });
   }
 
+  initiateCall(callee_uid: number, call_type: 1 | 2) {
+    this.send('call', 'initiate', { callee_uid, call_type });
+  }
+
+  acceptCall(call_id: string) {
+    this.send('call', 'accept', { call_id });
+  }
+
+  rejectCall(call_id: string) {
+    this.send('call', 'reject', { call_id });
+  }
+
+  cancelCall(call_id: string) {
+    this.send('call', 'cancel', { call_id });
+  }
+
+  endCall(call_id: string) {
+    this.send('call', 'end', { call_id });
+  }
+
+  sendCallOffer(call_id: string, sdp: string) {
+    this.send('call', 'offer', { call_id, sdp });
+  }
+
+  sendCallAnswer(call_id: string, sdp: string) {
+    this.send('call', 'answer', { call_id, sdp });
+  }
+
+  sendIceCandidate(call_id: string, candidate: string, sdpMid?: string, sdpMLineIndex?: number) {
+    this.send('call', 'ice', { call_id, candidate, sdp_mid: sdpMid, sdp_m_line_index: sdpMLineIndex });
+  }
+
   private emit(message: WsResponse) {
     this.listeners.forEach((listener) => listener(message));
   }

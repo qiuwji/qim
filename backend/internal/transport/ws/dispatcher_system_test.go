@@ -24,7 +24,7 @@ func TestDispatcherSystemFlow_BitsUT(t *testing.T) {
 		service.NewMsgService(engine),
 		service.NewFriendService(engine),
 		service.NewUserService(engine, func(uid uint64) actor.Actor { return wsUserResultActor{data: uid} }),
-		nil, nil,
+		nil, nil, nil,
 	)
 
 	requests := []WsRequest{
@@ -94,7 +94,7 @@ func TestDispatchSendWithMention_BitsUT(t *testing.T) {
 		service.NewMsgService(engine),
 		service.NewFriendService(engine),
 		service.NewUserService(engine, func(uid uint64) actor.Actor { return wsUserResultActor{data: uid} }),
-		nil, nil,
+		nil, nil, nil,
 	)
 
 	t.Run("带mention_uids和mention_all", func(t *testing.T) {

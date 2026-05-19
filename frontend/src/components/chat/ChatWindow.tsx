@@ -4,13 +4,15 @@ import { isGroupConversation, canManageGroup } from '@/hooks/chat/models/convers
 import { useChatScroll } from '@/hooks/useChatScroll';
 import { MessageComposer } from './MessageComposer';
 import { MessageList } from './MessageList';
+import { CallButton } from './CallButton';
 
-export function ChatWindow({ user, conversation, detail, title, subtitle, messages, hasMore, typingText: _typingText, members, userCache, friendMap, detailOpen, replyTo, onBack, onSend, onSendImage, onTyping, onToggleDetail, onContextMenu, onReply, onLoadMore, onAvatarEnter, onAvatarLeave, onAvatarClick }: {
+export function ChatWindow({ user, conversation, detail, title, subtitle, messages, hasMore, typingText: _typingText, members, userCache, friendMap, detailOpen, replyTo, onBack, onSend, onSendImage, onTyping, onToggleDetail, onContextMenu, onReply, onLoadMore, onAvatarEnter, onAvatarLeave, onAvatarClick, callState, onVoiceCall, onVideoCall }: {
   user: UserDTO; conversation: UserConvDTO | null; detail?: ConversationDTO; title: string; subtitle: string; messages: MessageDTO[]; hasMore: boolean; typingText?: string; members: MemberDTO[]; userCache: Record<number, UserDTO>; friendMap?: Record<number, FriendDTO>; detailOpen: boolean; replyTo: MessageDTO | null;
   onBack: () => void; onSend: (text: string, mentionUIDs?: number[], mentionAll?: boolean) => Promise<void>; onSendImage: (file: File) => void; onTyping: () => void; onToggleDetail: () => void; onContextMenu: (e: React.MouseEvent, m: MessageDTO) => void; onReply: (m: MessageDTO | null) => void; onLoadMore: () => void | Promise<void>;
   onAvatarEnter?: (uid: number, e: React.MouseEvent) => void;
   onAvatarLeave?: (e: React.MouseEvent) => void;
   onAvatarClick?: (uid: number) => void;
+  callState?: string; onVoiceCall?: () => void; onVideoCall?: () => void;
 }) {
   const isGroup = isGroupConversation(detail);
   const { isAdmin } = canManageGroup(detail, members, user.id);
@@ -39,6 +41,7 @@ export function ChatWindow({ user, conversation, detail, title, subtitle, messag
           <span>{subtitle}</span>
         </div>
         <div className="chat-actions">
+          <CallButton peerUID={detail?.type === 1 ? (members.find(m => m.uid !== user.id)?.uid ?? 0) : 0} isGroup={isGroup} callState={callState ?? 'idle'} onVoiceCall={() => onVoiceCall?.()} onVideoCall={() => onVideoCall?.()} />
           <button className={`detail-toggle ${detailOpen ? 'active' : ''}`} onClick={(e) => { e.stopPropagation(); onToggleDetail(); }} title="设置">···</button>
         </div>
       </header>}

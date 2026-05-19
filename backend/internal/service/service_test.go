@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"qim/internal/actor"
+	"qim/internal/domain/call"
 	"qim/internal/domain/conversation"
 	"qim/internal/domain/friend"
 	"qim/internal/domain/message"
@@ -17,6 +18,7 @@ func TestServices_BitsUT(t *testing.T) {
 	mustSpawn(t, engine, "conv-manager", resultActor{result: conversation.Result{Data: "conv-manager"}})
 	mustSpawn(t, engine, "friend-manager", resultActor{result: friend.Result{Data: "friend"}})
 	mustSpawn(t, engine, "msg-store", resultActor{result: message.Result{Data: "message"}})
+	mustSpawn(t, engine, "call-manager", resultActor{result: call.Result{Data: "call"}})
 
 	t.Run("user service manager 和 session", func(t *testing.T) {
 		svc := NewUserService(engine, func(uid uint64) actor.Actor {
@@ -64,6 +66,11 @@ func TestServices_BitsUT(t *testing.T) {
 		if err := msgSvc.Tell("cmd"); err != nil {
 			t.Fatalf("msg Tell error: %v", err)
 		}
+
+		callSvc := NewCallService(engine)
+		if got, err := callSvc.AskManager("cmd"); err != nil || got.Data != "call" {
+			t.Fatalf("call AskManager got=%+v err=%v", got, err)
+		}
 	})
 }
 
@@ -81,6 +88,9 @@ func TestServicesUnavailable_BitsUT(t *testing.T) {
 	if _, err := NewMsgService(engine).Ask("cmd"); err == nil || !strings.Contains(err.Error(), "msg-store unavailable") {
 		t.Fatalf("expected msg-store unavailable, got %v", err)
 	}
+	if _, err := NewCallService(engine).AskManager("cmd"); err == nil || !strings.Contains(err.Error(), "call-manager unavailable") {
+		t.Fatalf("expected call-manager unavailable, got %v", err)
+	}
 }
 
 func TestServicesUnexpectedResult_BitsUT(t *testing.T) {
@@ -89,6 +99,7 @@ func TestServicesUnexpectedResult_BitsUT(t *testing.T) {
 	mustSpawn(t, engine, "conv-manager", resultActor{result: "bad"})
 	mustSpawn(t, engine, "friend-manager", resultActor{result: "bad"})
 	mustSpawn(t, engine, "msg-store", resultActor{result: "bad"})
+	mustSpawn(t, engine, "call-manager", resultActor{result: "bad"})
 
 	if _, err := NewUserService(engine, func(uid uint64) actor.Actor { return resultActor{result: "bad"} }).AskManager("cmd"); err == nil {
 		t.Fatalf("user AskManager should reject unexpected result")
@@ -107,6 +118,9 @@ func TestServicesUnexpectedResult_BitsUT(t *testing.T) {
 	}
 	if _, err := NewMsgService(engine).Ask("cmd"); err == nil {
 		t.Fatalf("msg Ask should reject unexpected result")
+	}
+	if _, err := NewCallService(engine).AskManager("cmd"); err == nil {
+		t.Fatalf("call AskManager should reject unexpected result")
 	}
 }
 

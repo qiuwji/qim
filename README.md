@@ -118,7 +118,14 @@ backend/data/uploads/images
 qim/
   backend/                    # Go 后端
     cmd/server/               # 服务入口
-    docs/api.md               # API 文档
+  api/                        # API 文档（按域拆分）
+    README.md                   # 鉴权/响应格式/错误码
+    http-auth.md                # 认证
+    http-user.md                # 用户
+    http-friend.md              # 好友
+    http-conversation.md        # 会话/消息/群组
+    http-file.md                # 文件上传
+    ws.md                       # WebSocket 协议
     internal/                 # 后端核心代码
   frontend/                   # React 前端
     src/api/                  # HTTP / WebSocket API
@@ -296,7 +303,7 @@ server {
 HTTP 和 WebSocket 协议见：
 
 ```text
-backend/docs/api.md
+api/
 ```
 
 修改或新增 API 时需要同步更新该文档。

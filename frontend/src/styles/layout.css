@@ -37,6 +37,9 @@
   color: #1f2329;
   background: #e7e9ee;
   font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .icon-btn:hover { background: #dfe3e8; }
 .quick-action-wrap { position: relative; }

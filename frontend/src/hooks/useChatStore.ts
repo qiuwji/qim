@@ -39,6 +39,7 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
   const selectedIDRef = useRef<number | null>(null);
   const messagesRef = useRef<Record<number, MessageDTO[]>>({});
   const realtimeHandlerRef = useRef<(msg: WsResponse) => void>(() => undefined);
+  const callHandlerRef = useRef<(msg: WsResponse) => void>(() => undefined);
   const typingTimers = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
   const deletedStorageKey = deletedMessageStorageKey(user.id);
   const deletedMessageIDs = useRef<Set<number>>(new Set(readDeletedMessageIDs(deletedStorageKey)));
@@ -208,6 +209,7 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
       getDisplayName: (uid) => displayName(uid, userCache, friendMap),
       applyIncomingMessage, setLastMessagePreview, setNotice,
       setMessages, setLastMsgMap, setConversations, setTyping, setOnlineMap, setMention, refreshBase,
+      handleCallWs: (m) => callHandlerRef.current(m),
     });
   }
 
@@ -222,7 +224,7 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
   const deps: ChatStoreDeps = {
     user, onUserChange, selectedID, searchKeyword, selectedIDRef, conversations, details,
     userCache, lastMsgMap, friendMap, friends, friendGroups, members, onlineMap, messages, replyTo, mentionMap,
-    chatSearch, deletedMessageIDs, deletedStorageKey, messagesRef, typingTimers, wsRef, realtimeHandlerRef,
+    chatSearch, deletedMessageIDs, deletedStorageKey, messagesRef, typingTimers, wsRef, realtimeHandlerRef, callHandlerRef,
     setConversations, setDetails, setUserCache, setSelectedID, setMessages,
     setLastMsgMap, setHasMore, setFriends, setFriendGroups, setRequests,
     setOutgoingReqs, setSearchResult, setMembers, setTyping, setDetailOpen, setModal,
@@ -252,7 +254,7 @@ export function useChatStore(user: UserDTO, onUserChange: (u: UserDTO) => void) 
     refreshBase, loadMessages, loadChatMembers,
     ...navigationActions,
     ...msgActions, ...convActions, ...friendActions, ...groupActions, ...profileActions,
-    wsRef,
+    wsRef, callHandlerRef,
   };
 }
 

@@ -3,8 +3,10 @@ package conversation
 import "qim/internal/domain/conversation/store"
 
 const (
-	MsgTypeText   int8 = 1
-	MsgTypeSystem int8 = 5
+	MsgTypeText       int8 = 1
+	MsgTypeImage      int8 = 2
+	MsgTypeSystem     int8 = 5
+	MsgTypeCallRecord int8 = 6
 )
 
 type Result struct {

@@ -64,6 +64,7 @@ function createContext(overrides: Partial<RealtimeHandlerContext> = {}) {
     setOnlineMap: vi.fn((update) => { state.onlineMap = applySetter(state.onlineMap, update); }),
     setMention: vi.fn(),
     refreshBase: vi.fn(async () => undefined),
+    handleCallWs: vi.fn(),
     ...overrides,
   };
   return { ctx, state };
@@ -175,5 +176,29 @@ describe('handleRealtimeMessage', () => {
 
     expect(state.notice).toEqual({ kind: 'info', text: '收到新的好友申请' });
     expect(ctx.refreshBase).toHaveBeenCalledTimes(1);
+  });
+
+  it('将 call 类型消息路由到 handleCallWs', () => {
+    const { ctx } = createContext();
+
+    handleRealtimeMessage({ type: 'call', action: 'incoming', data: { call_id: 'c1', caller_uid: 2, call_type: 1, caller_nickname: 'Bob', caller_avatar: '' } }, ctx);
+
+    expect(ctx.handleCallWs).toHaveBeenCalledWith({ type: 'call', action: 'incoming', data: { call_id: 'c1', caller_uid: 2, call_type: 1, caller_nickname: 'Bob', caller_avatar: '' } });
+  });
+
+  it('将 call/accepted 路由到 handleCallWs', () => {
+    const { ctx } = createContext();
+
+    handleRealtimeMessage({ type: 'call', action: 'accepted', data: { call_id: 'c1' } }, ctx);
+
+    expect(ctx.handleCallWs).toHaveBeenCalledWith({ type: 'call', action: 'accepted', data: { call_id: 'c1' } });
+  });
+
+  it('将 call/ended 路由到 handleCallWs', () => {
+    const { ctx } = createContext();
+
+    handleRealtimeMessage({ type: 'call', action: 'ended', data: { call_id: 'c1', started_at: 100, duration: 60, end_reason: 'hangup' } }, ctx);
+
+    expect(ctx.handleCallWs).toHaveBeenCalledWith({ type: 'call', action: 'ended', data: { call_id: 'c1', started_at: 100, duration: 60, end_reason: 'hangup' } });
   });
 });

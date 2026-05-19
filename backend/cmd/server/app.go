@@ -8,6 +8,7 @@ import (
 
 	"qim/internal/actor"
 	"qim/internal/dal"
+	"qim/internal/domain/call"
 	"qim/internal/domain/conversation"
 	"qim/internal/domain/friend"
 	"qim/internal/domain/message"
@@ -21,7 +22,7 @@ import (
 	"qim/internal/transport/ws"
 
 	"go.uber.org/zap"
-	"gorm.io/driver/sqlite"
+	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -30,6 +31,7 @@ type stores struct {
 	user   dal.UserStore
 	msg    dal.MsgStore
 	friend dal.FriendStore
+	call   call.CallStore
 }
 
 func initJWT() *jwtpkg.Manager {
@@ -45,6 +47,7 @@ type svcs struct {
 	user   *service.UserService
 	msg    *service.MsgService
 	friend *service.FriendService
+	call   *service.CallService
 }
 
 func initEngine() *actor.Engine {
@@ -110,6 +113,7 @@ func mustMigrateDB(db *gorm.DB) {
 		&dal.FriendRequest{},
 		&dal.FriendGroup{},
 		&dal.Friend{},
+		&dal.CallRecord{},
 	); err != nil {
 		panic(err)
 	}
@@ -150,6 +154,7 @@ func initStores(db *gorm.DB) stores {
 		user:   dal.NewUserStore(db),
 		msg:    dal.NewMsgStore(db),
 		friend: dal.NewFriendStore(db),
+		call:   dal.NewCallStore(db),
 	}
 }
 
@@ -165,6 +170,7 @@ func initServices(engine *actor.Engine, s stores, events eventbus.Bus) svcs {
 		user:   service.NewUserService(engine, sessionFn),
 		msg:    service.NewMsgService(engine),
 		friend: service.NewFriendService(engine),
+		call:   service.NewCallService(engine),
 	}
 }
 
@@ -174,6 +180,7 @@ func initActors(engine *actor.Engine, s stores, events eventbus.Bus) {
 	mustSpawn(engine, "msg-store", message.NewMessageStoreActor(s.msg, engine))
 	mustSpawn(engine, "friend-manager", friend.NewManagerActor(s.friend, engine, events))
 	mustSpawn(engine, "presence", presence.NewPresenceActor(engine, events))
+	mustSpawn(engine, "call-manager", call.NewCallManagerActor(engine, events, s.call))
 }
 
 func initEventHandlers(engine *actor.Engine, events eventbus.Bus) {
@@ -205,6 +212,14 @@ func initEventHandlers(engine *actor.Engine, events eventbus.Bus) {
 		friend.EventFriendRequestHandled,
 		presence.EventUserOnline,
 		presence.EventUserOffline,
+		call.EventCallIncoming,
+		call.EventCallCalling,
+		call.EventCallAccepted,
+		call.EventCallRejected,
+		call.EventCallCancelled,
+		call.EventCallEnded,
+		call.EventCallTimeout,
+		call.EventCallAnsweredElsewhere,
 	}
 	for _, eventName := range pushEvents {
 		if err := events.Subscribe(eventName, pushRef); err != nil {
@@ -241,5 +256,5 @@ func initHandlers(s svcs, jwt *jwtpkg.Manager) *httphandler.Handlers {
 func initDispatcher(s svcs, engine *actor.Engine) *ws.Dispatcher {
 	presenceRef, _ := engine.Lookup("presence")
 	friendRef, _ := engine.Lookup("friend-manager")
-	return ws.NewDispatcher(s.conv, s.msg, s.friend, s.user, presenceRef, friendRef)
+	return ws.NewDispatcher(s.conv, s.msg, s.friend, s.user, presenceRef, friendRef, s.call)
 }

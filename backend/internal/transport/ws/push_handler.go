@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"qim/internal/actor"
+	calldomain "qim/internal/domain/call"
 	"qim/internal/domain/conversation"
 	"qim/internal/domain/friend"
 	presencedomain "qim/internal/domain/presence"
@@ -50,6 +51,10 @@ func (h *MessagePushHandler) handleEvent(event eventbus.Event) {
 		h.handlePresenceChange(e.UID, "online")
 	case presencedomain.UserOfflineEvent:
 		h.handlePresenceChange(e.UID, "offline")
+	case calldomain.CallAnsweredElsewhereEvent:
+		for _, uid := range uniqueUIDs([]uint64{e.CalleeUID}) {
+			h.pushToUserExcept(uid, "call", "answered_elsewhere", e, e.AcceptGW)
+		}
 	default:
 		pushType, action, recipients, data, ok := routePushEvent(event)
 		if !ok {
@@ -137,6 +142,20 @@ func routePushEvent(event eventbus.Event) (pushType string, action string, recip
 			return "friend", "accepted", []uint64{e.FromUID}, e, true
 		}
 		return "friend", "rejected", []uint64{e.FromUID}, e, true
+	case calldomain.CallIncomingEvent:
+		return "call", "incoming", []uint64{e.CalleeUID}, e, true
+	case calldomain.CallCallingEvent:
+		return "call", "calling", []uint64{e.CallerUID}, e, true
+	case calldomain.CallAcceptedEvent:
+		return "call", "accepted", []uint64{e.CallerUID}, e, true
+	case calldomain.CallRejectedEvent:
+		return "call", "rejected", []uint64{e.CallerUID}, e, true
+	case calldomain.CallCancelledEvent:
+		return "call", "cancelled", []uint64{e.CalleeUID}, e, true
+	case calldomain.CallEndedEvent:
+		return "call", "ended", []uint64{e.CallerUID, e.CalleeUID}, e, true
+	case calldomain.CallTimeoutEvent:
+		return "call", "timeout", []uint64{e.CallerUID, e.CalleeUID}, e, true
 	default:
 		return "", "", nil, nil, false
 	}
@@ -167,6 +186,23 @@ func (h *MessagePushHandler) pushToUser(uid uint64, pushType, action string, dat
 		if err := gateway.Tell(PushCmd{Type: pushType, Action: action, Data: data}); err != nil {
 			zap.L().Warn("push to gateway failed", zap.Uint64("uid", uid), zap.String("gateway", gateway.Name()), zap.String("type", pushType), zap.String("action", action), zap.Error(err))
 		}
+	}
+}
+
+func (h *MessagePushHandler) pushToUserExcept(uid uint64, pushType, action string, data any, exceptGW string) {
+	raw, err := h.presence.Ask(presencedomain.GetGatewaysQuery{UID: uid}, presenceAskTimeout)
+	if err != nil {
+		return
+	}
+	result, ok := raw.(presencedomain.GatewaysResult)
+	if !ok {
+		return
+	}
+	for _, gateway := range result.Gateways {
+		if gateway.Name() == exceptGW {
+			continue
+		}
+		_ = gateway.Tell(PushCmd{Type: pushType, Action: action, Data: data})
 	}
 }
 

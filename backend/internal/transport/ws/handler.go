@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"qim/internal/actor"
+	"qim/internal/domain/call"
 	"qim/internal/domain/conversation"
 	"qim/internal/domain/friend"
 	"qim/internal/domain/message"
@@ -48,6 +49,7 @@ type Dispatcher struct {
 	friend   *friendRouter
 	user     *userRouter
 	presence *presenceRouter
+	call     *callRouter
 }
 
 func NewDispatcher(
@@ -57,6 +59,7 @@ func NewDispatcher(
 	userSvc *service.UserService,
 	presenceRef *actor.ActorRef,
 	friendRef *actor.ActorRef,
+	callSvc *service.CallService,
 ) *Dispatcher {
 	return &Dispatcher{
 		conv:     &convRouter{svc: convSvc},
@@ -64,6 +67,7 @@ func NewDispatcher(
 		friend:   &friendRouter{svc: friendSvc},
 		user:     &userRouter{svc: userSvc},
 		presence: &presenceRouter{presenceRef: presenceRef, friendRef: friendRef},
+		call:     &callRouter{svc: callSvc},
 	}
 }
 
@@ -79,6 +83,8 @@ func (d *Dispatcher) Dispatch(uid uint64, req WsRequest) WsResponse {
 		return d.user.dispatch(uid, req.Action, req.Data)
 	case "presence":
 		return d.presence.dispatch(uid, req.Action, req.Data)
+	case "call":
+		return d.call.dispatch(uid, req.Action, req.Data)
 	default:
 		return errReply("", apperr.New(apperr.CodeInvalidRequest, fmt.Sprintf("unknown type: %s", req.Type)))
 	}
@@ -98,6 +104,8 @@ func resultReply(action string, raw any) (WsResponse, bool) {
 	case friend.Result:
 		return genericResultReply(action, r.Data, r.Err), true
 	case user.Result:
+		return genericResultReply(action, r.Data, r.Err), true
+	case call.Result:
 		return genericResultReply(action, r.Data, r.Err), true
 	default:
 		return WsResponse{}, false

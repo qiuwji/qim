@@ -90,3 +90,16 @@ type Friend struct {
 	Status    int8  `gorm:"default:0"`
 	CreatedAt int64 `gorm:"not null"`
 }
+
+type CallRecord struct {
+	ID        uint64 `gorm:"primaryKey;autoIncrement"`
+	CallerUID uint64 `gorm:"index;not null"`
+	CalleeUID uint64 `gorm:"index;not null"`
+	CallType  int8   `gorm:"not null"`
+	Status    int8   `gorm:"not null"`
+	StartedAt int64
+	EndedAt   int64  `gorm:"not null"`
+	Duration  int64
+	EndReason string `gorm:"size:32"`
+	CreatedAt int64  `gorm:"not null"`
+}

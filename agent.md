@@ -295,7 +295,7 @@ HTTP Request → Gin Handler → Handler.askManager/askConv → ActorRef.Ask →
 | 用户域 | ✅ 基本完成 | 注册/登录/资料管理 |
 | 好友域 | ✅ 完整 | 请求/关系/分组 |
 | 在线状态域 | ✅ 基本完成 | PresenceActor 支持在线连接注册、离线、批量在线状态查询 |
-| 通话域 | 🔲 待开发 | CallManagerActor + CallActor，信令转发 + 状态通知 + 通话记录 |
+| 通话域 | ✅ 基本完成 | CallManagerActor + CallActor，信令转发 + 状态通知 + 通话记录 |
 | GatewayActor | ✅ 基本完成 | WebSocket 连接管理、消息路由、频率限制、Presence 注册 |
 | 实时推送 | ✅ 基本完成 | MessagePushActor 订阅领域事件并推送消息、撤回、成员、好友、在线状态 |
 | JWT 认证 | ✅ 完整 | Generate/Parse 已实现并有测试 |
@@ -313,7 +313,7 @@ HTTP Request → Gin Handler → Handler.askManager/askConv → ActorRef.Ask →
 - Actor 命名约定：`conv:<id>`、`session:<uid>`、`gw:<connID>` 等
 - Store 接口与实现分离，便于 mock 测试
 - 时间统一使用 Unix 时间戳（`int64`）
-- 修改 HTTP API、WebSocket payload、DTO 字段或错误码时，必须同步更新 `backend/docs/api.md`，必要时同步 `README.md` 和相关前端类型。
+- 修改 HTTP API、WebSocket payload、DTO 字段或错误码时，必须同步更新 `api/` 目录下对应的文档（HTTP 按域拆分到 `api/http-*.md`，WS 统一在 `api/ws.md`），必要时同步 `README.md` 和相关前端类型。
 - 会话类型约定固定为 `1=private`、`2=group`，前后端不得使用成员数量推断会话类型。
 
 ## CI/CD 门禁

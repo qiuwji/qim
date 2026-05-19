@@ -26,11 +26,15 @@ export interface RealtimeHandlerContext {
   setOnlineMap: StateSetter<Record<number, boolean>>;
   setMention: (conversationID: number, value: boolean) => void;
   refreshBase: () => Promise<void>;
+  handleCallWs: (msg: WsResponse) => void;
 }
 
 export function handleRealtimeMessage(msg: WsResponse, ctx: RealtimeHandlerContext) {
   if (msg.type === 'system') {
     handleSystemMessage(msg, ctx);
+    if (msg.action === 'closed') {
+      ctx.handleCallWs({ type: 'system', action: 'closed' });
+    }
     return;
   }
   if (msg.type === 'error') {
@@ -69,6 +73,10 @@ export function handleRealtimeMessage(msg: WsResponse, ctx: RealtimeHandlerConte
   }
   if (msg.type === 'conversation' && msg.action === 'group_dissolved') {
     handleGroupDissolved(msg, ctx);
+    return;
+  }
+  if (msg.type === 'call') {
+    ctx.handleCallWs(msg);
     return;
   }
   if (['friend', 'member', 'conversation'].includes(msg.type)) {

@@ -115,3 +115,20 @@ export interface WsResponse<T = unknown> {
   error?: WsErrorPayload;
   log_id?: string;
 }
+
+export type CallEndReason = 'hangup' | 'rejected' | 'timeout' | 'cancelled' | 'disconnect';
+
+export interface CallIncomingData {
+  call_id: string;
+  caller_uid: number;
+  call_type: 1 | 2;
+  caller_nickname: string;
+  caller_avatar: string;
+}
+
+export interface CallEndedData {
+  call_id: string;
+  started_at: number;
+  duration: number;
+  end_reason: CallEndReason;
+}

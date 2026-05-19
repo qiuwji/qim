@@ -6,9 +6,11 @@ export const MSG_TYPE_TEXT = 1;
 export const MSG_TYPE_IMAGE = 2;
 export const MSG_TYPE_LEGACY_SYSTEM = 3;
 export const MSG_TYPE_SYSTEM = 5;
+export const MSG_TYPE_CALL_RECORD = 6;
 
 export function messageDisplayText(msg: MessageDTO): string {
   if (msg.msg_type === MSG_TYPE_IMAGE) return '[图片]';
+  if (msg.msg_type === MSG_TYPE_CALL_RECORD) return '[通话记录]';
   return msg.content;
 }
 

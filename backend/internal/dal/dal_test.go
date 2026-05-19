@@ -8,7 +8,7 @@ import (
 	convdomain "qim/internal/domain/conversation"
 
 	"golang.org/x/crypto/bcrypt"
-	"gorm.io/driver/sqlite"
+	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -364,7 +364,7 @@ func newTestDB(t *testing.T) *gorm.DB {
 	if err != nil {
 		t.Fatalf("open sqlite: %v", err)
 	}
-	if err := db.AutoMigrate(&Conversation{}, &Member{}, &UserConversation{}, &User{}, &Message{}, &FriendRequest{}, &FriendGroup{}, &Friend{}); err != nil {
+	if err := db.AutoMigrate(&Conversation{}, &Member{}, &UserConversation{}, &User{}, &Message{}, &FriendRequest{}, &FriendGroup{}, &Friend{}, &CallRecord{}); err != nil {
 		t.Fatalf("migrate: %v", err)
 	}
 	if err := db.Exec(`

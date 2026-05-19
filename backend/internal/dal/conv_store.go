@@ -7,7 +7,8 @@ import (
 
 	"qim/internal/domain/conversation/store"
 
-	"github.com/mattn/go-sqlite3"
+	"strings"
+
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -389,12 +390,9 @@ func isUniqueConstraintError(err error) bool {
 	if errors.Is(err, gorm.ErrDuplicatedKey) {
 		return true
 	}
-	var sqliteErr sqlite3.Error
-	if errors.As(err, &sqliteErr) {
-		return sqliteErr.ExtendedCode == sqlite3.ErrConstraintUnique ||
-			sqliteErr.ExtendedCode == sqlite3.ErrConstraintPrimaryKey
-	}
-	return false
+	s := err.Error()
+	return strings.Contains(s, "UNIQUE constraint failed") ||
+		strings.Contains(s, "constraint failed")
 }
 
 func (s *gormConvStore) updateConversationSeq(tx *gorm.DB, input store.MessageAppendInput) error {

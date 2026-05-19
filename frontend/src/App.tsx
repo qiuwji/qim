@@ -2,6 +2,8 @@ import { useRef, useState } from 'react';
 import { getToken } from '@/api/http';
 import { scrollToMessage } from '@/utils';
 import { useAuth, useChatStore } from '@/hooks/useChatStore';
+import { useCallStore } from '@/hooks/useCallStore';
+import { displayName } from '@/utils';
 import { AuthPage } from '@/components/auth/AuthPage';
 import { NavRail } from '@/components/NavRail';
 import { ConversationList } from '@/components/conversation/ConversationList';
@@ -11,6 +13,9 @@ import { ChatDetailPanel } from '@/components/chat/ChatDetailPanel';
 import { AppModal, ContextMenuPopup } from '@/components/ui/Modal';
 import { UserCard } from '@/components/user/UserCard';
 import { RightPane, type RightPaneView } from '@/components/RightPane';
+import { IncomingCallModal } from '@/components/call/IncomingCallModal';
+import { CallingView } from '@/components/call/CallingView';
+import { CallView } from '@/components/call/CallView';
 
 function App() {
   const { user, setUser, notice, setNotice, handleLoggedIn, logout } = useAuth();
@@ -20,6 +25,9 @@ function App() {
 
 function ChatPage({ user, onUserChange, onLogout }: { user: import('@/api/types').UserDTO; onUserChange: (u: import('@/api/types').UserDTO) => void; onLogout: () => void }) {
   const store = useChatStore(user, onUserChange);
+  const callStore = useCallStore(store.wsRef);
+  store.callHandlerRef.current = callStore.handleCallWs;
+
   const hoverCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [quickActionOpen, setQuickActionOpen] = useState(false);
   const {
@@ -132,6 +140,15 @@ function ChatPage({ user, onUserChange, onLogout }: { user: import('@/api/types'
           wsRef={store.wsRef}
           onAvatarEnter={handleAvatarEnter}
           onAvatarLeave={scheduleCloseHoverCard}
+          callState={callStore.callState}
+          onVoiceCall={() => {
+            const peer = selectedMembers.find(m => m.uid !== user.id);
+            if (peer) callStore.initiateCall(peer.uid, 1);
+          }}
+          onVideoCall={() => {
+            const peer = selectedMembers.find(m => m.uid !== user.id);
+            if (peer) callStore.initiateCall(peer.uid, 2);
+          }}
         />
       </section>
       <aside className="pane-detail" onClick={(e) => e.stopPropagation()}>
@@ -141,6 +158,21 @@ function ChatPage({ user, onUserChange, onLogout }: { user: import('@/api/types'
       <AppModal modal={modal} onClose={() => setModal(null)} />
       {contextMenu && <ContextMenuPopup menu={contextMenu} mine={contextMenu.message.sender_id === user.id} onRevoke={() => doRevoke(contextMenu.message)} onReply={() => setReplyTo(contextMenu.message)} onCopy={() => navigator.clipboard.writeText(contextMenu.message.content)} onDelete={() => doDelete(contextMenu.message)} onForward={() => doForward(contextMenu.message)} onClose={() => setContextMenu(null)} />}
       {hoverCard && <UserCard data={hoverCard} isFriend={!!friendMap[hoverCard.user.id]} isSelf={hoverCard.user.id === user.id} onMouseEnter={keepHoverCard} onMouseLeave={scheduleCloseHoverCard} onStartPrivate={(uid) => { setHoverCard(null); startPrivate(uid); }} onAddFriend={() => { addFriendByUser(hoverCard.user); setHoverCard(null); }} onViewProfile={(uid) => { setHoverCard(null); viewUserProfile(uid); }} />}
+      {callStore.callState === 'incoming' && callStore.activeCall && (
+        <IncomingCallModal
+          call={callStore.activeCall}
+          peerName={displayName(callStore.activeCall.peer_uid, userCache, friendMap)}
+          peerAvatar={userCache[callStore.activeCall.peer_uid]?.avatar || ''}
+          onAccept={callStore.acceptCall}
+          onReject={callStore.rejectCall}
+        />
+      )}
+      {callStore.callState === 'calling' && (
+        <CallingView onCancel={callStore.cancelCall} />
+      )}
+      {callStore.callState === 'connected' && callStore.activeCall && (
+        <CallView call={callStore.activeCall} remoteStream={callStore.remoteStream} localStreamRef={callStore.localStreamRef} isMuted={callStore.isMuted} isCameraOff={callStore.isCameraOff} duration={callStore.callDuration} onToggleMute={callStore.toggleMute} onToggleCamera={callStore.toggleCamera} onHangup={callStore.endCall} />
+      )}
     </main>
   );
 }

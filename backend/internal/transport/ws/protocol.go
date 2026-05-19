@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"qim/internal/pkg/apperr"
+	"qim/internal/pkg/pushtype"
 )
 
 type WsRequest struct {
@@ -25,8 +26,4 @@ type WSDisconnected struct{}
 
 type IdleTimeout struct{}
 
-type PushCmd struct {
-	Type   string
-	Action string
-	Data   any
-}
+type PushCmd = pushtype.PushCmd

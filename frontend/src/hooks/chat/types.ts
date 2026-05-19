@@ -28,6 +28,7 @@ export interface ChatStoreDeps {
   typingTimers: MutableRefObject<Record<number, ReturnType<typeof setTimeout>>>;
   wsRef: MutableRefObject<RealtimeClient>;
   realtimeHandlerRef: MutableRefObject<(msg: WsResponse) => void>;
+  callHandlerRef: MutableRefObject<(msg: WsResponse) => void>;
 
   setConversations: Dispatch<SetStateAction<UserConvDTO[]>>;
   setDetails: Dispatch<SetStateAction<Record<number, ConversationDTO>>>;

@@ -51,6 +51,9 @@ interface RightPaneProps {
   wsRef: { current: { typing: (cid: number) => void } };
   onAvatarEnter: (uid: number, e: React.MouseEvent) => void;
   onAvatarLeave: () => void;
+  callState?: string;
+  onVoiceCall?: () => void;
+  onVideoCall?: () => void;
 }
 
 export function RightPane(props: RightPaneProps) {
@@ -64,6 +67,7 @@ export function RightPane(props: RightPaneProps) {
     moveFriendGroup, renameFriendGroup, deleteFriendGroup,
     setDetailOpen, setReplyTo, setContextMenu, loadMessages, wsRef,
     onAvatarEnter, onAvatarLeave,
+    callState, onVoiceCall, onVideoCall,
   } = props;
 
   const subtitle = selectedConv ? conversationSubtitle({
@@ -154,6 +158,9 @@ export function RightPane(props: RightPaneProps) {
       onAvatarEnter={onAvatarEnter}
       onAvatarLeave={onAvatarLeave}
       onAvatarClick={(uid) => viewUserProfile(uid)}
+      callState={callState}
+      onVoiceCall={onVoiceCall}
+      onVideoCall={onVideoCall}
     />
   );
 }
