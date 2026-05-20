@@ -23,29 +23,6 @@
   text-align: center;
 }
 
-.call-avatar {
-  border-radius: 50%;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #555;
-}
-
-.call-avatar.large { width: 80px; height: 80px; }
-.call-avatar.xlarge { width: 120px; height: 120px; }
-
-.call-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.avatar-text {
-  font-size: 2rem;
-  color: #ccc;
-}
-
 .call-info strong {
   display: block;
   font-size: 1.3rem;
@@ -156,6 +133,16 @@
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
   pointer-events: none;
   z-index: 10;
+}
+
+.call-view.video .call-duration {
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1rem;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 4px 12px;
+  border-radius: 20px;
 }
 
 .call-controls {

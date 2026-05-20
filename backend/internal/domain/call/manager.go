@@ -83,11 +83,8 @@ func (a *CallManagerActor) handleInitiate(ctx actor.Context, msg InitiateCallCmd
 	callerGW := a.gatewayNameFromUID(ctx, msg.CallerUID)
 
 	callerInfo := CallerInfo{
-		Nickname: "",
-		Avatar:   "",
-	}
-	if uinfo, err := a.lookupUserInfo(ctx, msg.CallerUID); err == nil {
-		callerInfo = uinfo
+		Nickname: msg.CallerNickname,
+		Avatar:   msg.CallerAvatar,
 	}
 
 	callActor := NewCallActor(a.engine, a.events, a.callStore, StartCallCmd{
@@ -190,8 +187,4 @@ func (a *CallManagerActor) gatewayNameFromUID(ctx actor.Context, uid uint64) str
 		return ""
 	}
 	return result.Gateways[0].Name()
-}
-
-func (a *CallManagerActor) lookupUserInfo(ctx actor.Context, uid uint64) (CallerInfo, error) {
-	return CallerInfo{Nickname: fmt.Sprintf("用户%d", uid), Avatar: ""}, nil
 }

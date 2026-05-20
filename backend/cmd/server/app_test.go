@@ -119,7 +119,7 @@ func TestInitActors_BitsUT(t *testing.T) {
 
 	initActors(engine, s, events)
 
-	actors := []string{"conv-manager", "user-manager", "msg-store", "friend-manager", "presence", "call-manager"}
+	actors := []string{"conv-manager", "user-manager", "msg-reader-0", "msg-reader-1", "msg-reader-2", "msg-reader-3", "friend-manager", "presence", "call-manager"}
 	for _, name := range actors {
 		if _, ok := engine.Lookup(name); !ok {
 			t.Fatalf("actor %s not found", name)

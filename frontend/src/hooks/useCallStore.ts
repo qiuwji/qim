@@ -30,6 +30,7 @@ export function useCallStore(wsRef: { current: RealtimeClient }) {
   const [isMuted, setIsMuted] = useState(false);
   const [isCameraOff, setIsCameraOff] = useState(false);
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
+  const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
 
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
@@ -127,7 +128,7 @@ export function useCallStore(wsRef: { current: RealtimeClient }) {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: true,
-        video: call.call_type === 2,
+        video: call.call_type === 2 ? { facingMode: 'user' } : false,
       });
       localStreamRef.current = stream;
     } catch {
@@ -187,6 +188,32 @@ export function useCallStore(wsRef: { current: RealtimeClient }) {
       setIsCameraOff(c => !c);
     }
   }, []);
+
+  const flipCamera = useCallback(async () => {
+    const pc = peerConnectionRef.current;
+    if (!pc) return;
+    const oldStream = localStreamRef.current;
+    if (!oldStream) return;
+    const newMode: 'user' | 'environment' = facingMode === 'user' ? 'environment' : 'user';
+    try {
+      const newStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: newMode },
+        audio: false,
+      });
+      const newVideoTrack = newStream.getVideoTracks()[0];
+      const sender = pc.getSenders().find(s => s.track?.kind === 'video');
+      if (sender) {
+        await sender.replaceTrack(newVideoTrack);
+      }
+      oldStream.getVideoTracks().forEach(t => t.stop());
+      oldStream.removeTrack(oldStream.getVideoTracks()[0]);
+      oldStream.addTrack(newVideoTrack);
+      localStreamRef.current = oldStream;
+      setFacingMode(newMode);
+    } catch {
+      // ignore flip failure
+    }
+  }, [facingMode]);
 
   const handleCallSignal = useCallback(async (action: string, data: Record<string, unknown>) => {
     const pc = peerConnectionRef.current;
@@ -248,10 +275,25 @@ export function useCallStore(wsRef: { current: RealtimeClient }) {
             try { new Notification('QIM', { body: `${incoming.caller_nickname} - ${callTypeLabel(incoming.call_type)}` }); } catch { /* */ }
           }
           try {
-            const audio = new Audio('/sounds/call-ring.mp3');
-            audio.loop = true;
-            audio.play().catch(() => {});
-            (window as unknown as Record<string, unknown>).__callRing = audio;
+            const ctx = new AudioContext();
+            let interval: ReturnType<typeof setInterval> | null = null;
+            function beep() {
+              if (ctx.state === 'closed') return;
+              const osc = ctx.createOscillator();
+              const gain = ctx.createGain();
+              osc.type = 'sine';
+              osc.frequency.setValueAtTime(800, ctx.currentTime);
+              osc.frequency.setValueAtTime(1000, ctx.currentTime + 0.15);
+              gain.gain.setValueAtTime(0.3, ctx.currentTime);
+              gain.gain.setValueAtTime(0, ctx.currentTime + 0.35);
+              osc.connect(gain);
+              gain.connect(ctx.destination);
+              osc.start();
+              osc.stop(ctx.currentTime + 0.4);
+            }
+            beep();
+            interval = setInterval(beep, 1800);
+            (window as unknown as Record<string, unknown>).__callRing = { ctx, interval };
           } catch { /* */ }
           break;
         }
@@ -265,26 +307,31 @@ export function useCallStore(wsRef: { current: RealtimeClient }) {
         case 'accepted': {
           const call = activeCallRef.current;
           if (!call) break;
+          const serverStartedAt = (data?.started_at as number) || Date.now() / 1000;
           setCallState('connected');
-          setActiveCall(prev => prev ? { ...prev, status: 'connected', started_at: Date.now() / 1000 } : null);
+          setActiveCall(prev => prev ? { ...prev, status: 'connected', started_at: serverStartedAt } : null);
+          const elapsed = Math.max(0, Math.floor(Date.now() / 1000 - serverStartedAt));
+          setCallDuration(elapsed);
           durationTimerRef.current = setInterval(() => setCallDuration(d => d + 1), 1000);
-
-          offerTimerRef.current = setTimeout(() => {
-            endCall();
-          }, 10000);
 
           (async () => {
             try {
               const stream = await navigator.mediaDevices.getUserMedia({
                 audio: true,
-                video: call.call_type === 2,
+                video: call.call_type === 2 ? { facingMode: 'user' } : false,
               });
               localStreamRef.current = stream;
+
+              offerTimerRef.current = setTimeout(() => {
+                endCall();
+              }, 10000);
+
               const pc = createPeerConnection();
               stream.getTracks().forEach(track => pc.addTrack(track, stream));
               const offer = await pc.createOffer();
               await pc.setLocalDescription(offer);
               wsRef.current.sendCallOffer(call.call_id, offer.sdp!);
+              if (offerTimerRef.current) { clearTimeout(offerTimerRef.current); offerTimerRef.current = null; }
             } catch {
               setNotice('无法访问麦克风/摄像头');
               endCall();
@@ -332,15 +379,15 @@ export function useCallStore(wsRef: { current: RealtimeClient }) {
 
   function stopRing() {
     try {
-      const audio = (window as unknown as Record<string, unknown>).__callRing as HTMLAudioElement | undefined;
-      if (audio) { audio.pause(); audio.currentTime = 0; delete (window as unknown as Record<string, unknown>).__callRing; }
+      const ring = (window as unknown as Record<string, unknown>).__callRing as { ctx: AudioContext; interval: ReturnType<typeof setInterval> } | undefined;
+      if (ring) { clearInterval(ring.interval); ring.ctx.close(); delete (window as unknown as Record<string, unknown>).__callRing; }
     } catch { /* */ }
   }
 
   return {
-    callState, activeCall, callDuration, isMuted, isCameraOff, remoteStream,
+    callState, activeCall, callDuration, isMuted, isCameraOff, remoteStream, facingMode,
     initiateCall, acceptCall, rejectCall, cancelCall, endCall,
-    toggleMute, toggleCamera,
+    toggleMute, toggleCamera, flipCamera,
     handleCallWs,
     setNoticeRef: (fn: (text: string) => void) => { noticeRef.current = fn; },
     localStreamRef,

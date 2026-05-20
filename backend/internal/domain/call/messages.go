@@ -19,9 +19,11 @@ type Result struct {
 // --- 命令 ---
 
 type InitiateCallCmd struct {
-	CallerUID uint64
-	CalleeUID uint64
-	CallType  int8
+	CallerUID      uint64
+	CalleeUID      uint64
+	CallType       int8
+	CallerNickname string
+	CallerAvatar   string
 }
 
 type AcceptCallCmd struct {

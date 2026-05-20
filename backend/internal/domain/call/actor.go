@@ -224,6 +224,7 @@ func (a *callActor) handleAccept(ctx actor.Context, msg AcceptCallCmd) {
 		CallID:    a.callID,
 		CallerUID: a.callerUID,
 		CalleeUID: a.calleeUID,
+		StartedAt: a.startedAt,
 	})
 
 	a.publishEvent(CallAnsweredElsewhereEvent{
@@ -354,7 +355,7 @@ func (a *callActor) handleForwardIce(ctx actor.Context, msg ForwardIceCmd) {
 	var targetUID uint64
 	var targetGW string
 
-	if a.calleeGWRef != nil {
+	if msg.UID == a.callerUID {
 		targetRef = a.calleeGWRef
 		targetUID = a.calleeUID
 		targetGW = a.calleeGW

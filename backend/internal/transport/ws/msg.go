@@ -28,7 +28,14 @@ func (r *msgRouter) dispatch(uid uint64, action string, data json.RawMessage) Ws
 	if err != nil {
 		return errReply(action, err)
 	}
-	ref, err := r.msgSvc.Ref()
+	convID := uint64(0)
+	switch c := cmd.(type) {
+	case message.ListMessagesCmd:
+		convID = c.ConversationID
+	case message.SearchMessagesCmd:
+		convID = c.ConversationID
+	}
+	ref, err := r.msgSvc.ReaderRef(convID)
 	if err != nil {
 		return errReply(action, err)
 	}

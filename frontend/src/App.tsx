@@ -16,6 +16,7 @@ import { RightPane, type RightPaneView } from '@/components/RightPane';
 import { IncomingCallModal } from '@/components/call/IncomingCallModal';
 import { CallingView } from '@/components/call/CallingView';
 import { CallView } from '@/components/call/CallView';
+import { callTypeLabel } from '@/hooks/chat/models/callModel';
 
 function App() {
   const { user, setUser, notice, setNotice, handleLoggedIn, logout } = useAuth();
@@ -167,11 +168,16 @@ function ChatPage({ user, onUserChange, onLogout }: { user: import('@/api/types'
           onReject={callStore.rejectCall}
         />
       )}
-      {callStore.callState === 'calling' && (
-        <CallingView onCancel={callStore.cancelCall} />
+      {callStore.callState === 'calling' && callStore.activeCall && (
+        <CallingView
+          peerName={displayName(callStore.activeCall.peer_uid, userCache, friendMap)}
+          peerAvatar={userCache[callStore.activeCall.peer_uid]?.avatar || ''}
+          callTypeLabel={callTypeLabel(callStore.activeCall.call_type)}
+          onCancel={callStore.cancelCall}
+        />
       )}
       {callStore.callState === 'connected' && callStore.activeCall && (
-        <CallView call={callStore.activeCall} remoteStream={callStore.remoteStream} localStreamRef={callStore.localStreamRef} isMuted={callStore.isMuted} isCameraOff={callStore.isCameraOff} duration={callStore.callDuration} onToggleMute={callStore.toggleMute} onToggleCamera={callStore.toggleCamera} onHangup={callStore.endCall} />
+        <CallView call={callStore.activeCall} remoteStream={callStore.remoteStream} localStreamRef={callStore.localStreamRef} isMuted={callStore.isMuted} isCameraOff={callStore.isCameraOff} duration={callStore.callDuration} peerName={displayName(callStore.activeCall.peer_uid, userCache, friendMap)} peerAvatar={userCache[callStore.activeCall.peer_uid]?.avatar || ''} facingMode={callStore.facingMode} onFlipCamera={callStore.flipCamera} onToggleMute={callStore.toggleMute} onToggleCamera={callStore.toggleCamera} onHangup={callStore.endCall} />
       )}
     </main>
   );

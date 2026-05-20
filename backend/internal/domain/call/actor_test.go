@@ -501,6 +501,43 @@ func TestCallActor_ForwardIceForbidden_BitsUT(t *testing.T) {
 	}
 }
 
+func TestCallActor_ForwardIceCalleeToCaller_BitsUT(t *testing.T) {
+	store := &testCallStore{}
+	bus := &testEventBus{}
+	engine := actor.NewEngine()
+
+	gw100 := actorFunc(func(ctx actor.Context) {})
+	gwRef, _ := engine.Spawn("gw:100", gw100)
+
+	ref := spawnCallActor(t, engine, bus, store, StartCallCmd{
+		CallID:    "call_ice_callee",
+		CallerUID: 100,
+		CalleeUID: 200,
+		CallType:  CallTypeVoice,
+		CallerGW:  "gw:100",
+	})
+
+	ref.Ask(AcceptCallCmd{CallID: "call_ice_callee", UID: 200}, time.Second)
+
+	raw, err := ref.Ask(ForwardIceCmd{CallID: "call_ice_callee", UID: 200, Candidate: "callee_candidate"}, time.Second)
+	if err != nil {
+		t.Fatalf("callee ice ask: %v", err)
+	}
+	if raw.(Result).Err != nil {
+		t.Fatalf("callee ice should succeed, got %v", raw.(Result).Err)
+	}
+
+	raw, err = ref.Ask(ForwardIceCmd{CallID: "call_ice_callee", UID: 100, Candidate: "caller_candidate"}, time.Second)
+	if err != nil {
+		t.Fatalf("caller ice ask: %v", err)
+	}
+	if raw.(Result).Err != nil {
+		t.Fatalf("caller ice should succeed, got %v", raw.(Result).Err)
+	}
+
+	_ = gwRef
+}
+
 func TestCallActor_ForwardSignalInvalidState_BitsUT(t *testing.T) {
 	store := &testCallStore{}
 	bus := &testEventBus{}

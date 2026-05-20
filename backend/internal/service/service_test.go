@@ -17,7 +17,7 @@ func TestServices_BitsUT(t *testing.T) {
 	mustSpawn(t, engine, "user-manager", resultActor{result: user.Result{Data: "user"}})
 	mustSpawn(t, engine, "conv-manager", resultActor{result: conversation.Result{Data: "conv-manager"}})
 	mustSpawn(t, engine, "friend-manager", resultActor{result: friend.Result{Data: "friend"}})
-	mustSpawn(t, engine, "msg-store", resultActor{result: message.Result{Data: "message"}})
+	mustSpawn(t, engine, "msg-reader-0", resultActor{result: message.Result{Data: "message"}})
 	mustSpawn(t, engine, "call-manager", resultActor{result: call.Result{Data: "call"}})
 
 	t.Run("user service manager 和 session", func(t *testing.T) {
@@ -85,8 +85,11 @@ func TestServicesUnavailable_BitsUT(t *testing.T) {
 	if _, err := NewFriendService(engine).Ask("cmd"); err == nil || !strings.Contains(err.Error(), "friend-manager unavailable") {
 		t.Fatalf("expected friend-manager unavailable, got %v", err)
 	}
-	if _, err := NewMsgService(engine).Ask("cmd"); err == nil || !strings.Contains(err.Error(), "msg-store unavailable") {
-		t.Fatalf("expected msg-store unavailable, got %v", err)
+	if _, err := NewMsgService(engine).Ask("cmd"); err == nil || !strings.Contains(err.Error(), "msg-reader-0 unavailable") {
+		t.Fatalf("expected msg-reader-0 unavailable, got %v", err)
+	}
+	if err := NewMsgService(engine).Tell("cmd"); err == nil || !strings.Contains(err.Error(), "msg-reader-0 unavailable") {
+		t.Fatalf("expected msg Tell unavailable, got %v", err)
 	}
 	if _, err := NewCallService(engine).AskManager("cmd"); err == nil || !strings.Contains(err.Error(), "call-manager unavailable") {
 		t.Fatalf("expected call-manager unavailable, got %v", err)
@@ -98,7 +101,7 @@ func TestServicesUnexpectedResult_BitsUT(t *testing.T) {
 	mustSpawn(t, engine, "user-manager", resultActor{result: "bad"})
 	mustSpawn(t, engine, "conv-manager", resultActor{result: "bad"})
 	mustSpawn(t, engine, "friend-manager", resultActor{result: "bad"})
-	mustSpawn(t, engine, "msg-store", resultActor{result: "bad"})
+	mustSpawn(t, engine, "msg-reader-0", resultActor{result: "bad"})
 	mustSpawn(t, engine, "call-manager", resultActor{result: "bad"})
 
 	if _, err := NewUserService(engine, func(uid uint64) actor.Actor { return resultActor{result: "bad"} }).AskManager("cmd"); err == nil {

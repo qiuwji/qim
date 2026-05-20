@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"qim/internal/actor"
+	"qim/internal/domain/call"
 	"qim/internal/domain/conversation"
 	"qim/internal/domain/friend"
 	"qim/internal/domain/message"
@@ -15,7 +16,10 @@ import (
 func TestDispatcherSystemFlow_BitsUT(t *testing.T) {
 	engine := actor.NewEngine()
 	mustSpawnWS(t, engine, "conv-manager", wsConvResultActor{data: "conv"})
-	mustSpawnWS(t, engine, "msg-store", wsMsgResultActor{data: "msg"})
+	mustSpawnWS(t, engine, "msg-reader-0", wsMsgResultActor{data: "msg"})
+	mustSpawnWS(t, engine, "msg-reader-1", wsMsgResultActor{data: "msg"})
+	mustSpawnWS(t, engine, "msg-reader-2", wsMsgResultActor{data: "msg"})
+	mustSpawnWS(t, engine, "msg-reader-3", wsMsgResultActor{data: "msg"})
 	mustSpawnWS(t, engine, "friend-manager", wsFriendResultActor{data: "friend"})
 	mustSpawnWS(t, engine, "user-manager", wsUserResultActor{data: user.UserDTO{ID: 1, Username: "alice"}})
 
@@ -126,6 +130,12 @@ func TestReplyHelpers_BitsUT(t *testing.T) {
 	if resp, ok := resultReply("a", message.Result{Err: conversation.ErrNotMember}); !ok || resp.Type != "error" {
 		t.Fatalf("message error resp=%+v ok=%v", resp, ok)
 	}
+	if resp, ok := resultReply("a", call.Result{Err: call.ErrNotFound}); !ok || resp.Type != "error" {
+		t.Fatalf("call error resp=%+v ok=%v", resp, ok)
+	}
+	if resp, ok := resultReply("a", call.Result{Data: "test"}); !ok || resp.Type != "ack" {
+		t.Fatalf("call success resp=%+v ok=%v", resp, ok)
+	}
 	if _, ok := resultReply("a", "raw"); ok {
 		t.Fatalf("plain raw should not match domain result")
 	}
@@ -159,4 +169,39 @@ func mustSpawnWS(t *testing.T, engine *actor.Engine, name string, a actor.Actor)
 	if _, err := engine.Spawn(name, a); err != nil {
 		t.Fatalf("spawn %s: %v", name, err)
 	}
+}
+
+func TestMsgDispatchError_BitsUT(t *testing.T) {
+	engine := actor.NewEngine()
+	mustSpawnWS(t, engine, "conv-manager", wsConvResultActor{data: "conv"})
+	mustSpawnWS(t, engine, "msg-reader-0", wsMsgResultActor{data: "msg"})
+
+	dispatcher := NewDispatcher(
+		service.NewConvService(engine, func(convID uint64) actor.Actor { return wsConvResultActor{data: convID} }),
+		service.NewMsgService(engine),
+		service.NewFriendService(engine),
+		service.NewUserService(engine, func(uid uint64) actor.Actor { return wsUserResultActor{data: uid} }),
+		nil, nil, nil,
+	)
+
+	t.Run("revoke malformed JSON", func(t *testing.T) {
+		resp := dispatcher.Dispatch(1, req("msg", "revoke", `{bad`))
+		if resp.Type != "error" {
+			t.Fatalf("expected error, got %+v", resp)
+		}
+	})
+
+	t.Run("typing malformed JSON", func(t *testing.T) {
+		resp := dispatcher.Dispatch(1, req("msg", "typing", `{bad`))
+		if resp.Type != "error" {
+			t.Fatalf("expected error, got %+v", resp)
+		}
+	})
+
+	t.Run("list without reader for convID", func(t *testing.T) {
+		resp := dispatcher.Dispatch(1, req("msg", "list", `{"conversation_id":5,"limit":10}`))
+		if resp.Type != "error" {
+			t.Fatalf("expected error for missing reader, got %+v", resp)
+		}
+	})
 }

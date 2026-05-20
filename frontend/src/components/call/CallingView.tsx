@@ -1,16 +1,27 @@
+import { Avatar } from '@/components/ui/Avatar';
+
 interface CallingViewProps {
+  peerName: string;
+  peerAvatar: string;
+  callTypeLabel: string;
   onCancel: () => void;
 }
 
-export function CallingView({ onCancel }: CallingViewProps) {
+function makeUser(name: string, avatar: string) {
+  return { id: 0, username: name, nickname: name, avatar, sign: '', status: 0, created_at: 0, last_online_at: 0 };
+}
+
+export function CallingView({ peerName, peerAvatar, callTypeLabel, onCancel }: CallingViewProps) {
   return (
     <div className="call-overlay">
       <div className="call-modal">
+        <Avatar user={makeUser(peerName, peerAvatar)} large />
+        <div className="call-info">
+          <strong>{peerName || '未知用户'}</strong>
+          <span>{callTypeLabel}</span>
+        </div>
         <div className="call-ringing-dots">
           <span /><span /><span />
-        </div>
-        <div className="call-info">
-          <strong>呼叫中...</strong>
         </div>
         <div className="call-actions">
           <button className="call-btn-reject" onClick={onCancel}>

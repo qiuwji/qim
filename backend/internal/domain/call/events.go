@@ -34,6 +34,7 @@ type CallAcceptedEvent struct {
 	CallID    string `json:"call_id"`
 	CallerUID uint64 `json:"-"`
 	CalleeUID uint64 `json:"-"`
+	StartedAt int64  `json:"started_at"`
 }
 
 func (CallAcceptedEvent) Name() string { return EventCallAccepted }

@@ -1,5 +1,6 @@
 import type { ActiveCall } from '@/hooks/useCallStore';
 import { callTypeLabel } from '@/hooks/chat/models/callModel';
+import { Avatar } from '@/components/ui/Avatar';
 
 interface IncomingCallModalProps {
   call: ActiveCall;
@@ -9,16 +10,15 @@ interface IncomingCallModalProps {
   onReject: () => void;
 }
 
+function makeUser(name: string, avatar: string) {
+  return { id: 0, username: name, nickname: name, avatar, sign: '', status: 0, created_at: 0, last_online_at: 0 };
+}
+
 export function IncomingCallModal({ call, peerName, peerAvatar, onAccept, onReject }: IncomingCallModalProps) {
   return (
     <div className="call-overlay">
       <div className="call-modal">
-        <div className="call-avatar large">
-          {peerAvatar
-            ? <img src={peerAvatar} alt="" />
-            : <span className="avatar-text">{peerName?.[0] || '?'}</span>
-          }
-        </div>
+        <Avatar user={makeUser(peerName, peerAvatar)} large />
         <div className="call-info">
           <strong>{peerName || '未知用户'}</strong>
           <span>{callTypeLabel(call.call_type)}</span>

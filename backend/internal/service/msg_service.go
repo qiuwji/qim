@@ -7,6 +7,8 @@ import (
 	"qim/internal/domain/message"
 )
 
+const NumMsgReaders = 4
+
 type MsgService struct {
 	engine *actor.Engine
 }
@@ -15,16 +17,30 @@ func NewMsgService(engine *actor.Engine) *MsgService {
 	return &MsgService{engine: engine}
 }
 
-func (s *MsgService) Ref() (*actor.ActorRef, error) {
-	ref, ok := s.engine.Lookup("msg-store")
+func readerName(convID uint64) string {
+	return fmt.Sprintf("msg-reader-%d", convID%NumMsgReaders)
+}
+
+func (s *MsgService) ReaderRef(convID uint64) (*actor.ActorRef, error) {
+	name := readerName(convID)
+	ref, ok := s.engine.Lookup(name)
 	if !ok {
-		return nil, fmt.Errorf("msg-store unavailable")
+		return nil, fmt.Errorf("%s unavailable", name)
 	}
 	return ref, nil
 }
 
 func (s *MsgService) Ask(cmd any) (message.Result, error) {
-	ref, err := s.Ref()
+	var ref *actor.ActorRef
+	var err error
+	switch c := cmd.(type) {
+	case message.ListMessagesCmd:
+		ref, err = s.ReaderRef(c.ConversationID)
+	case message.SearchMessagesCmd:
+		ref, err = s.ReaderRef(c.ConversationID)
+	default:
+		ref, err = s.ReaderRef(0)
+	}
 	if err != nil {
 		return message.Result{}, err
 	}
@@ -40,7 +56,7 @@ func (s *MsgService) Ask(cmd any) (message.Result, error) {
 }
 
 func (s *MsgService) Tell(cmd any) error {
-	ref, err := s.Ref()
+	ref, err := s.ReaderRef(0)
 	if err != nil {
 		return err
 	}

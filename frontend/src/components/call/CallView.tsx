@@ -1,6 +1,11 @@
 import { useRef, useEffect } from 'react';
 import type { ActiveCall } from '@/hooks/useCallStore';
 import { formatDuration } from '@/hooks/chat/models/callModel';
+import { Avatar } from '@/components/ui/Avatar';
+
+function makeUser(name: string, avatar: string) {
+  return { id: 0, username: name, nickname: name, avatar, sign: '', status: 0, created_at: 0, last_online_at: 0 };
+}
 
 interface CallViewProps {
   call: ActiveCall;
@@ -9,12 +14,16 @@ interface CallViewProps {
   isMuted: boolean;
   isCameraOff: boolean;
   duration: number;
+  peerName: string;
+  peerAvatar: string;
   onToggleMute: () => void;
   onToggleCamera: () => void;
   onHangup: () => void;
+  facingMode?: string;
+  onFlipCamera?: () => void;
 }
 
-export function CallView({ call, remoteStream, localStreamRef, isMuted, isCameraOff, duration, onToggleMute, onToggleCamera, onHangup }: CallViewProps) {
+export function CallView({ call, remoteStream, localStreamRef, isMuted, isCameraOff, duration, peerName, peerAvatar, onToggleMute, onToggleCamera, onHangup, facingMode, onFlipCamera }: CallViewProps) {
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const remoteAudioRef = useRef<HTMLAudioElement>(null);
   const localVideoRef = useRef<HTMLVideoElement>(null);
@@ -60,8 +69,9 @@ export function CallView({ call, remoteStream, localStreamRef, isMuted, isCamera
         )}
         {!isVideo && (
           <div className="call-voice-avatars">
-            <div className="call-avatar xlarge">
-              <span className="avatar-text">?</span>
+            <Avatar user={makeUser(peerName, peerAvatar)} large />
+            <div className="call-info">
+              <strong>{peerName || '未知用户'}</strong>
             </div>
           </div>
         )}
@@ -80,6 +90,7 @@ export function CallView({ call, remoteStream, localStreamRef, isMuted, isCamera
             )}
           </button>
           {isVideo && (
+            <>
             <button
               className={`call-ctrl-btn ${isCameraOff ? 'active' : ''}`}
               onClick={onToggleCamera}
@@ -91,6 +102,16 @@ export function CallView({ call, remoteStream, localStreamRef, isMuted, isCamera
                 <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M23 7l-7 5 7 5V7z" /><rect x="1" y="5" width="15" height="14" rx="2" ry="2" /></svg>
               )}
             </button>
+            {onFlipCamera && (
+              <button
+                className="call-ctrl-btn"
+                onClick={onFlipCamera}
+                title={facingMode === 'environment' ? '切换前置摄像头' : '切换后置摄像头'}
+              >
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10" /><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" /></svg>
+              </button>
+            )}
+            </>
           )}
           <button className="call-ctrl-btn hangup" onClick={onHangup} title="挂断">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" /></svg>

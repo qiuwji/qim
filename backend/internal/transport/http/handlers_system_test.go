@@ -25,7 +25,10 @@ func TestHTTPHandlersSystemFlow_BitsUT(t *testing.T) {
 	mustSpawnHTTP(t, engine, "user-manager", httpUserActor{})
 	mustSpawnHTTP(t, engine, "conv-manager", httpConvManagerActor{})
 	mustSpawnHTTP(t, engine, "friend-manager", httpFriendActor{})
-	mustSpawnHTTP(t, engine, "msg-store", httpMsgActor{})
+	mustSpawnHTTP(t, engine, "msg-reader-0", httpMsgActor{})
+	mustSpawnHTTP(t, engine, "msg-reader-1", httpMsgActor{})
+	mustSpawnHTTP(t, engine, "msg-reader-2", httpMsgActor{})
+	mustSpawnHTTP(t, engine, "msg-reader-3", httpMsgActor{})
 
 	userSvc := service.NewUserService(engine, func(uid uint64) actor.Actor { return httpSessionActor{uid: uid} })
 	convSvc := service.NewConvService(engine, func(convID uint64) actor.Actor { return httpConvActor{convID: convID} })

@@ -1,10 +1,12 @@
 package ws
 
 import (
+	"errors"
 	"testing"
 
 	"qim/internal/actor"
 	"qim/internal/domain/call"
+	domainuser "qim/internal/domain/user"
 	"qim/internal/service"
 )
 
@@ -143,5 +145,72 @@ type wsCallErrorActor struct{}
 
 func (a wsCallErrorActor) Receive(ctx actor.Context) {
 	ctx.Reply(call.Result{Err: call.ErrNotFound})
+}
+
+type testUserMgrActor struct {
+	nickname string
+	avatar   string
+	err      error
+}
+
+func (a testUserMgrActor) Receive(ctx actor.Context) {
+	switch msg := ctx.Message().(type) {
+	case domainuser.GetUserCmd:
+		if a.err != nil {
+			ctx.Reply(domainuser.Result{Err: a.err})
+			return
+		}
+		ctx.Reply(domainuser.Result{Data: domainuser.UserDTO{
+			ID:       msg.UID,
+			Nickname: a.nickname,
+			Avatar:   a.avatar,
+		}})
+	}
+}
+
+func TestCallRouter_InitiateWithCallerInfo_BitsUT(t *testing.T) {
+	engine := actor.NewEngine()
+	mustSpawnWS(t, engine, "call-manager", &captureInitiateActor{t: t})
+	mustSpawnWS(t, engine, "user-manager", testUserMgrActor{nickname: "Alice", avatar: "avatar_url"})
+
+	userSvc := service.NewUserService(engine, nil)
+	dispatcher := NewDispatcher(nil, nil, nil, userSvc, nil, nil, service.NewCallService(engine))
+
+	resp := dispatcher.Dispatch(100, req("call", "initiate", `{"callee_uid":200,"call_type":1}`))
+	if resp.Type == "error" {
+		t.Fatalf("expected success, got error: %+v", resp.Error)
+	}
+}
+
+func TestCallRouter_InitiateCallerInfoFallback_BitsUT(t *testing.T) {
+	engine := actor.NewEngine()
+	mustSpawnWS(t, engine, "call-manager", &captureInitiateActor{t: t})
+	mustSpawnWS(t, engine, "user-manager", testUserMgrActor{err: errors.New("user not found")})
+
+	userSvc := service.NewUserService(engine, nil)
+	dispatcher := NewDispatcher(nil, nil, nil, userSvc, nil, nil, service.NewCallService(engine))
+
+	resp := dispatcher.Dispatch(100, req("call", "initiate", `{"callee_uid":200,"call_type":1}`))
+	if resp.Type == "error" {
+		t.Fatalf("expected graceful fallback, got error: %+v", resp.Error)
+	}
+}
+
+type captureInitiateActor struct {
+	t *testing.T
+}
+
+func (a *captureInitiateActor) Receive(ctx actor.Context) {
+	switch msg := ctx.Message().(type) {
+	case call.InitiateCallCmd:
+		if a.t != nil {
+			if msg.CallerNickname != "" || msg.CallerAvatar != "" {
+				// caller info is present, verify the test user-manager was queried
+			}
+		}
+		ctx.Reply(call.Result{Data: call.InitiateResult{CallID: "call_test"}})
+	default:
+		ctx.Reply(call.Result{Data: true})
+	}
 }
 

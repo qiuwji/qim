@@ -67,7 +67,7 @@ func NewDispatcher(
 		friend:   &friendRouter{svc: friendSvc},
 		user:     &userRouter{svc: userSvc},
 		presence: &presenceRouter{presenceRef: presenceRef, friendRef: friendRef},
-		call:     &callRouter{svc: callSvc},
+		call:     &callRouter{svc: callSvc, userSvc: userSvc},
 	}
 }
 

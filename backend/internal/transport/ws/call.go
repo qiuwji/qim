@@ -5,11 +5,13 @@ import (
 	"fmt"
 
 	"qim/internal/domain/call"
+	"qim/internal/domain/user"
 	"qim/internal/service"
 )
 
 type callRouter struct {
-	svc *service.CallService
+	svc     *service.CallService
+	userSvc *service.UserService
 }
 
 func (r *callRouter) dispatch(uid uint64, action string, data json.RawMessage) WsResponse {
@@ -43,10 +45,24 @@ func (r *callRouter) handleInitiate(uid uint64, data json.RawMessage) WsResponse
 	if err := json.Unmarshal(data, &req); err != nil {
 		return errReply("initiate", err)
 	}
+
+	callerNickname := ""
+	callerAvatar := ""
+	if r.userSvc != nil {
+		if result, err := r.userSvc.AskManager(user.GetUserCmd{UID: uid}); err == nil && result.Err == nil {
+			if dto, ok := result.Data.(user.UserDTO); ok {
+				callerNickname = dto.Nickname
+				callerAvatar = dto.Avatar
+			}
+		}
+	}
+
 	result, err := r.svc.AskManager(call.InitiateCallCmd{
-		CallerUID: uid,
-		CalleeUID: req.CalleeUID,
-		CallType:  req.CallType,
+		CallerUID:      uid,
+		CalleeUID:      req.CalleeUID,
+		CallType:       req.CallType,
+		CallerNickname: callerNickname,
+		CallerAvatar:   callerAvatar,
 	})
 	if err != nil {
 		return errReply("initiate", err)

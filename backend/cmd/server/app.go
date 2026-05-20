@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -177,7 +178,9 @@ func initServices(engine *actor.Engine, s stores, events eventbus.Bus) svcs {
 func initActors(engine *actor.Engine, s stores, events eventbus.Bus) {
 	mustSpawn(engine, "conv-manager", conversation.NewManagerActor(s.conv, engine, events))
 	mustSpawn(engine, "user-manager", user.NewManagerActor(s.user, engine))
-	mustSpawn(engine, "msg-store", message.NewMessageStoreActor(s.msg, engine))
+	for i := 0; i < service.NumMsgReaders; i++ {
+		mustSpawn(engine, fmt.Sprintf("msg-reader-%d", i), message.NewMessageStoreActor(s.msg, engine))
+	}
 	mustSpawn(engine, "friend-manager", friend.NewManagerActor(s.friend, engine, events))
 	mustSpawn(engine, "presence", presence.NewPresenceActor(engine, events))
 	mustSpawn(engine, "call-manager", call.NewCallManagerActor(engine, events, s.call))
