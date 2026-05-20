@@ -16,11 +16,26 @@ export interface ActiveCall {
   peer_avatar?: string;
 }
 
-const ICE_SERVERS: RTCConfiguration = {
+const STUN_SERVERS: RTCConfiguration = {
   iceServers: [
     { urls: 'stun:stun.l.google.com:19302' },
   ],
 };
+
+const TURN_SERVERS: RTCConfiguration = {
+  iceServers: [
+    { urls: 'stun:stun.l.google.com:19302' },
+    {
+      urls: ['turn:8.160.172.62:3478?transport=udp'],
+      username: 'qim',
+      credential: 'kw76dqzK8hsTZCmM3rXHp10B',
+    },
+  ],
+};
+
+function iceConfig(callType: 1 | 2): RTCConfiguration {
+  return callType === 1 ? TURN_SERVERS : STUN_SERVERS;
+}
 
 export function useCallStore(wsRef: { current: RealtimeClient }) {
   const [callState, setCallState] = useState<CallState>('idle');
@@ -66,8 +81,8 @@ export function useCallStore(wsRef: { current: RealtimeClient }) {
     noticeRef.current(text);
   }, []);
 
-  const createPeerConnection = useCallback(() => {
-    const pc = new RTCPeerConnection(ICE_SERVERS);
+  const createPeerConnection = useCallback((callType: 1 | 2) => {
+    const pc = new RTCPeerConnection(iceConfig(callType));
     peerConnectionRef.current = pc;
 
     pc.onicecandidate = (event) => {
@@ -138,7 +153,7 @@ export function useCallStore(wsRef: { current: RealtimeClient }) {
       return;
     }
 
-    const pc = createPeerConnection();
+              const pc = createPeerConnection(call.call_type);
     localStreamRef.current?.getTracks().forEach(track => {
       pc.addTrack(track, localStreamRef.current!);
     });
@@ -336,7 +351,7 @@ export function useCallStore(wsRef: { current: RealtimeClient }) {
                 endCall();
               }, 10000);
 
-              const pc = createPeerConnection();
+    const pc = createPeerConnection(call.call_type);
               stream.getTracks().forEach(track => pc.addTrack(track, stream));
               const offer = await pc.createOffer();
               await pc.setLocalDescription(offer);
