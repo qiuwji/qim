@@ -67,6 +67,7 @@ func (a *CallManagerActor) handleInitiate(ctx actor.Context, msg InitiateCallCmd
 		return
 	}
 	if _, busy := a.busy[msg.CallerUID]; busy {
+		zap.L().Warn("initiate rejected: caller busy", zap.Uint64("uid", msg.CallerUID), zap.String("existing_call", a.busy[msg.CallerUID]))
 		ctx.Reply(Result{Err: ErrSelfBusy})
 		return
 	}

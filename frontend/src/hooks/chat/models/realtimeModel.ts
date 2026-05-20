@@ -32,8 +32,8 @@ export interface RealtimeHandlerContext {
 export function handleRealtimeMessage(msg: WsResponse, ctx: RealtimeHandlerContext) {
   if (msg.type === 'system') {
     handleSystemMessage(msg, ctx);
-    if (msg.action === 'closed') {
-      ctx.handleCallWs({ type: 'system', action: 'closed' });
+    if (msg.action === 'closed' || msg.action === 'connected') {
+      ctx.handleCallWs(msg);
     }
     return;
   }

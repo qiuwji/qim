@@ -255,6 +255,16 @@ export function useCallStore(wsRef: { current: RealtimeClient }) {
       return;
     }
 
+    if (msg.type === 'system' && msg.action === 'connected') {
+      if (callState !== 'idle') {
+        cleanupCall();
+        setCallState('idle');
+        setActiveCall(null);
+        activeCallRef.current = null;
+      }
+      return;
+    }
+
     if (msg.type === 'call') {
       switch (msg.action) {
         case 'incoming': {

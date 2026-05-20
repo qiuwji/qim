@@ -76,12 +76,13 @@ describe('handleRealtimeMessage', () => {
     vi.clearAllMocks();
   });
 
-  it('连接成功后请求好友在线状态', () => {
+  it('连接成功后请求好友在线状态并通知callStore', () => {
     const { ctx } = createContext();
 
     handleRealtimeMessage({ type: 'system', action: 'connected' }, ctx);
 
     expect(ctx.ws.requestOnlineFriends).toHaveBeenCalledTimes(1);
+    expect(ctx.handleCallWs).toHaveBeenCalledWith({ type: 'system', action: 'connected' });
   });
 
   it('错误消息展示服务端错误文案', () => {
