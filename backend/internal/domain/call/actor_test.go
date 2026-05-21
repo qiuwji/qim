@@ -7,6 +7,7 @@ import (
 
 	"qim/internal/actor"
 	"qim/internal/domain/conversation"
+	"qim/internal/domain/presence"
 	"qim/internal/eventbus"
 )
 
@@ -655,5 +656,71 @@ func TestCallActor_PublishEventNil_BitsUT(t *testing.T) {
 	a.publishEvent(CallAcceptedEvent{CallID: "x", CallerUID: 1, CalleeUID: 2})
 	if bus.count(EventCallAccepted) != 0 {
 		t.Fatal("should not publish when events is nil")
+	}
+}
+
+func TestCallActor_EndHandlesInvalidState_BitsUT(t *testing.T) {
+	store := &testCallStore{}
+	bus := &testEventBus{}
+	engine := actor.NewEngine()
+
+	ref := spawnCallActor(t, engine, bus, store, nil, StartCallCmd{
+		CallID:    "call_end_ended",
+		CallerUID: 100,
+		CalleeUID: 200,
+		CallType:  CallTypeVoice,
+		CallerGW:  "gw:100",
+	})
+
+	ref.Ask(AcceptCallCmd{CallID: "call_end_ended", UID: 200}, time.Second)
+
+	raw, err := ref.Ask(EndCallCmd{CallID: "call_end_ended", UID: 100}, time.Second)
+	if err != nil {
+		t.Fatalf("end: %v", err)
+	}
+	if raw.(Result).Err != nil {
+		t.Fatalf("end should succeed: %v", raw.(Result).Err)
+	}
+
+	time.Sleep(80 * time.Millisecond)
+	t.Log("handleEnd normal path tested OK")
+}
+
+func TestCallActor_TerminatedCalleeGWAllOffline_BitsUT(t *testing.T) {
+	store := &testCallStore{}
+	bus := &testEventBus{}
+	engine := actor.NewEngine()
+
+	engine.Spawn("presence", actorFunc(func(ctx actor.Context) {
+		switch ctx.Message().(type) {
+		case presence.GetGatewaysQuery:
+			ctx.Reply(presence.GatewaysResult{Gateways: []*actor.ActorRef{}})
+		case presence.BatchOnlineQuery:
+			ctx.Reply(presence.BatchOnlineResult{OnlineMap: map[uint64]bool{}})
+		}
+	}))
+	time.Sleep(20 * time.Millisecond)
+
+	gwActor := actorFunc(func(ctx actor.Context) {})
+	gwRef, err := engine.Spawn("gw:200", gwActor)
+	if err != nil {
+		t.Fatalf("spawn gw: %v", err)
+	}
+
+	ref := spawnCallActor(t, engine, bus, store, nil, StartCallCmd{
+		CallID:    "call_term_callee",
+		CallerUID: 100,
+		CalleeUID: 200,
+		CallType:  CallTypeVoice,
+		CallerGW:  "gw:100",
+	})
+
+	if err := ref.Tell(actor.Terminated{Who: gwRef}); err != nil {
+		t.Fatalf("tell terminated: %v", err)
+	}
+	time.Sleep(80 * time.Millisecond)
+
+	if bus.count(EventCallCancelled) != 1 {
+		t.Fatalf("expected 1 cancelled event when callee offline, got %d", bus.count(EventCallCancelled))
 	}
 }

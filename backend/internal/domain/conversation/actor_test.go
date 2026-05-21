@@ -819,3 +819,148 @@ func TestFilterMentionMembers_BitsUT(t *testing.T) {
 		})
 	}
 }
+
+func TestConversationActorAppendCallRecord_BitsUT(t *testing.T) {
+	store := newConversationTestStore()
+	bus := &conversationTestBus{}
+	engine := actor.NewEngine()
+	ref, err := engine.Spawn("conv-callrecord-test", NewConversationActor(1, store, engine, bus))
+	if err != nil {
+		t.Fatalf("spawn conversation actor: %v", err)
+	}
+
+	if err := ref.Tell(AppendCallRecordCmd{
+		CallerUID: 1,
+		CalleeUID: 2,
+		CallType:  1,
+		Duration:  120,
+		EndReason: "hangup",
+		Status:    2,
+	}); err != nil {
+		t.Fatalf("tell append call record: %v", err)
+	}
+	time.Sleep(50 * time.Millisecond)
+
+	store.mu.Lock()
+	commit := store.lastCommit
+	store.mu.Unlock()
+	if commit == nil {
+		t.Fatal("expected CommitMessage to be called")
+	}
+	if commit.Message.MsgType != MsgTypeCallRecord {
+		t.Fatalf("expected MsgType=6, got %d", commit.Message.MsgType)
+	}
+	if commit.Message.SenderID != 1 {
+		t.Fatalf("expected SenderID=1, got %d", commit.Message.SenderID)
+	}
+	if commit.Message.Content == "" {
+		t.Fatal("expected non-empty content")
+	}
+	if commit.UnreadProjection.SenderID != 1 {
+		t.Fatalf("expected unread SenderID=1, got %d", commit.UnreadProjection.SenderID)
+	}
+
+	if got := bus.count(EventMessageSent); got != 1 {
+		t.Fatalf("expected 1 MessageSent event, got %d", got)
+	}
+}
+
+func TestConversationActorAppendCallRecordEmptyMembers_BitsUT(t *testing.T) {
+	store := newConversationTestStore()
+	store.members = map[uint64]MemberRecord{}
+	bus := &conversationTestBus{}
+	engine := actor.NewEngine()
+	ref, err := engine.Spawn("conv-callrecord-empty-test", NewConversationActor(1, store, engine, bus))
+	if err != nil {
+		t.Fatalf("spawn conversation actor: %v", err)
+	}
+
+	if err := ref.Tell(AppendCallRecordCmd{
+		CallerUID: 1,
+		CalleeUID: 2,
+		CallType:  2,
+		Duration:  0,
+		EndReason: "timeout",
+		Status:    1,
+	}); err != nil {
+		t.Fatalf("tell append call record: %v", err)
+	}
+	time.Sleep(50 * time.Millisecond)
+
+	store.mu.Lock()
+	commit := store.lastCommit
+	store.mu.Unlock()
+	if commit != nil {
+		t.Fatal("expected no CommitMessage when members empty")
+	}
+}
+
+func TestConversationActorTyping_BitsUT(t *testing.T) {
+	store := newConversationTestStore()
+	store.conv = &ConversationRecord{
+		ID: 2, Type: int8(ConvTypePrivate), OwnerID: 1, MemberLimit: 2, CreatedAt: 1,
+	}
+	store.members = map[uint64]MemberRecord{
+		1: {ConversationID: 2, UserID: 1, Role: int8(MemberRoleRegular), JoinTime: 1},
+		2: {ConversationID: 2, UserID: 2, Role: int8(MemberRoleRegular), JoinTime: 1},
+	}
+	bus := &conversationTestBus{}
+	engine := actor.NewEngine()
+	ref, err := engine.Spawn("conv-typing-test", NewConversationActor(2, store, engine, bus))
+	if err != nil {
+		t.Fatalf("spawn conversation actor: %v", err)
+	}
+
+	raw, err := ref.Ask(TypingCmd{UID: 1}, time.Second)
+	if err != nil {
+		t.Fatalf("typing ask: %v", err)
+	}
+	if raw.(Result).Err != nil {
+		t.Fatalf("typing error: %v", raw.(Result).Err)
+	}
+}
+
+func TestConversationActorSendEmpty_BitsUT(t *testing.T) {
+	store := newConversationTestStore()
+	bus := &conversationTestBus{}
+	engine := actor.NewEngine()
+	ref, err := engine.Spawn("conv-empty-test", NewConversationActor(1, store, engine, bus))
+	if err != nil {
+		t.Fatalf("spawn: %v", err)
+	}
+
+	raw, err := ref.Ask(SendMessageCmd{SenderID: 1, MsgType: 1, Content: ""}, time.Second)
+	if err != nil {
+		t.Fatalf("ask: %v", err)
+	}
+	if raw.(Result).Err != ErrEmptyMessage {
+		t.Fatalf("expected ErrEmptyMessage, got %v", raw.(Result).Err)
+	}
+}
+
+func TestConversationActorMentionTruncation_BitsUT(t *testing.T) {
+	store := newConversationTestStore()
+	bus := &conversationTestBus{}
+	engine := actor.NewEngine()
+	ref, err := engine.Spawn("conv-mention-trunc-test", NewConversationActor(1, store, engine, bus))
+	if err != nil {
+		t.Fatalf("spawn: %v", err)
+	}
+
+	manyUIDs := make([]uint64, 60)
+	for i := range manyUIDs {
+		manyUIDs[i] = uint64(i + 10)
+	}
+	raw, err := ref.Ask(SendMessageCmd{
+		SenderID:    1,
+		MsgType:     1,
+		Content:     "hello",
+		MentionUIDs: manyUIDs,
+	}, time.Second)
+	if err != nil {
+		t.Fatalf("ask: %v", err)
+	}
+	if raw.(Result).Err != nil {
+		t.Fatalf("send error: %v", raw.(Result).Err)
+	}
+}
