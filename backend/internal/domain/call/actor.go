@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"qim/internal/actor"
+	"qim/internal/domain/conversation"
 	"qim/internal/domain/presence"
 	"qim/internal/eventbus"
 	"qim/internal/pkg/pushtype"
@@ -41,15 +42,17 @@ type callActor struct {
 	engine     *actor.Engine
 	events     eventbus.Bus
 	callStore  CallStore
+	convStore  conversation.Store
 
 	startCmd StartCallCmd
 }
 
-func NewCallActor(engine *actor.Engine, events eventbus.Bus, callStore CallStore, cmd StartCallCmd) *callActor {
+func NewCallActor(engine *actor.Engine, events eventbus.Bus, callStore CallStore, convStore conversation.Store, cmd StartCallCmd) *callActor {
 	return &callActor{
 		engine:    engine,
 		events:    events,
 		callStore: callStore,
+		convStore: convStore,
 		startCmd:  cmd,
 	}
 }
@@ -134,6 +137,10 @@ func (a *callActor) OnStop(ctx actor.Context) {
 	}
 	if err := a.callStore.Create(record); err != nil {
 		zap.L().Error("failed to save call record", zap.String("call_id", a.callID), zap.Error(err))
+	}
+
+	if a.convStore != nil {
+		a.appendCallRecordMessage(callStatus, duration)
 	}
 
 	switch a.endReason {
@@ -524,6 +531,44 @@ func (a *callActor) publishEvent(event eventbus.Event) {
 	if err := a.events.Publish(event); err != nil {
 		zap.L().Warn("failed to publish call event", zap.String("call_id", a.callID), zap.String("event", event.Name()), zap.Error(err))
 	}
+}
+
+func (a *callActor) appendCallRecordMessage(callStatus CallStatus, duration int64) {
+	conv, err := a.convStore.FindPrivateConversation(a.callerUID, a.calleeUID)
+	if err != nil {
+		zap.L().Warn("find private conversation failed", zap.Uint64("caller", a.callerUID), zap.Uint64("callee", a.calleeUID), zap.Error(err))
+		return
+	}
+	if conv == nil {
+		now := time.Now().Unix()
+		conv, err = a.convStore.CreatePrivateConversation(conversation.CreatePrivateConversationInput{
+			UID1:      a.callerUID,
+			UID2:      a.calleeUID,
+			CreatedAt: now,
+		})
+		if err != nil {
+			zap.L().Warn("create private conversation failed", zap.Uint64("caller", a.callerUID), zap.Uint64("callee", a.calleeUID), zap.Error(err))
+			return
+		}
+	}
+
+	convName := fmt.Sprintf("conv:%d", conv.ID)
+	ref, err := a.engine.GetOrCreate(convName, func() actor.Actor {
+		return conversation.NewConversationActor(conv.ID, a.convStore, a.engine, a.events)
+	})
+	if err != nil {
+		zap.L().Warn("spawn conversation actor failed", zap.Uint64("conv_id", conv.ID), zap.Error(err))
+		return
+	}
+
+	_ = ref.Tell(conversation.AppendCallRecordCmd{
+		CallerUID: a.callerUID,
+		CalleeUID: a.calleeUID,
+		CallType:  a.callType,
+		Duration:  duration,
+		EndReason: a.endReason,
+		Status:    int8(callStatus),
+	})
 }
 
 func randomID(n int) string {

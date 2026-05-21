@@ -185,6 +185,21 @@ Authorization: Bearer <jwt>
 }
 ```
 
+通话记录（`MsgType=6`）消息的 `Content` 为 JSON 字符串：
+
+```json
+{"call_id":"call_xxx","call_type":1,"duration":120,"end_reason":"hangup","status":2}
+```
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `call_type` | `1\|2` | 1=语音通话，2=视频通话 |
+| `duration` | `int` | 通话时长（秒），未接通为 0 |
+| `end_reason` | `string` | `hangup`/`rejected`/`timeout`/`cancelled`/`disconnect` |
+| `status` | `1\|2` | 1=未接通，2=已接通 |
+
+通话记录消息 `SenderID` 固定为 `0`（系统消息）。
+
 消息撤回：
 
 ```json

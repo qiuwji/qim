@@ -3,15 +3,20 @@ import type { MessageDTO, UserConvDTO } from '@/api/types';
 import {
   applyMessagePreview,
   applyPreviewTexts,
+  callRecordSummary,
   deletedMessageStorageKey,
+  endReasonText,
+  isCallRecord,
   isSystemMessage,
   latestVisibleMessage,
   mergeLoadedMessages,
   messageDisplayText,
   messagePreviewText,
+  MSG_TYPE_CALL_RECORD,
   MSG_TYPE_IMAGE,
   MSG_TYPE_LEGACY_SYSTEM,
   MSG_TYPE_SYSTEM,
+  parseCallRecordContent,
   persistDeletedMessageID,
   readDeletedMessageIDs,
   removeMessageByID,
@@ -149,6 +154,92 @@ describe('messageModel', () => {
     expect(revokedPreviewUpdate(list, 2, true, new Set())).toEqual({
       kind: 'text',
       text: '消息已撤回',
+    });
+  });
+
+  describe('通话记录消息', () => {
+    it('isCallRecord 识别 type 6', () => {
+      expect(isCallRecord(message(1, { msg_type: MSG_TYPE_CALL_RECORD }))).toBe(true);
+      expect(isCallRecord(message(2, { msg_type: 1 }))).toBe(false);
+      expect(isCallRecord(message(3, { msg_type: MSG_TYPE_SYSTEM }))).toBe(false);
+    });
+
+    it('parseCallRecordContent 解析合法 JSON', () => {
+      const json = JSON.stringify({ call_id: 'c1', call_type: 1, duration: 120, end_reason: 'hangup', status: 2 });
+      const result = parseCallRecordContent(json);
+      expect(result).not.toBeNull();
+      expect(result!.call_id).toBe('c1');
+      expect(result!.call_type).toBe(1);
+      expect(result!.duration).toBe(120);
+      expect(result!.end_reason).toBe('hangup');
+      expect(result!.status).toBe(2);
+    });
+
+    it('parseCallRecordContent 缺失字段使用默认值', () => {
+      const result = parseCallRecordContent(JSON.stringify({ call_type: 2, status: 1 }));
+      expect(result).not.toBeNull();
+      expect(result!.call_id).toBe('');
+      expect(result!.duration).toBe(0);
+      expect(result!.end_reason).toBe('');
+      expect(result!.status).toBe(1);
+    });
+
+    it('parseCallRecordContent 无效 JSON 返回 null', () => {
+      expect(parseCallRecordContent('invalid')).toBeNull();
+      expect(parseCallRecordContent('')).toBeNull();
+    });
+
+    it('parseCallRecordContent 非法 call_type 返回 null', () => {
+      expect(parseCallRecordContent(JSON.stringify({ call_type: 0 }))).toBeNull();
+      expect(parseCallRecordContent(JSON.stringify({ call_type: 3 }))).toBeNull();
+    });
+
+    it('endReasonText 映射结束原因', () => {
+      expect(endReasonText('rejected')).toBe('已拒绝');
+      expect(endReasonText('timeout')).toBe('无人接听');
+      expect(endReasonText('cancelled')).toBe('已取消');
+      expect(endReasonText('disconnect')).toBe('连接断开');
+      expect(endReasonText('hangup')).toBe('');
+      expect(endReasonText('')).toBe('');
+    });
+
+    it('callRecordSummary 已接通显示时长', () => {
+      const json = JSON.stringify({ call_id: 'c1', call_type: 1, duration: 125, end_reason: 'hangup', status: 2 });
+      expect(callRecordSummary(json)).toBe('[语音通话] 02:05');
+    });
+
+    it('callRecordSummary 视频已接通', () => {
+      const json = JSON.stringify({ call_id: 'c2', call_type: 2, duration: 60, end_reason: 'hangup', status: 2 });
+      expect(callRecordSummary(json)).toBe('[视频通话] 01:00');
+    });
+
+    it('callRecordSummary 未接通显示原因', () => {
+      const json = JSON.stringify({ call_id: 'c3', call_type: 1, duration: 0, end_reason: 'rejected', status: 1 });
+      expect(callRecordSummary(json)).toBe('[语音通话] 已拒绝');
+    });
+
+    it('callRecordSummary 超时未接通', () => {
+      const json = JSON.stringify({ call_id: 'c4', call_type: 2, duration: 0, end_reason: 'timeout', status: 1 });
+      expect(callRecordSummary(json)).toBe('[视频通话] 无人接听');
+    });
+
+    it('callRecordSummary 无效内容返回默认', () => {
+      expect(callRecordSummary('invalid')).toBe('[通话记录]');
+      expect(callRecordSummary('')).toBe('[通话记录]');
+    });
+
+    it('messageDisplayText type 6 返回摘要文案', () => {
+      const completed = message(1, {
+        msg_type: MSG_TYPE_CALL_RECORD,
+        content: JSON.stringify({ call_id: 'c1', call_type: 1, duration: 120, end_reason: 'hangup', status: 2 }),
+      });
+      expect(messageDisplayText(completed)).toBe('[语音通话] 02:00');
+
+      const missed = message(2, {
+        msg_type: MSG_TYPE_CALL_RECORD,
+        content: JSON.stringify({ call_id: 'c2', call_type: 2, duration: 0, end_reason: 'cancelled', status: 1 }),
+      });
+      expect(messageDisplayText(missed)).toBe('[视频通话] 已取消');
     });
   });
 });

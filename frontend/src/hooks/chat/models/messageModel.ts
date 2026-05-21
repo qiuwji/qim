@@ -1,4 +1,5 @@
 import type { MessageDTO, UserConvDTO } from '@/api/types';
+import { callTypeLabel, formatDuration } from './callModel';
 
 export const MESSAGE_PAGE_SIZE = 20;
 export const REVOKED_MESSAGE_PREVIEW = '消息已撤回';
@@ -8,9 +9,65 @@ export const MSG_TYPE_LEGACY_SYSTEM = 3;
 export const MSG_TYPE_SYSTEM = 5;
 export const MSG_TYPE_CALL_RECORD = 6;
 
+export interface CallRecordContent {
+  call_id: string;
+  call_type: 1 | 2;
+  duration: number;
+  end_reason: string;
+  status: 1 | 2;
+}
+
+export function isCallRecord(msg: MessageDTO): boolean {
+  return msg.msg_type === MSG_TYPE_CALL_RECORD;
+}
+
+export function parseCallRecordContent(content: string): CallRecordContent | null {
+  try {
+    const parsed = JSON.parse(content);
+    if (!parsed || typeof parsed !== 'object') return null;
+    const callType = parsed.call_type;
+    if (callType !== 1 && callType !== 2) return null;
+    return {
+      call_id: String(parsed.call_id ?? ''),
+      call_type: callType,
+      duration: Number(parsed.duration ?? 0),
+      end_reason: String(parsed.end_reason ?? ''),
+      status: parsed.status === 2 ? 2 : 1,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export function endReasonText(reason: string): string {
+  switch (reason) {
+    case 'rejected': return '已拒绝';
+    case 'timeout': return '无人接听';
+    case 'cancelled': return '已取消';
+    case 'disconnect': return '连接断开';
+    default: return '';
+  }
+}
+
+export function callRecordLabel(callType: 1 | 2, _status: 1 | 2): string {
+  const label = callTypeLabel(callType);
+  return label;
+}
+
+export function callRecordSummary(content: string): string {
+  const parsed = parseCallRecordContent(content);
+  if (!parsed) return '[通话记录]';
+  const label = callTypeLabel(parsed.call_type);
+  if (parsed.status === 2) {
+    return `[${label}] ${formatDuration(parsed.duration)}`;
+  }
+  const reason = endReasonText(parsed.end_reason);
+  return `[${label}]${reason ? ` ${reason}` : ''}`;
+}
+
 export function messageDisplayText(msg: MessageDTO): string {
   if (msg.msg_type === MSG_TYPE_IMAGE) return '[图片]';
-  if (msg.msg_type === MSG_TYPE_CALL_RECORD) return '[通话记录]';
+  if (msg.msg_type === MSG_TYPE_CALL_RECORD) return callRecordSummary(msg.content);
   return msg.content;
 }
 
@@ -57,6 +114,7 @@ export function messagePreviewText(msg: MessageDTO | undefined): string | undefi
   if (!msg) return undefined;
   if (msg.revoked) return REVOKED_MESSAGE_PREVIEW;
   if (msg.msg_type === MSG_TYPE_IMAGE) return '[图片]';
+  if (msg.msg_type === MSG_TYPE_CALL_RECORD) return callRecordSummary(msg.content);
   return msg.content || undefined;
 }
 

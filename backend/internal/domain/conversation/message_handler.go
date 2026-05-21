@@ -1,11 +1,70 @@
 package conversation
 
 import (
+	"encoding/json"
 	"time"
 
 	"qim/internal/actor"
 	"qim/internal/domain/conversation/store"
 )
+
+type callRecordContent struct {
+	CallID    string `json:"call_id"`
+	CallType  int8   `json:"call_type"`
+	Duration  int64  `json:"duration"`
+	EndReason string `json:"end_reason"`
+	Status    int8   `json:"status"`
+}
+
+func (a *ConversationActor) handleAppendCallRecord(ctx actor.Context, msg AppendCallRecordCmd) {
+	if len(a.members) == 0 {
+		return
+	}
+
+	now := time.Now().Unix()
+	nextSeq := a.maxSeq + 1
+	memberUIDs := a.memberUIDs()
+
+	content, _ := json.Marshal(callRecordContent{
+		CallType:  msg.CallType,
+		Duration:  msg.Duration,
+		EndReason: msg.EndReason,
+		Status:    msg.Status,
+	})
+
+	result, err := a.store.CommitMessage(store.MessageCommitInput{
+		Message: store.MessageAppendInput{
+			ConversationID: a.convID,
+			Seq:            nextSeq,
+			SenderID:       msg.CallerUID,
+			MsgType:        MsgTypeCallRecord,
+			Content:        string(content),
+			CreatedAt:      now,
+		},
+		UnreadProjection: store.UnreadProjectionInput{
+			ConversationID: a.convID,
+			SenderID:       msg.CallerUID,
+			MemberUIDs:     memberUIDs,
+			LastMsgAt:      now,
+		},
+	})
+	if err != nil {
+		return
+	}
+
+	actualSeq := result.Seq
+	if actualSeq == 0 {
+		actualSeq = nextSeq
+	}
+	if !result.Duplicated {
+		a.maxSeq = actualSeq
+		a.publishMessageSent(result.MessageID, actualSeq, SendMessageCmd{
+			SenderID: msg.CallerUID,
+			MsgType:  MsgTypeCallRecord,
+			Content:  string(content),
+		}, nil, false, memberUIDs, now)
+	}
+}
 
 func (a *ConversationActor) handleSendMessage(ctx actor.Context, msg SendMessageCmd) {
 	if msg.Content == "" {

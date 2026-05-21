@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import type { MessageDTO, UserDTO } from '@/api/types';
-import { isSystemMessage, isMentionedMe, messageDisplayText, MSG_TYPE_IMAGE } from '@/hooks/chat/models/messageModel';
+import { isSystemMessage, isMentionedMe, messageDisplayText, MSG_TYPE_IMAGE, isCallRecord, parseCallRecordContent, endReasonText } from '@/hooks/chat/models/messageModel';
+import { callTypeLabel, formatDuration } from '@/hooks/chat/models/callModel';
 import { Avatar } from '@/components/ui';
 import { displayName, timeText } from '@/utils';
 
@@ -71,7 +72,26 @@ export function MessageBubble({ message, mine, senderName, senderUser, replySour
         <div className={`flex items-end gap-2 ${mine ? 'flex-row-reverse' : ''}`}>
           {isImage
             ? <p className="m-0 rounded-[10px] border border-[#dfe3e8] bg-white px-3.5 py-2.5 leading-[1.55] shadow-[0_1px_2px_rgba(31,35,41,0.04)]"><img className="max-h-[200px] max-w-[240px] cursor-pointer rounded-md hover:opacity-90" src={message.content} alt="图片" onClick={() => window.open(message.content, '_blank')} /></p>
-            : <p className={`m-0 whitespace-pre-wrap break-words rounded-[10px] border px-3.5 py-2.5 leading-[1.55] shadow-[0_1px_2px_rgba(31,35,41,0.04)] ${mine ? 'border-[#b8e7a9] bg-[#95ec69] text-[#152b12]' : 'border-[#dfe3e8] bg-white text-[#1f2329]'} ${mentionedMe ? 'mention-bubble' : ''}`}>{textContent}</p>}
+            : isCallRecord(message) && !message.revoked
+              ? (() => {
+                const record = parseCallRecordContent(message.content);
+                if (!record) return null;
+                const completed = record.status === 2;
+                const icon = record.call_type === 1
+                  ? (completed ? '✅' : '❌')
+                  : (completed ? '✅' : '❌');
+                const label = callTypeLabel(record.call_type);
+                const detail = completed ? formatDuration(record.duration) : endReasonText(record.end_reason);
+                const colorClass = completed ? 'text-[#12b35f] border-[#a3e8bf] bg-[#eafaf1]' : 'text-[#e64b4b] border-[#f5c1c1] bg-[#fef0f0]';
+                return (
+                  <div className={`flex items-center gap-2 rounded-[10px] border px-3.5 py-2.5 text-sm leading-[1.55] shadow-[0_1px_2px_rgba(31,35,41,0.04)] ${colorClass}`}>
+                    <span>{icon}</span>
+                    <span>{label}</span>
+                    {detail && <span className="tabular-nums">{detail}</span>}
+                  </div>
+                );
+              })()
+              : <p className={`m-0 whitespace-pre-wrap break-words rounded-[10px] border px-3.5 py-2.5 leading-[1.55] shadow-[0_1px_2px_rgba(31,35,41,0.04)] ${mine ? 'border-[#b8e7a9] bg-[#95ec69] text-[#152b12]' : 'border-[#dfe3e8] bg-white text-[#1f2329]'} ${mentionedMe ? 'mention-bubble' : ''}`}>{textContent}</p>}
         </div>
       </div>
     </div>

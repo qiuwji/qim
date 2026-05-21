@@ -38,7 +38,9 @@ export function handleRealtimeMessage(msg: WsResponse, ctx: RealtimeHandlerConte
     return;
   }
   if (msg.type === 'error') {
-    ctx.setNotice({ kind: 'error', text: msg.error?.message || '请求失败' });
+    if (msg.error?.code !== 'call.not_found') {
+      ctx.setNotice({ kind: 'error', text: msg.error?.message || '请求失败' });
+    }
     return;
   }
   if ((msg.type === 'ack' && msg.action === 'send') || (msg.type === 'message' && msg.action === 'new')) {

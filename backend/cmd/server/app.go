@@ -183,7 +183,7 @@ func initActors(engine *actor.Engine, s stores, events eventbus.Bus) {
 	}
 	mustSpawn(engine, "friend-manager", friend.NewManagerActor(s.friend, engine, events))
 	mustSpawn(engine, "presence", presence.NewPresenceActor(engine, events))
-	mustSpawn(engine, "call-manager", call.NewCallManagerActor(engine, events, s.call))
+	mustSpawn(engine, "call-manager", call.NewCallManagerActor(engine, events, s.call, s.conv))
 }
 
 func initEventHandlers(engine *actor.Engine, events eventbus.Bus) {

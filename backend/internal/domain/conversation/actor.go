@@ -109,6 +109,8 @@ func (a *ConversationActor) Receive(ctx actor.Context) {
 		a.handleTransferOwner(ctx, msg)
 	case DissolveConvCmd:
 		a.handleDissolve(ctx, msg)
+	case AppendCallRecordCmd:
+		a.handleAppendCallRecord(ctx, msg)
 	}
 	a.resetIdleTimer(ctx)
 }

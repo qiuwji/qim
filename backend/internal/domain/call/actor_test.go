@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"qim/internal/actor"
+	"qim/internal/domain/conversation"
 	"qim/internal/eventbus"
 )
 
@@ -74,9 +75,9 @@ type actorFunc func(ctx actor.Context)
 
 func (f actorFunc) Receive(ctx actor.Context) { f(ctx) }
 
-func spawnCallActor(t *testing.T, engine *actor.Engine, bus eventbus.Bus, store CallStore, cmd StartCallCmd) *actor.ActorRef {
+func spawnCallActor(t *testing.T, engine *actor.Engine, bus eventbus.Bus, store CallStore, convStore conversation.Store, cmd StartCallCmd) *actor.ActorRef {
 	t.Helper()
-	callActor := NewCallActor(engine, bus, store, cmd)
+	callActor := NewCallActor(engine, bus, store, convStore, cmd)
 	ref, err := engine.Spawn("call:"+cmd.CallID, callActor)
 	if err != nil {
 		t.Fatalf("spawn call actor: %v", err)
@@ -90,7 +91,7 @@ func TestCallActor_RingingToConnectedToEnded_BitsUT(t *testing.T) {
 	bus := &testEventBus{}
 	engine := actor.NewEngine()
 
-	ref := spawnCallActor(t, engine, bus, store, StartCallCmd{
+	ref := spawnCallActor(t, engine, bus, store, nil, StartCallCmd{
 		CallID:    "call_test_1",
 		CallerUID: 100,
 		CalleeUID: 200,
@@ -143,7 +144,7 @@ func TestCallActor_Reject_BitsUT(t *testing.T) {
 	bus := &testEventBus{}
 	engine := actor.NewEngine()
 
-	ref := spawnCallActor(t, engine, bus, store, StartCallCmd{
+	ref := spawnCallActor(t, engine, bus, store, nil, StartCallCmd{
 		CallID:    "call_reject_1",
 		CallerUID: 100,
 		CalleeUID: 200,
@@ -181,7 +182,7 @@ func TestCallActor_Cancel_BitsUT(t *testing.T) {
 	bus := &testEventBus{}
 	engine := actor.NewEngine()
 
-	ref := spawnCallActor(t, engine, bus, store, StartCallCmd{
+	ref := spawnCallActor(t, engine, bus, store, nil, StartCallCmd{
 		CallID:    "call_cancel_1",
 		CallerUID: 100,
 		CalleeUID: 200,
@@ -216,7 +217,7 @@ func TestCallActor_Timeout_BitsUT(t *testing.T) {
 	bus := &testEventBus{}
 	engine := actor.NewEngine()
 
-	ref := spawnCallActor(t, engine, bus, store, StartCallCmd{
+	ref := spawnCallActor(t, engine, bus, store, nil, StartCallCmd{
 		CallID:    "call_timeout_1",
 		CallerUID: 100,
 		CalleeUID: 200,
@@ -247,7 +248,7 @@ func TestCallActor_DoubleAccept_BitsUT(t *testing.T) {
 	bus := &testEventBus{}
 	engine := actor.NewEngine()
 
-	ref := spawnCallActor(t, engine, bus, store, StartCallCmd{
+	ref := spawnCallActor(t, engine, bus, store, nil, StartCallCmd{
 		CallID:    "call_double_1",
 		CallerUID: 100,
 		CalleeUID: 200,
@@ -277,7 +278,7 @@ func TestCallActor_NonParticipantForbidden_BitsUT(t *testing.T) {
 	bus := &testEventBus{}
 	engine := actor.NewEngine()
 
-	ref := spawnCallActor(t, engine, bus, store, StartCallCmd{
+	ref := spawnCallActor(t, engine, bus, store, nil, StartCallCmd{
 		CallID:    "call_forbid_1",
 		CallerUID: 100,
 		CalleeUID: 200,
@@ -313,7 +314,7 @@ func TestCallActor_InvalidState_BitsUT(t *testing.T) {
 	bus := &testEventBus{}
 	engine := actor.NewEngine()
 
-	ref := spawnCallActor(t, engine, bus, store, StartCallCmd{
+	ref := spawnCallActor(t, engine, bus, store, nil, StartCallCmd{
 		CallID:    "call_state_1",
 		CallerUID: 100,
 		CalleeUID: 200,
@@ -345,7 +346,7 @@ func TestCallActor_CallerEndsCall_BitsUT(t *testing.T) {
 	bus := &testEventBus{}
 	engine := actor.NewEngine()
 
-	ref := spawnCallActor(t, engine, bus, store, StartCallCmd{
+	ref := spawnCallActor(t, engine, bus, store, nil, StartCallCmd{
 		CallID:    "call_caller_end",
 		CallerUID: 100,
 		CalleeUID: 200,
@@ -378,7 +379,7 @@ func TestCallActor_CalleeEndsCall_BitsUT(t *testing.T) {
 	bus := &testEventBus{}
 	engine := actor.NewEngine()
 
-	ref := spawnCallActor(t, engine, bus, store, StartCallCmd{
+	ref := spawnCallActor(t, engine, bus, store, nil, StartCallCmd{
 		CallID:    "call_callee_end",
 		CallerUID: 100,
 		CalleeUID: 200,
@@ -411,7 +412,7 @@ func TestCallActor_OnStartWithoutStartCallCmd_BitsUT(t *testing.T) {
 	bus := &testEventBus{}
 	engine := actor.NewEngine()
 
-	callActor := NewCallActor(engine, bus, store, StartCallCmd{})
+	callActor := NewCallActor(engine, bus, store, nil, StartCallCmd{})
 	ref, err := engine.Spawn("call:badstart", callActor)
 	if err != nil {
 		t.Fatalf("spawn: %v", err)
@@ -440,7 +441,7 @@ func TestCallActor_ForwardOfferForbidden_BitsUT(t *testing.T) {
 	bus := &testEventBus{}
 	engine := actor.NewEngine()
 
-	ref := spawnCallActor(t, engine, bus, store, StartCallCmd{
+	ref := spawnCallActor(t, engine, bus, store, nil, StartCallCmd{
 		CallID:    "call_fwd_offer",
 		CallerUID: 100,
 		CalleeUID: 200,
@@ -462,7 +463,7 @@ func TestCallActor_ForwardAnswerForbidden_BitsUT(t *testing.T) {
 	bus := &testEventBus{}
 	engine := actor.NewEngine()
 
-	ref := spawnCallActor(t, engine, bus, store, StartCallCmd{
+	ref := spawnCallActor(t, engine, bus, store, nil, StartCallCmd{
 		CallID:    "call_fwd_answer",
 		CallerUID: 100,
 		CalleeUID: 200,
@@ -484,7 +485,7 @@ func TestCallActor_ForwardIceForbidden_BitsUT(t *testing.T) {
 	bus := &testEventBus{}
 	engine := actor.NewEngine()
 
-	ref := spawnCallActor(t, engine, bus, store, StartCallCmd{
+	ref := spawnCallActor(t, engine, bus, store, nil, StartCallCmd{
 		CallID:    "call_fwd_ice",
 		CallerUID: 100,
 		CalleeUID: 200,
@@ -509,7 +510,7 @@ func TestCallActor_ForwardIceCalleeToCaller_BitsUT(t *testing.T) {
 	gw100 := actorFunc(func(ctx actor.Context) {})
 	gwRef, _ := engine.Spawn("gw:100", gw100)
 
-	ref := spawnCallActor(t, engine, bus, store, StartCallCmd{
+	ref := spawnCallActor(t, engine, bus, store, nil, StartCallCmd{
 		CallID:    "call_ice_callee",
 		CallerUID: 100,
 		CalleeUID: 200,
@@ -543,7 +544,7 @@ func TestCallActor_ForwardSignalInvalidState_BitsUT(t *testing.T) {
 	bus := &testEventBus{}
 	engine := actor.NewEngine()
 
-	ref := spawnCallActor(t, engine, bus, store, StartCallCmd{
+	ref := spawnCallActor(t, engine, bus, store, nil, StartCallCmd{
 		CallID:    "call_fwd_state",
 		CallerUID: 100,
 		CalleeUID: 200,
@@ -584,7 +585,7 @@ func TestCallActor_TerminatedCallerGWDuringRinging_BitsUT(t *testing.T) {
 		t.Fatalf("spawn gw: %v", err)
 	}
 
-	ref := spawnCallActor(t, engine, bus, store, StartCallCmd{
+	ref := spawnCallActor(t, engine, bus, store, nil, StartCallCmd{
 		CallID:    "call_term_1",
 		CallerUID: 100,
 		CalleeUID: 200,
@@ -620,7 +621,7 @@ func TestCallActor_TerminatedWrongGW_BitsUT(t *testing.T) {
 		t.Fatalf("spawn gw: %v", err)
 	}
 
-	ref := spawnCallActor(t, engine, bus, store, StartCallCmd{
+	ref := spawnCallActor(t, engine, bus, store, nil, StartCallCmd{
 		CallID:    "call_term_wrong",
 		CallerUID: 100,
 		CalleeUID: 200,
@@ -643,7 +644,7 @@ func TestCallActor_PublishEventNil_BitsUT(t *testing.T) {
 	bus := &testEventBus{}
 	engine := actor.NewEngine()
 
-	a := NewCallActor(engine, nil, store, StartCallCmd{
+	a := NewCallActor(engine, nil, store, nil, StartCallCmd{
 		CallID:    "call_nil_ev",
 		CallerUID: 100,
 		CalleeUID: 200,

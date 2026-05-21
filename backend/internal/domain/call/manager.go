@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"qim/internal/actor"
+	"qim/internal/domain/conversation"
 	"qim/internal/domain/presence"
 	"qim/internal/eventbus"
 
@@ -17,16 +18,18 @@ type CallManagerActor struct {
 	engine    *actor.Engine
 	events    eventbus.Bus
 	callStore CallStore
+	convStore conversation.Store
 
 	busy          map[uint64]string
 	callActorRefs map[string]*actor.ActorRef
 }
 
-func NewCallManagerActor(engine *actor.Engine, events eventbus.Bus, callStore CallStore) *CallManagerActor {
+func NewCallManagerActor(engine *actor.Engine, events eventbus.Bus, callStore CallStore, convStore conversation.Store) *CallManagerActor {
 	return &CallManagerActor{
 		engine:        engine,
 		events:        events,
 		callStore:     callStore,
+		convStore:     convStore,
 		busy:          make(map[uint64]string),
 		callActorRefs: make(map[string]*actor.ActorRef),
 	}
@@ -88,7 +91,7 @@ func (a *CallManagerActor) handleInitiate(ctx actor.Context, msg InitiateCallCmd
 		Avatar:   msg.CallerAvatar,
 	}
 
-	callActor := NewCallActor(a.engine, a.events, a.callStore, StartCallCmd{
+	callActor := NewCallActor(a.engine, a.events, a.callStore, a.convStore, StartCallCmd{
 		CallID:    callID,
 		CallerUID: msg.CallerUID,
 		CalleeUID: msg.CalleeUID,

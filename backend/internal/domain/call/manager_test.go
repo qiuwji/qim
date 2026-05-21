@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"qim/internal/actor"
+	"qim/internal/domain/conversation"
 	"qim/internal/domain/presence"
 	"qim/internal/eventbus"
 )
@@ -21,7 +22,8 @@ func setupCallManager(t *testing.T) (*actor.Engine, eventbus.Bus, *testCallStore
 		t.Fatalf("spawn presence: %v", err)
 	}
 
-	mgrRef, err := engine.Spawn("call-manager", NewCallManagerActor(engine, bus, store))
+	var convStore conversation.Store
+	mgrRef, err := engine.Spawn("call-manager", NewCallManagerActor(engine, bus, store, convStore))
 	if err != nil {
 		t.Fatalf("spawn call-manager: %v", err)
 	}

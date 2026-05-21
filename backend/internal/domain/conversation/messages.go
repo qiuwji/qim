@@ -161,4 +161,13 @@ type ReadAllConvCmd struct {
 	UID uint64
 }
 
+type AppendCallRecordCmd struct {
+	CallerUID uint64
+	CalleeUID uint64
+	CallType  int8
+	Duration  int64
+	EndReason string
+	Status    int8
+}
+
 type IdleTimeout struct{}
