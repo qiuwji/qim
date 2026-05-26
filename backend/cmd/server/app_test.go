@@ -158,7 +158,7 @@ func TestInitHandlers_BitsUT(t *testing.T) {
 	svcs := initServices(engine, s, events)
 	jwt := initJWT()
 
-	handlers := initHandlers(svcs, jwt)
+	handlers := initHandlers(svcs, jwt, s)
 	if handlers.Conv == nil || handlers.User == nil || handlers.Msg == nil || handlers.Friend == nil || handlers.File == nil {
 		t.Fatal("one or more handlers are nil")
 	}

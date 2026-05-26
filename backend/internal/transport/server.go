@@ -10,6 +10,7 @@ import (
 	"qim/internal/middleware"
 	jwtpkg "qim/internal/pkg/jwt"
 	"qim/internal/pkg/logx"
+	"qim/internal/transport/agent"
 	httphandler "qim/internal/transport/http"
 	"qim/internal/transport/ws"
 
@@ -23,12 +24,13 @@ var upgrader = websocket.Upgrader{
 }
 
 type Server struct {
-	engine     *actor.Engine
-	router     *gin.Engine
-	events     eventbus.Bus
-	dispatcher ws.WsDispatcher
-	handlers   *httphandler.Handlers
-	jwt        *jwtpkg.Manager
+	engine          *actor.Engine
+	router          *gin.Engine
+	events          eventbus.Bus
+	dispatcher      ws.WsDispatcher
+	handlers        *httphandler.Handlers
+	jwt             *jwtpkg.Manager
+	agentDispatcher *agent.AgentDispatcher
 }
 
 func NewServer(
@@ -37,14 +39,16 @@ func NewServer(
 	events eventbus.Bus,
 	dispatcher ws.WsDispatcher,
 	jwt *jwtpkg.Manager,
+	agentDispatcher *agent.AgentDispatcher,
 ) *Server {
 	s := &Server{
-		engine:     engine,
-		router:     gin.Default(),
-		events:     events,
-		dispatcher: dispatcher,
-		handlers:   handlers,
-		jwt:        jwt,
+		engine:          engine,
+		router:          gin.Default(),
+		events:          events,
+		dispatcher:      dispatcher,
+		handlers:        handlers,
+		jwt:             jwt,
+		agentDispatcher: agentDispatcher,
 	}
 	s.setupRoutes()
 	return s
@@ -125,6 +129,14 @@ func (s *Server) setupRoutes() {
 			{
 				fileGrp.POST("/upload", s.handlers.File.UploadImage)
 			}
+
+			botGrp := authGrp.Group("/bot")
+			{
+				botGrp.POST("/activate", s.handlers.Bot.Activate)
+				botGrp.GET("/config", s.handlers.Bot.GetConfig)
+				botGrp.PUT("/config", s.handlers.Bot.UpdateConfig)
+				botGrp.POST("/session", s.handlers.Bot.NewSession)
+			}
 		}
 
 		api.POST("/auth/register", s.handlers.User.Register)
@@ -132,6 +144,11 @@ func (s *Server) setupRoutes() {
 	}
 
 	s.router.GET("/ws", auth, s.HandleWebSocket)
+
+	if s.agentDispatcher != nil {
+		s.router.POST("/agent/mcp", s.agentDispatcher.HandlePost)
+		s.router.GET("/agent/mcp", s.agentDispatcher.HandleGet)
+	}
 }
 
 func (s *Server) HandleWebSocket(c *gin.Context) {

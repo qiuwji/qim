@@ -42,6 +42,8 @@ type User struct {
 	Avatar       string `gorm:"size:256"`
 	Sign         string `gorm:"size:256"`
 	Status       int8   `gorm:"default:0"`
+	UserType     int8   `gorm:"default:0"`
+	CreatorUID   uint64 `gorm:"default:0;index"`
 	CreatedAt    int64  `gorm:"not null"`
 	UpdatedAt    int64  `gorm:"not null"`
 	LastOnlineAt int64  `gorm:"not null"`
@@ -102,4 +104,12 @@ type CallRecord struct {
 	Duration  int64
 	EndReason string `gorm:"size:32"`
 	CreatedAt int64  `gorm:"not null"`
+}
+
+type BotConfig struct {
+	ID          uint64 `gorm:"primaryKey;autoIncrement"`
+	UID         uint64 `gorm:"uniqueIndex;not null"`
+	Permissions string `gorm:"type:text;default:'[]'"`
+	CreatedAt   int64  `gorm:"not null"`
+	UpdatedAt   int64  `gorm:"not null"`
 }

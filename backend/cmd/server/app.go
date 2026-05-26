@@ -19,6 +19,7 @@ import (
 	jwtpkg "qim/internal/pkg/jwt"
 	"qim/internal/pkg/logx"
 	"qim/internal/service"
+	"qim/internal/transport/agent"
 	httphandler "qim/internal/transport/http"
 	"qim/internal/transport/ws"
 
@@ -33,6 +34,7 @@ type stores struct {
 	msg    dal.MsgStore
 	friend dal.FriendStore
 	call   call.CallStore
+	bot    dal.BotStore
 }
 
 func initJWT() *jwtpkg.Manager {
@@ -115,6 +117,7 @@ func mustMigrateDB(db *gorm.DB) {
 		&dal.FriendGroup{},
 		&dal.Friend{},
 		&dal.CallRecord{},
+		&dal.BotConfig{},
 	); err != nil {
 		panic(err)
 	}
@@ -156,6 +159,7 @@ func initStores(db *gorm.DB) stores {
 		msg:    dal.NewMsgStore(db),
 		friend: dal.NewFriendStore(db),
 		call:   dal.NewCallStore(db),
+		bot:    dal.NewBotStore(db),
 	}
 }
 
@@ -246,13 +250,14 @@ func mustSpawn(engine *actor.Engine, name string, a actor.Actor) *actor.ActorRef
 	return ref
 }
 
-func initHandlers(s svcs, jwt *jwtpkg.Manager) *httphandler.Handlers {
+func initHandlers(s svcs, jwt *jwtpkg.Manager, stores stores) *httphandler.Handlers {
 	return &httphandler.Handlers{
 		Conv:   httphandler.NewConversationHandler(s.conv, s.user),
 		User:   httphandler.NewUserHandler(s.user, jwt),
 		Msg:    httphandler.NewMessageHandler(s.msg),
 		Friend: httphandler.NewFriendHandler(s.friend, s.user),
 		File:   httphandler.NewFileHandler(),
+		Bot:    httphandler.NewBotHTTPHandler(s.user, s.conv, s.friend, stores.bot, stores.user),
 	}
 }
 
@@ -260,4 +265,27 @@ func initDispatcher(s svcs, engine *actor.Engine) *ws.Dispatcher {
 	presenceRef, _ := engine.Lookup("presence")
 	friendRef, _ := engine.Lookup("friend-manager")
 	return ws.NewDispatcher(s.conv, s.msg, s.friend, s.user, presenceRef, friendRef, s.call)
+}
+
+func initAgentDispatcher(s svcs, stores stores, engine *actor.Engine, events eventbus.Bus) *agent.AgentDispatcher {
+	hubRef, err := engine.Spawn("agent-hub", agent.NewAgentHubActor(events, stores.bot))
+	if err != nil {
+		panic(err)
+	}
+	gwRef, err := engine.Spawn("agent-gw", agent.NewAgentGatewayActor())
+	if err != nil {
+		panic(err)
+	}
+
+	hubRef.Tell(agent.AgentRefResolved{GwRef: gwRef})
+
+	tools := agent.NewToolRouter(s.conv, s.msg, s.friend, s.user, stores.bot, hubRef, gwRef)
+	subscribe := agent.NewSubscribeRouter(hubRef)
+
+	token := os.Getenv("AGENT_PLATFORM_TOKEN")
+	if token == "" {
+		zap.L().Warn("AGENT_PLATFORM_TOKEN not set, agent endpoints will be unavailable")
+	}
+
+	return agent.NewAgentDispatcher(tools, subscribe, hubRef, gwRef, token)
 }

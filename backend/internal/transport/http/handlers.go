@@ -6,4 +6,5 @@ type Handlers struct {
 	Msg    *MessageHandler
 	Friend *FriendHandler
 	File   *FileHandler
+	Bot    *BotHTTPHandler
 }

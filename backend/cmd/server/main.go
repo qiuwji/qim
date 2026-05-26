@@ -19,10 +19,11 @@ func main() {
 	jwt := initJWT()
 	initActors(engine, stores, events)
 	initEventHandlers(engine, events)
-	handlers := initHandlers(svcs, jwt)
+	handlers := initHandlers(svcs, jwt, stores)
 	dispatcher := initDispatcher(svcs, engine)
+	agentDispatcher := initAgentDispatcher(svcs, stores, engine, events)
 
-	srv := transport.NewServer(engine, handlers, events, dispatcher, jwt)
+	srv := transport.NewServer(engine, handlers, events, dispatcher, jwt, agentDispatcher)
 
 	zap.L().Info("QIM server starting", zap.String("addr", ":8080"))
 	if err := srv.Run(":8080"); err != nil {
