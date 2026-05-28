@@ -50,6 +50,7 @@ type Dispatcher struct {
 	user     *userRouter
 	presence *presenceRouter
 	call     *callRouter
+	agent    *agentRouter
 }
 
 func NewDispatcher(
@@ -60,8 +61,9 @@ func NewDispatcher(
 	presenceRef *actor.ActorRef,
 	friendRef *actor.ActorRef,
 	callSvc *service.CallService,
+	approvalResolvers ...AgentApprovalResolver,
 ) *Dispatcher {
-	return &Dispatcher{
+	d := &Dispatcher{
 		conv:     &convRouter{svc: convSvc},
 		msg:      &msgRouter{msgSvc: msgSvc, convSvc: convSvc},
 		friend:   &friendRouter{svc: friendSvc},
@@ -69,6 +71,12 @@ func NewDispatcher(
 		presence: &presenceRouter{presenceRef: presenceRef, friendRef: friendRef},
 		call:     &callRouter{svc: callSvc, userSvc: userSvc},
 	}
+	if len(approvalResolvers) > 0 {
+		d.agent = &agentRouter{approvals: approvalResolvers[0]}
+	} else {
+		d.agent = &agentRouter{}
+	}
+	return d
 }
 
 func (d *Dispatcher) Dispatch(uid uint64, req WsRequest) WsResponse {
@@ -85,6 +93,8 @@ func (d *Dispatcher) Dispatch(uid uint64, req WsRequest) WsResponse {
 		return d.presence.dispatch(uid, req.Action, req.Data)
 	case "call":
 		return d.call.dispatch(uid, req.Action, req.Data)
+	case "agent":
+		return d.agent.dispatch(uid, req.Action, req.Data)
 	default:
 		return errReply("", apperr.New(apperr.CodeInvalidRequest, fmt.Sprintf("unknown type: %s", req.Type)))
 	}

@@ -1,6 +1,11 @@
 package agent
 
-import "qim/internal/actor"
+import (
+	"io"
+	"net/http"
+
+	"qim/internal/actor"
+)
 
 type Result struct {
 	Data any
@@ -8,14 +13,16 @@ type Result struct {
 }
 
 type SubscribeCmd struct {
-	BotUID uint64
-	Events []string
-	Filter *EventFilter
+	SessionID string
+	BotUID    uint64
+	Events    []string
+	Filter    *EventFilter
 }
 
 type UnsubscribeCmd struct {
-	BotUID uint64
-	Events []string
+	SessionID string
+	BotUID    uint64
+	Events    []string
 }
 
 type EventFilter struct {
@@ -23,18 +30,52 @@ type EventFilter struct {
 }
 
 type PushNotificationCmd struct {
-	BotUID uint64
-	Type   string
-	Event  any
+	SessionID string
+	BotUID    uint64
+	Type      string
+	Event     any
 }
 
 type RefreshPermissionsCmd struct {
 	BotUID uint64
 }
 
-type SSEConnected struct{}
+type PermissionQuery struct {
+	BotUID     uint64
+	Permission string
+}
 
-type SSEDisconnected struct{}
+type SetupSSECmd struct {
+	SessionID string
+	Writer    io.Writer
+	Flusher   http.Flusher
+}
+
+type SSEConnected struct {
+	SessionID string
+}
+
+type SSEHeartbeat struct {
+	SessionID string
+}
+
+type SSEDisconnected struct {
+	SessionID string
+}
+
+type SetSessionCmd struct {
+	SessionID string
+}
+
+type RateLimitQuery struct {
+	SessionID string
+	BotUID    uint64
+	ToolName  string
+}
+
+type AgentIdleTimeout struct {
+	SessionID string
+}
 
 type AgentRefResolved struct {
 	GwRef *actor.ActorRef

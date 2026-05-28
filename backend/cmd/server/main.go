@@ -3,6 +3,7 @@ package main
 import (
 	"qim/internal/pkg/logx"
 	"qim/internal/transport"
+	"qim/internal/transport/agent"
 
 	"go.uber.org/zap"
 )
@@ -20,8 +21,9 @@ func main() {
 	initActors(engine, stores, events)
 	initEventHandlers(engine, events)
 	handlers := initHandlers(svcs, jwt, stores)
-	dispatcher := initDispatcher(svcs, engine)
-	agentDispatcher := initAgentDispatcher(svcs, stores, engine, events)
+	approvals := agent.NewApprovalManager(stores.agent)
+	dispatcher := initDispatcher(svcs, engine, approvals)
+	agentDispatcher := initAgentDispatcher(svcs, stores, handlers, engine, events, approvals)
 
 	srv := transport.NewServer(engine, handlers, events, dispatcher, jwt, agentDispatcher)
 

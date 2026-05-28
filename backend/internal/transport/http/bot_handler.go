@@ -3,13 +3,13 @@ package http
 import (
 	"encoding/json"
 	"fmt"
-	"time"
 
+	"qim/internal/actor"
 	"qim/internal/dal"
 	"qim/internal/domain/conversation"
-	"qim/internal/domain/friend"
 	"qim/internal/pkg/resp"
 	"qim/internal/service"
+	agenttransport "qim/internal/transport/agent"
 
 	"github.com/gin-gonic/gin"
 )
@@ -20,6 +20,7 @@ type BotHTTPHandler struct {
 	friendSvc *service.FriendService
 	botStore  dal.BotStore
 	userStore dal.UserStore
+	agentHub  *actor.ActorRef
 }
 
 func NewBotHTTPHandler(
@@ -38,84 +39,26 @@ func NewBotHTTPHandler(
 	}
 }
 
+func (h *BotHTTPHandler) SetAgentHubRef(ref *actor.ActorRef) {
+	h.agentHub = ref
+}
+
 func (h *BotHTTPHandler) Activate(c *gin.Context) {
 	creatorUID := c.GetUint64("uid")
-
-	botUser := &dal.User{
-		Username:   fmt.Sprintf("bot_%d", creatorUID),
-		Password:   "",
-		Nickname:   "AI Bot",
-		Avatar:     "",
-		UserType:   1,
-		CreatorUID: creatorUID,
-		Status:     0,
-		CreatedAt:  time.Now().Unix(),
-		UpdatedAt:  time.Now().Unix(),
-		LastOnlineAt: time.Now().Unix(),
-	}
-	if err := h.userStore.CreateUser(botUser); err != nil {
-		resp.Fail(c, internalError(err))
-		return
-	}
-
-	cfg := &dal.BotConfig{
-		UID:       botUser.ID,
-		CreatedAt: time.Now().Unix(),
-		UpdatedAt: time.Now().Unix(),
-	}
-	if err := h.botStore.CreateConfig(cfg); err != nil {
-		resp.Fail(c, internalError(err))
-		return
-	}
-
-	_, err := h.friendSvc.Ask(friend.SendRequestCmd{
-		FromUID: creatorUID,
-		ToUID:   botUser.ID,
-	})
+	result, err := h.botStore.ActivateBotTx(creatorUID)
 	if err != nil {
 		resp.Fail(c, internalError(err))
 		return
-	}
-
-	reqRef, err := h.friendSvc.Ref()
-	if err != nil {
-		resp.Fail(c, internalError(err))
-		return
-	}
-	raw, err := reqRef.Ask(friend.ListIncomingCmd{UID: botUser.ID}, 5*time.Second)
-	if err == nil {
-		if result, ok := raw.(friend.Result); ok && result.Err == nil {
-			if reqs, ok := result.Data.([]friend.FriendRequestDTO); ok && len(reqs) > 0 {
-				reqRef.Tell(friend.HandleRequestCmd{
-					UID:    botUser.ID,
-					ReqID:  reqs[0].ID,
-					Accept: true,
-				})
-			}
-		}
-	}
-
-	convResult, err := h.convSvc.AskManager(conversation.CreatePrivateConvCmd{
-		UID1: creatorUID,
-		UID2: botUser.ID,
-	})
-	if err != nil || convResult.Err != nil {
-		resp.Fail(c, internalError(err))
-		return
-	}
-
-	convID := uint64(0)
-	if dto, ok := convResult.Data.(conversation.ConversationDTO); ok {
-		convID = dto.ID
 	}
 
 	resp.OK(c, map[string]any{
 		"bot_user": map[string]any{
-			"id":       botUser.ID,
-			"nickname": botUser.Nickname,
-			"avatar":   botUser.Avatar,
+			"id":       result.BotUser.ID,
+			"username": result.BotUser.Username,
+			"nickname": result.BotUser.Nickname,
+			"avatar":   result.BotUser.Avatar,
 		},
-		"conversation_id": convID,
+		"conversation_id": result.ConversationID,
 	})
 }
 
@@ -160,6 +103,9 @@ func (h *BotHTTPHandler) UpdateConfig(c *gin.Context) {
 		resp.Fail(c, internalError(err))
 		return
 	}
+	if h.agentHub != nil {
+		_ = h.agentHub.Tell(agenttransport.RefreshPermissionsCmd{BotUID: botUID})
+	}
 
 	resp.OK(c, map[string]any{"status": "ok"})
 }
@@ -172,9 +118,9 @@ func (h *BotHTTPHandler) NewSession(c *gin.Context) {
 		return
 	}
 
-	convResult, err := h.convSvc.AskManager(conversation.CreatePrivateConvCmd{
-		UID1: creatorUID,
-		UID2: botUID,
+	convResult, err := h.convSvc.AskManager(conversation.CreateBotSessionCmd{
+		OwnerUID: creatorUID,
+		BotUID:   botUID,
 	})
 	if err != nil || convResult.Err != nil {
 		resp.Fail(c, internalError(err))

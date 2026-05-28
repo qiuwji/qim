@@ -100,7 +100,7 @@ type CallRecord struct {
 	CallType  int8   `gorm:"not null"`
 	Status    int8   `gorm:"not null"`
 	StartedAt int64
-	EndedAt   int64  `gorm:"not null"`
+	EndedAt   int64 `gorm:"not null"`
 	Duration  int64
 	EndReason string `gorm:"size:32"`
 	CreatedAt int64  `gorm:"not null"`
@@ -112,4 +112,41 @@ type BotConfig struct {
 	Permissions string `gorm:"type:text;default:'[]'"`
 	CreatedAt   int64  `gorm:"not null"`
 	UpdatedAt   int64  `gorm:"not null"`
+}
+
+type AgentSession struct {
+	ID           uint64 `gorm:"primaryKey;autoIncrement"`
+	SessionID    string `gorm:"uniqueIndex;size:64;not null"`
+	PlatformName string `gorm:"size:64"`
+	Status       int8   `gorm:"default:0"`
+	LastSeenAt   int64  `gorm:"index;not null"`
+	ExpiresAt    int64  `gorm:"index;not null"`
+	CreatedAt    int64  `gorm:"not null"`
+	UpdatedAt    int64  `gorm:"not null"`
+}
+
+type AgentSubscription struct {
+	ID         uint64 `gorm:"primaryKey;autoIncrement"`
+	SessionID  string `gorm:"index:idx_agent_sub_session_event;size:64;not null"`
+	BotUID     uint64 `gorm:"index:idx_agent_sub_session_event;not null"`
+	EventName  string `gorm:"index:idx_agent_sub_session_event;size:64;not null"`
+	FilterJSON string `gorm:"type:text;default:''"`
+	CreatedAt  int64  `gorm:"not null"`
+	UpdatedAt  int64  `gorm:"not null"`
+}
+
+type AgentApproval struct {
+	ID             uint64 `gorm:"primaryKey;autoIncrement"`
+	ApprovalID     string `gorm:"uniqueIndex;size:64;not null"`
+	SessionID      string `gorm:"index;size:64;not null"`
+	BotUID         uint64 `gorm:"index;not null"`
+	OwnerUID       uint64 `gorm:"index;not null"`
+	ConversationID uint64
+	Action         string `gorm:"size:128;not null"`
+	Detail         string `gorm:"type:text;not null"`
+	Status         int8   `gorm:"default:0"`
+	ExpiresAt      int64  `gorm:"index;not null"`
+	ResolvedAt     int64
+	CreatedAt      int64 `gorm:"not null"`
+	UpdatedAt      int64 `gorm:"not null"`
 }

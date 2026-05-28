@@ -14,6 +14,7 @@ const (
 type MessageSentEvent struct {
 	MessageID      uint64
 	ConversationID uint64
+	ConvType       int8
 	Seq            int64
 	SenderID       uint64
 	MemberUIDs     []uint64

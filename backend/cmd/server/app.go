@@ -23,8 +23,8 @@ import (
 	httphandler "qim/internal/transport/http"
 	"qim/internal/transport/ws"
 
-	"go.uber.org/zap"
 	"github.com/glebarez/sqlite"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -35,6 +35,7 @@ type stores struct {
 	friend dal.FriendStore
 	call   call.CallStore
 	bot    dal.BotStore
+	agent  dal.AgentStore
 }
 
 func initJWT() *jwtpkg.Manager {
@@ -118,6 +119,9 @@ func mustMigrateDB(db *gorm.DB) {
 		&dal.Friend{},
 		&dal.CallRecord{},
 		&dal.BotConfig{},
+		&dal.AgentSession{},
+		&dal.AgentSubscription{},
+		&dal.AgentApproval{},
 	); err != nil {
 		panic(err)
 	}
@@ -160,6 +164,7 @@ func initStores(db *gorm.DB) stores {
 		friend: dal.NewFriendStore(db),
 		call:   dal.NewCallStore(db),
 		bot:    dal.NewBotStore(db),
+		agent:  dal.NewAgentStore(db),
 	}
 }
 
@@ -261,16 +266,22 @@ func initHandlers(s svcs, jwt *jwtpkg.Manager, stores stores) *httphandler.Handl
 	}
 }
 
-func initDispatcher(s svcs, engine *actor.Engine) *ws.Dispatcher {
+func initDispatcher(s svcs, engine *actor.Engine, approvals ...*agent.ApprovalManager) *ws.Dispatcher {
 	presenceRef, _ := engine.Lookup("presence")
 	friendRef, _ := engine.Lookup("friend-manager")
+	if len(approvals) > 0 {
+		return ws.NewDispatcher(s.conv, s.msg, s.friend, s.user, presenceRef, friendRef, s.call, approvals[0])
+	}
 	return ws.NewDispatcher(s.conv, s.msg, s.friend, s.user, presenceRef, friendRef, s.call)
 }
 
-func initAgentDispatcher(s svcs, stores stores, engine *actor.Engine, events eventbus.Bus) *agent.AgentDispatcher {
-	hubRef, err := engine.Spawn("agent-hub", agent.NewAgentHubActor(events, stores.bot))
+func initAgentDispatcher(s svcs, stores stores, handlers *httphandler.Handlers, engine *actor.Engine, events eventbus.Bus, approvals *agent.ApprovalManager) *agent.AgentDispatcher {
+	hubRef, err := engine.Spawn("agent-hub", agent.NewAgentHubActor(events, stores.bot, stores.agent))
 	if err != nil {
 		panic(err)
+	}
+	if handlers != nil && handlers.Bot != nil {
+		handlers.Bot.SetAgentHubRef(hubRef)
 	}
 	gwRef, err := engine.Spawn("agent-gw", agent.NewAgentGatewayActor())
 	if err != nil {
@@ -279,13 +290,14 @@ func initAgentDispatcher(s svcs, stores stores, engine *actor.Engine, events eve
 
 	hubRef.Tell(agent.AgentRefResolved{GwRef: gwRef})
 
-	tools := agent.NewToolRouter(s.conv, s.msg, s.friend, s.user, stores.bot, hubRef, gwRef)
-	subscribe := agent.NewSubscribeRouter(hubRef)
+	presenceRef, _ := engine.Lookup("presence")
+	tools := agent.NewToolRouter(s.conv, s.msg, s.friend, s.user, stores.bot, stores.user, hubRef, gwRef, presenceRef, approvals)
+	subscribe := agent.NewSubscribeRouter(hubRef, stores.bot)
 
 	token := os.Getenv("AGENT_PLATFORM_TOKEN")
 	if token == "" {
 		zap.L().Warn("AGENT_PLATFORM_TOKEN not set, agent endpoints will be unavailable")
 	}
 
-	return agent.NewAgentDispatcher(tools, subscribe, hubRef, gwRef, token)
+	return agent.NewAgentDispatcher(tools, subscribe, hubRef, gwRef, stores.agent, token)
 }

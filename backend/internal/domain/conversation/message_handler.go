@@ -227,6 +227,7 @@ func (a *ConversationActor) publishMessageSent(messageID uint64, seq int64, msg 
 	_ = a.events.Publish(MessageSentEvent{
 		MessageID:      messageID,
 		ConversationID: a.convID,
+		ConvType:       int8(a.convType),
 		Seq:            seq,
 		SenderID:       msg.SenderID,
 		MemberUIDs:     append([]uint64(nil), memberUIDs...),

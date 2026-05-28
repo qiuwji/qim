@@ -27,6 +27,8 @@ func (a *ManagerActor) Receive(ctx actor.Context) {
 		a.handleCreatePrivate(ctx, msg)
 	case CreateGroupConvCmd:
 		a.handleCreateGroup(ctx, msg)
+	case CreateBotSessionCmd:
+		a.handleCreateBotSession(ctx, msg)
 	case ReadAllConvCmd:
 		a.handleReadAll(ctx, msg)
 	case PinConvCmd:
@@ -96,6 +98,41 @@ func (a *ManagerActor) handleCreatePrivate(ctx actor.Context, msg CreatePrivateC
 		ID:      conv.ID,
 		Type:    store.ConvType(conv.Type),
 		OwnerID: conv.OwnerID,
+	}})
+}
+
+func (a *ManagerActor) handleCreateBotSession(ctx actor.Context, msg CreateBotSessionCmd) {
+	now := time.Now().Unix()
+	conv := &store.ConversationRecord{
+		Type:        int8(store.ConvTypeBotSession),
+		OwnerID:     msg.OwnerUID,
+		MemberLimit: 2,
+		CreatedAt:   now,
+		UpdatedAt:   now,
+	}
+	if err := a.store.CreateConversation(conv); err != nil {
+		ctx.Reply(Result{Err: err})
+		return
+	}
+	members := []store.MemberRecord{
+		{ConversationID: conv.ID, UserID: msg.OwnerUID, Role: int8(store.MemberRoleOwner), JoinTime: now},
+		{ConversationID: conv.ID, UserID: msg.BotUID, Role: int8(store.MemberRoleRegular), JoinTime: now},
+	}
+	if err := a.store.CreateMembers(members); err != nil {
+		ctx.Reply(Result{Err: err})
+		return
+	}
+	if err := a.spawnConvActor(conv.ID); err != nil {
+		ctx.Reply(Result{Err: err})
+		return
+	}
+	ctx.Reply(Result{Data: ConversationDTO{
+		ID:          conv.ID,
+		Type:        store.ConvTypeBotSession,
+		OwnerID:     conv.OwnerID,
+		MemberCount: 2,
+		MemberLimit: 2,
+		CreatedAt:   conv.CreatedAt,
 	}})
 }
 
@@ -184,6 +221,7 @@ func (a *ManagerActor) publishGroupCreated(conv *store.ConversationRecord, msg *
 	_ = a.events.Publish(MessageSentEvent{
 		MessageID:      msg.MessageID,
 		ConversationID: conv.ID,
+		ConvType:       conv.Type,
 		Seq:            msg.Seq,
 		SenderID:       msg.SenderID,
 		MemberUIDs:     copiedMembers,

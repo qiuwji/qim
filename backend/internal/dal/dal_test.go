@@ -7,8 +7,8 @@ import (
 
 	convdomain "qim/internal/domain/conversation"
 
-	"golang.org/x/crypto/bcrypt"
 	"github.com/glebarez/sqlite"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 

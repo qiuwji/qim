@@ -1,25 +1,35 @@
 package agent
 
 import (
-	"encoding/json"
-	"errors"
-	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"qim/internal/actor"
-	"qim/internal/pkg/apperr"
+	"qim/internal/dal"
 
 	"github.com/gin-gonic/gin"
 )
 
+var agentSSEHeartbeatInterval = 30 * time.Second
+
 type AgentDispatcher struct {
-	tools         *ToolRouter
-	subscribe     *SubscribeRouter
-	gwRef         *actor.ActorRef
-	hubRef        *actor.ActorRef
-	platformToken string
+	// tools routes MCP tool calls to QIM domain actors/stores.
+	tools *ToolRouter
+
+	// subscribe routes event subscribe/unsubscribe tools to AgentHubActor.
+	subscribe *SubscribeRouter
+
+	// gwRef points to AgentGatewayActor, which owns SSE session state and rate limits.
+	gwRef *actor.ActorRef
+
+	// hubRef points to AgentHubActor, which owns event subscriptions and permission cache.
+	hubRef *actor.ActorRef
+
+	// agentStore persists MCP session metadata and validates session lifecycle.
+	agentStore dal.AgentStore
+
+	// auth validates the platform token used by external Agent clients.
+	auth PlatformAuthenticator
 }
 
 func NewAgentDispatcher(
@@ -27,226 +37,116 @@ func NewAgentDispatcher(
 	subscribe *SubscribeRouter,
 	hubRef *actor.ActorRef,
 	gwRef *actor.ActorRef,
+	agentStore dal.AgentStore,
 	platformToken string,
 ) *AgentDispatcher {
 	return &AgentDispatcher{
-		tools:         tools,
-		subscribe:     subscribe,
-		hubRef:        hubRef,
-		gwRef:         gwRef,
-		platformToken: platformToken,
+		tools:      tools,
+		subscribe:  subscribe,
+		hubRef:     hubRef,
+		gwRef:      gwRef,
+		agentStore: agentStore,
+		auth:       NewPlatformAuthenticator(platformToken),
 	}
 }
 
-type jsonRPCRequest struct {
-	JSONRPC string          `json:"jsonrpc"`
-	ID      any             `json:"id"`
-	Method  string          `json:"method"`
-	Params  json.RawMessage `json:"params,omitempty"`
-}
-
-type jsonRPCResponse struct {
-	JSONRPC string        `json:"jsonrpc"`
-	ID      any           `json:"id,omitempty"`
-	Result  any           `json:"result,omitempty"`
-	Error   *jsonRPCError `json:"error,omitempty"`
-}
-
-type jsonRPCError struct {
-	Code    int    `json:"code"`
-	Message string `json:"message"`
-}
-
 func (d *AgentDispatcher) HandlePost(c *gin.Context) {
-	token := extractBearer(c.GetHeader("Authorization"))
-	if token != d.platformToken {
-		c.JSON(http.StatusUnauthorized, jsonRPCResponse{
-			JSONRPC: "2.0",
-			Error:   &jsonRPCError{Code: -32001, Message: "unauthorized"},
-		})
+	if !d.auth.ValidHeader(c.GetHeader("Authorization")) {
+		writeJSONRPCError(c, http.StatusUnauthorized, nil, -32001, "unauthorized")
 		return
 	}
 
 	var req jsonRPCRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, jsonRPCResponse{
-			JSONRPC: "2.0",
-			Error:   &jsonRPCError{Code: -32700, Message: "parse error"},
-		})
+		writeJSONRPCError(c, http.StatusBadRequest, nil, -32700, "parse error")
 		return
 	}
 
-	result, err := d.Dispatch(req.Method, req.Params)
-	if err != nil {
-		code := -32603
-		msg := "internal error"
-		if apperr.Is(err) {
-			var appErr *apperr.Error
-			if errors.As(err, &appErr) {
-				code = toJSONRPCCode(string(appErr.Code))
-			}
-			msg = err.Error()
+	spec := d.resolveMethod(req.Method)
+	sessionID := c.GetHeader("Mcp-Session-Id")
+	if spec.requireSession && !d.validSession(sessionID) {
+		writeJSONRPCError(c, http.StatusUnauthorized, req.ID, -32001, "unauthorized")
+		return
+	}
+	if spec.rateLimited {
+		botUID, toolName := toolRateKey(req.Params)
+		if !d.checkRate(sessionID, botUID, toolName) {
+			writeJSONRPCError(c, http.StatusOK, req.ID, -32003, ErrRateLimited.Error())
+			return
 		}
-		c.JSON(http.StatusOK, jsonRPCResponse{
-			JSONRPC: "2.0",
-			ID:      req.ID,
-			Error:   &jsonRPCError{Code: code, Message: msg},
-		})
-		return
+	}
+	if spec.requireSession {
+		_ = d.touchSession(sessionID)
 	}
 
-	c.JSON(http.StatusOK, jsonRPCResponse{
-		JSONRPC: "2.0",
-		ID:      req.ID,
-		Result:  result,
-	})
+	result, err := spec.handle(sessionID, req.Params)
+	if err != nil {
+		writeJSONRPCAppError(c, req.ID, err)
+		return
+	}
+	if spec.after != nil {
+		result = spec.after(c, result)
+	}
+	writeJSONRPCResult(c, req.ID, result)
 }
 
 func (d *AgentDispatcher) HandleGet(c *gin.Context) {
-	token := extractBearer(c.GetHeader("Authorization"))
-	if token != d.platformToken {
+	sessionID := c.GetHeader("Mcp-Session-Id")
+	if !d.auth.ValidHeader(c.GetHeader("Authorization")) || !d.validSession(sessionID) {
 		c.Status(http.StatusUnauthorized)
 		return
 	}
+	_ = d.touchSession(sessionID)
 
+	prepareSSE(c)
+	d.bindSSE(sessionID, c.Writer)
+	d.runSSELoop(c, sessionID)
+}
+
+func prepareSSE(c *gin.Context) {
 	c.Header("Content-Type", "text/event-stream")
 	c.Header("Cache-Control", "no-cache")
 	c.Header("Connection", "keep-alive")
 	c.Status(http.StatusOK)
+}
 
-	w := c.Writer
-	WriteSSEConnected(w)
-
+func (d *AgentDispatcher) bindSSE(sessionID string, w gin.ResponseWriter) {
 	if d.gwRef != nil {
-		d.gwRef.Tell(SSEConnected{})
+		d.gwRef.Tell(SetupSSECmd{SessionID: sessionID, Writer: w, Flusher: w})
 	}
+	WriteSSEConnected(w)
+	if d.gwRef != nil {
+		d.gwRef.Tell(SSEConnected{SessionID: sessionID})
+	}
+}
 
-	ticker := time.NewTicker(30 * time.Second)
+func (d *AgentDispatcher) runSSELoop(c *gin.Context, sessionID string) {
+	ticker := time.NewTicker(agentSSEHeartbeatInterval)
 	defer ticker.Stop()
 	ctx := c.Request.Context()
 
 	for {
 		select {
 		case <-ctx.Done():
-			if d.gwRef != nil {
-				d.gwRef.Tell(SSEDisconnected{})
-			}
+			d.disconnectSSE(sessionID)
 			return
 		case <-ticker.C:
-			WriteSSEHeartbeat(w)
+			_ = d.touchSession(sessionID)
+			d.writeSSEHeartbeat(c.Writer, sessionID)
 		}
 	}
 }
 
-func (d *AgentDispatcher) Dispatch(method string, params json.RawMessage) (any, error) {
-	switch {
-	case method == "initialize":
-		return map[string]any{
-			"protocolVersion": "2025-03-26",
-			"capabilities": map[string]any{
-				"tools": map[string]bool{"listChanged": true},
-			},
-			"serverInfo": map[string]string{
-				"name":    "QIM-Agent",
-				"version": "1.0.0",
-			},
-		}, nil
-
-	case method == "notifications/initialized":
-		return nil, nil
-
-	case method == "tools/list":
-		return d.listTools(), nil
-
-	case method == "tools/call":
-		return d.handleToolCall(params)
-
-	default:
-		return nil, apperr.New("agent.unknown_method", fmt.Sprintf("unknown method: %s", method))
+func (d *AgentDispatcher) disconnectSSE(sessionID string) {
+	if d.gwRef != nil {
+		d.gwRef.Tell(SSEDisconnected{SessionID: sessionID})
 	}
 }
 
-func (d *AgentDispatcher) handleToolCall(params json.RawMessage) (any, error) {
-	var call struct {
-		Name      string          `json:"name"`
-		Arguments json.RawMessage `json:"arguments"`
+func (d *AgentDispatcher) writeSSEHeartbeat(w gin.ResponseWriter, sessionID string) {
+	if d.gwRef != nil {
+		d.gwRef.Tell(SSEHeartbeat{SessionID: sessionID})
+		return
 	}
-	if err := json.Unmarshal(params, &call); err != nil {
-		return nil, fmt.Errorf("invalid tool call params: %w", err)
-	}
-
-	switch call.Name {
-	case "subscribe_events":
-		return d.subscribeAndResolve("subscribe_events", call.Arguments)
-	case "unsubscribe_events":
-		return d.subscribeAndResolve("unsubscribe_events", call.Arguments)
-	default:
-		return d.tools.Resolve(call.Name, call.Arguments)
-	}
-}
-
-func (d *AgentDispatcher) subscribeAndResolve(action string, raw json.RawMessage) (any, error) {
-	switch action {
-	case "subscribe_events":
-		var p subscribeParams
-		if err := json.Unmarshal(raw, &p); err != nil {
-			return nil, err
-		}
-		return d.subscribe.Resolve(action, p)
-	case "unsubscribe_events":
-		var p unsubscribeParams
-		if err := json.Unmarshal(raw, &p); err != nil {
-			return nil, err
-		}
-		return d.subscribe.Resolve(action, p)
-	}
-	return nil, fmt.Errorf("unknown subscribe action: %s", action)
-}
-
-func (d *AgentDispatcher) listTools() any {
-	return map[string]any{
-		"tools": []map[string]any{
-			toolDef("send_message", "send a message as bot"),
-			toolDef("get_conversations", "list bot conversations"),
-			toolDef("get_messages", "fetch conversation messages"),
-			toolDef("search_messages", "search messages in a conversation"),
-			toolDef("search_all_messages", "search messages across all conversations"),
-			toolDef("get_friends", "get friend list"),
-			toolDef("get_friend_conversations", "get friend conversation info"),
-			toolDef("get_group_info", "get group chat info"),
-			toolDef("get_user", "get user info"),
-			toolDef("subscribe_events", "subscribe to events"),
-			toolDef("unsubscribe_events", "unsubscribe from events"),
-			toolDef("request_approval", "request user approval for an action"),
-		},
-	}
-}
-
-func toolDef(name, desc string) map[string]any {
-	return map[string]any{
-		"name":        name,
-		"description": desc,
-	}
-}
-
-func extractBearer(auth string) string {
-	if !strings.HasPrefix(auth, "Bearer ") {
-		return auth
-	}
-	return auth[7:]
-}
-
-var jsonRPCErrorCodes = map[string]int{
-	"agent.unauthorized":      -32001,
-	"agent.permission_denied": -32002,
-	"agent.rate_limited":      -32003,
-	"agent.bot_not_found":     -32602,
-	"agent.invalid_event":     -32602,
-}
-
-func toJSONRPCCode(code string) int {
-	if c, ok := jsonRPCErrorCodes[code]; ok {
-		return c
-	}
-	return -32603
+	WriteSSEHeartbeat(w)
 }

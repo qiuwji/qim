@@ -73,6 +73,11 @@ type CreateGroupConvCmd struct {
 	Members []uint64
 }
 
+type CreateBotSessionCmd struct {
+	OwnerUID uint64
+	BotUID   uint64
+}
+
 type SendMessageCmd struct {
 	SenderID    uint64
 	MsgType     int8
